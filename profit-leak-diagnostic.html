@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -126,9 +126,13 @@
                 <div class="download-feature"><span class="icon">✓</span><span>ROI per improvement</span></div>
                 <div class="download-feature"><span class="icon">✓</span><span>Priority ranking</span></div>
             </div>
-            <form class="email-form" id="emailForm" onsubmit="handleDownload(event)">
-                <input type="email" id="userEmail" placeholder="Enter your work email" required>
-                <button type="submit" class="btn btn-primary">📥 Download PDF</button>
+            <form class="email-form" id="emailForm" onsubmit="handleDownload(event)" style="flex-direction:column;align-items:stretch;max-width:420px;margin:0 auto;gap:0.5rem;">
+                <div style="display:flex;gap:0.5rem;width:100%;">
+                    <input type="text" id="userFirst" placeholder="First name" required style="flex:1;padding:0.75rem;background:var(--bg);border:1px solid var(--border);border-radius:0.5rem;color:var(--text);font-size:0.95rem;">
+                    <input type="text" id="userLast" placeholder="Last name" required style="flex:1;padding:0.75rem;background:var(--bg);border:1px solid var(--border);border-radius:0.5rem;color:var(--text);font-size:0.95rem;">
+                </div>
+                <input type="email" id="userEmail" placeholder="Work email" required style="width:100%;padding:0.75rem;background:var(--bg);border:1px solid var(--border);border-radius:0.5rem;color:var(--text);font-size:0.95rem;">
+                <button type="submit" class="btn btn-primary">Download PDF Report</button>
             </form>
             <div class="download-complete" id="downloadComplete">✓ Report downloaded! Check your downloads folder.</div>
         </div>
@@ -412,7 +416,11 @@ function showResults() {
 
 function handleDownload(e) {
     e.preventDefault();
-    const email = document.getElementById('userEmail').value;
+    const firstName = document.getElementById('userFirst').value.trim();
+    const lastName = document.getElementById('userLast').value.trim();
+    const email = document.getElementById('userEmail').value.trim();
+    if(!firstName||!lastName||!email) return;
+    fetch('https://formsubmit.co/ajax/m.roowala@rmidirectsupply.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name:firstName+' '+lastName,email:email,tool:'Profit Leak Diagnostic',_subject:'New Lead: '+firstName+' '+lastName+' - Profit Leak Diagnostic',message:firstName+' '+lastName+' ('+email+') completed the Profit Leak Diagnostic and downloaded their PDF report.'})}).catch(function(){});
     const leads = JSON.parse(localStorage.getItem('profitleak_leads') || '[]');
     leads.push({ email, timestamp: new Date().toISOString(), total: runningLeak, leaks, inputs: allValues });
     localStorage.setItem('profitleak_leads', JSON.stringify(leads));
