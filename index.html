@@ -11,10 +11,12 @@
         .container{max-width:900px;margin:0 auto}
         h1{font-size:2rem;margin-bottom:0.5rem;text-align:center}
         .subtitle{color:#94a3b8;text-align:center;margin-bottom:1rem}
+        .logo-header{text-align:center;margin-bottom:2rem;padding-top:1rem}
+        .logo-header img{height:48px;margin-bottom:1rem}
         .section-label{color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin:2rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid #2a2a3a}
         .tools-grid{display:grid;gap:1.25rem}
         .tool-card{background:#12121a;border:1px solid #2a2a3a;border-radius:1rem;padding:1.75rem;text-decoration:none;color:inherit;transition:all 0.2s;display:block}
-        .tool-card:hover{border-color:#6366f1;transform:translateY(-2px)}
+        .tool-card:hover{border-color:#4F46E5;transform:translateY(-2px);box-shadow:0 4px 20px rgba(79,70,229,0.15)}
         .tool-header{display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem}
         .tool-icon{width:44px;height:44px;border-radius:0.75rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
         .tool-title{font-size:1.15rem;font-weight:600}
@@ -29,6 +31,9 @@
 </head>
 <body>
 <div class="container">
+    <div class="logo-header">
+        <img src="logo.png" alt="Deep Line Operations">
+    </div>
     <h1>Distributor &amp; Logistics Toolshed</h1>
     <p class="subtitle">Free tools built for distributors and logistics operators</p>
 
@@ -132,7 +137,10 @@
     </div>
 
     <footer>
-        <p>Built by Zephyr for Mo Roowala | 6 tools | Last updated: Feb 2026</p>
+        <p style="display:flex;align-items:center;justify-content:center;gap:8px;">
+            <img src="logo-icon.png" alt="" style="height:18px;opacity:0.6;">
+            Deep Line Operations | 6 tools | Last updated: Feb 2026
+        </p>
     </footer>
 </div>
 <!-- Navigation Menu --><div id="nav-menu" style="position:fixed;top:16px;right:16px;z-index:10000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
@@ -142,7 +150,7 @@
     </button>
     <div id="nav-content" style="display:none;position:absolute;top:48px;right:0;background:#12121a;border:1px solid #2a2a3a;border-radius:12px;width:270px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.7);">
         <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:#f1f5f9;text-decoration:none;border-radius:6px;font-size:14px;border-left:3px solid #6366f1;background:rgba(99,102,241,0.08);margin-bottom:4px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 9l7-7 7 7" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/><path d="M4 8v7a1 1 0 001 1h3v-4h2v4h3a1 1 0 001-1V8" stroke="#6366f1" stroke-width="1.5"/></svg>
+            <img src="logo-icon.png" alt="" style="height:18px;width:18px;object-fit:contain;">
             <strong>All Tools</strong>
         </a>
         <div style="height:1px;background:#2a2a3a;margin:6px 4px;"></div>
