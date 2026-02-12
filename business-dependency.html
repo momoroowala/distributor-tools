@@ -580,5 +580,83 @@ function generatePDF(email) {
 
 init();
 </script>
+<!-- Navigation Menu -->
+<div id="nav-menu" style="position:fixed; top:20px; right:20px; z-index:10000; font-family:sans-serif;">
+    <button id="nav-toggle" style="background:#12121a; border:1px solid #2a2a3a; color:#f1f5f9; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(0,0,0,0.5); font-size:14px;">
+        <span style="font-size:18px;">?</span> Tools
+    </button>
+    <div id="nav-content" style="display:none; position:absolute; top:45px; right:0; background:#12121a; border:1px solid #2a2a3a; border-radius:12px; width:260px; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,0.7); overflow:hidden;">
+        <a href="index.html" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#f1f5f9; text-decoration:none; border-radius:6px; font-size:14px; transition:background 0.2s; margin-bottom:4px; border-left:3px solid #6366f1; background:rgba(99,102,241,0.05);">
+            <span style="font-size:16px;">??</span> <strong>Home (Tools Hub)</strong>
+        </a>
+        <div style="height:1px; background:#2a2a3a; margin:6px 4px;"></div>
+        <a href="ai-readiness-scorecard.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
+            <span style="font-size:16px;">??</span> AI Readiness Scorecard
+        </a>
+        <a href="profit-leak-diagnostic.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
+            <span style="font-size:16px;">??</span> Profit Leak Diagnostic
+        </a>
+        <a href="ceo-time-audit.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
+            <span style="font-size:16px;">?</span> CEO Time Audit
+        </a>
+        <a href="business-dependency.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
+            <span style="font-size:16px;">??</span> Business Dependency
+        </a>
+        <a href="rfq-parser.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
+            <span style="font-size:16px;">??</span> RFQ Parser (AI Demo)
+        </a>
+        <a href="reorder-calculator.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
+            <span style="font-size:16px;">??</span> Reorder Calculator
+        </a>
+    </div>
+</div>
+<script>
+    (function(){
+        const toggle = document.getElementById('nav-toggle');
+        const content = document.getElementById('nav-content');
+        if(!toggle || !content) return;
+        
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = content.style.display === 'block';
+            content.style.display = isVisible ? 'none' : 'block';
+            toggle.style.background = isVisible ? '#12121a' : '#1a1a25';
+        });
+        
+        document.addEventListener('click', () => {
+            content.style.display = 'none';
+            toggle.style.background = '#12121a';
+        });
+        
+        content.addEventListener('click', (e) => e.stopPropagation());
+        
+        // Hover effects
+        const links = document.querySelectorAll('.nav-link');
+        links.forEach(l => {
+            l.addEventListener('mouseenter', () => {
+                l.style.background = 'rgba(255,255,255,0.05)';
+                l.style.color = '#f1f5f9';
+            });
+            l.addEventListener('mouseleave', () => {
+                if(!l.classList.contains('active-page')) {
+                    l.style.background = 'transparent';
+                    l.style.color = '#94a3b8';
+                }
+            });
+        });
+        
+        // Highlight current page
+        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('#nav-content a').forEach(a => {
+            const href = a.getAttribute('href');
+            if(href === currentPath || (currentPath === '' && href === 'index.html')) {
+                a.classList.add('active-page');
+                a.style.background = 'rgba(255,255,255,0.1)';
+                a.style.color = '#fff';
+                a.style.fontWeight = '600';
+            }
+        });
+    })();
+</script>
 </body>
 </html>
