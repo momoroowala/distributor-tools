@@ -597,17 +597,106 @@ function generatePDF(email) {
         y += 8;
     });
 
-    // Freedom Score Target
-    cp(50);
+    // ---- 90-DAY INDEPENDENCE ROADMAP ----
+    doc.addPage(); addBg(); y = 20;
+    txt('YOUR 90-DAY INDEPENDENCE ROADMAP',16,'bold',[59,130,246]);
+    doc.text('YOUR 90-DAY INDEPENDENCE ROADMAP',pw/2,y,{align:'center'});
+    y += 15;
+
+    const criticalAreas = d.answers.filter(a=>a.score>=8).map(a=>a.category);
+    const atRiskAreas = d.answers.filter(a=>a.score>=4 && a.score<8).map(a=>a.category);
+
+    const phases = [
+        { title:'DAYS 1-14: DOCUMENT EVERYTHING', color:[239,68,68], items:[
+            'Write down every process only you know how to do. Record yourself (Loom/video) walking through each one.',
+            'Create an "If I\'m Not Here" emergency document: passwords, key contacts, vendor terms, customer quirks.',
+            criticalAreas[0] ? `Priority: Address ${criticalAreas[0]} dependency (your highest risk area).` : 'Identify and address your single highest-risk dependency.',
+            'Introduce a second team member to your top 10 customer relationships.',
+            'Set tiered decision authority: define what your team can approve without you.'
+        ]},
+        { title:'DAYS 15-30: DELEGATE & TRAIN', color:[245,158,11], items:[
+            'Assign ownership of 3-5 processes to specific team members. Written authority, not just verbal.',
+            criticalAreas[1] ? `Train team on ${criticalAreas[1]} responsibilities with structured playbooks.` : 'Create step-by-step playbooks for your most critical handoff areas.',
+            'Build a company wiki or shared drive with all SOPs and process documents.',
+            'Start weekly "knowledge transfer" sessions: teach one person one thing only you know.',
+            'Test: take one full day offline. Note everything that breaks or waits for you.'
+        ]},
+        { title:'DAYS 31-60: SYSTEMATIZE', color:[59,130,246], items:[
+            'Implement system-based controls: pricing rules, approval workflows, inventory alerts.',
+            'Create customer success processes that don\'t depend on personal relationships.',
+            atRiskAreas[0] ? `Automate or systematize ${atRiskAreas[0]} to remove your daily involvement.` : 'Automate your at-risk areas with technology and clear processes.',
+            'Standardize financial reporting. Monthly P&L and KPI reviews should run without you.',
+            'Test: take a 3-day weekend. Measure what happens vs. a normal week.'
+        ]},
+        { title:'DAYS 61-90: VERIFY & OPTIMIZE', color:[139,92,246], items:[
+            'Re-take this assessment. Compare scores area by area. Celebrate improvements.',
+            'Test: take a full week off (or simulate it). Only respond to true emergencies.',
+            'Identify your successor or #2. Start including them in all strategic discussions.',
+            'Create a formal business continuity plan: what happens if you\'re out for 30, 60, 90 days.',
+            `Target: reduce your Owner Dependency Index from ${d.totalScore} to below ${Math.max(20, d.totalScore - 30)}.`
+        ]}
+    ];
+
+    phases.forEach(phase => {
+        cp(50);
+        doc.setFillColor(...phase.color);
+        doc.roundedRect(m,y,cw,8,2,2,'F');
+        txt(phase.title,10,'bold',[255,255,255]);
+        doc.text(phase.title,m+4,y+6);
+        y += 12;
+
+        phase.items.forEach(item => {
+            cp(14);
+            txt(item,8,'normal',[60,60,60]);
+            const lines = doc.splitTextToSize('  '+item,cw-10);
+            doc.text(lines,m+5,y);
+            y += lines.length*4+3;
+        });
+        y += 8;
+    });
+
+    // ---- BUSINESS VALUATION IMPACT ----
+    cp(70);
     y += 5;
+    txt('WHY THIS MATTERS: BUSINESS VALUE',14,'bold',[59,130,246]);
+    doc.text('WHY THIS MATTERS: BUSINESS VALUE',pw/2,y,{align:'center'});
+    y += 12;
+
+    doc.setFillColor(240,245,255);
+    doc.roundedRect(m,y,cw,55,3,3,'F');
+    doc.setDrawColor(59,130,246);
+    doc.roundedRect(m,y,cw,55,3,3,'S');
+
+    txt('Owner dependency directly impacts what your business is worth.',9,'bold',[50,50,50]);
+    doc.text('Owner dependency directly impacts what your business is worth.',pw/2,y+10,{align:'center'});
+
+    const valData = [
+        'Owner-dependent businesses sell for 2-3x earnings (if they sell at all).',
+        'Systematized businesses sell for 4-6x earnings, sometimes higher.',
+        'Buyers pay a premium for businesses that run without the founder.',
+        'Every process you document and delegate increases your company\'s transferability.',
+        `Your current score of ${d.totalScore}/100 suggests ${d.totalScore >= 70 ? 'significant valuation risk from owner dependency.' : d.totalScore >= 40 ? 'moderate transferability. Room for improvement.' : 'good independence. Your business has strong transfer value.'}`
+    ];
+
+    let valY = y + 18;
+    valData.forEach(item => {
+        txt(item,8,'normal',[60,60,60]);
+        const lines = doc.splitTextToSize('  '+item,cw-14);
+        doc.text(lines,m+5,valY);
+        valY += lines.length*4+2;
+    });
+    y += 65;
+
+    // Freedom Score Target
+    cp(40);
     doc.setFillColor(240,255,240);
     doc.roundedRect(m,y,cw,35,3,3,'F');
     doc.setDrawColor(34,197,94);
     doc.roundedRect(m,y,cw,35,3,3,'S');
     txt('YOUR TARGET: OWNER DEPENDENCY INDEX OF 20 OR BELOW',11,'bold',[34,197,94]);
     doc.text('YOUR TARGET: OWNER DEPENDENCY INDEX OF 20 OR BELOW',pw/2,y+12,{align:'center'});
-    txt('At this score, you can take a month off and your business thrives.',10,'normal',[50,80,50]);
-    doc.text('At this score, you can take a month off and your business thrives.',pw/2,y+22,{align:'center'});
+    txt('At that score, you can take a month off and your business thrives.',10,'normal',[50,80,50]);
+    doc.text('At that score, you can take a month off and your business thrives.',pw/2,y+22,{align:'center'});
     txt('You choose to be there, not because you have to be.',10,'normal',[50,80,50]);
     doc.text('You choose to be there, not because you have to be.',pw/2,y+30,{align:'center'});
     y += 45;
