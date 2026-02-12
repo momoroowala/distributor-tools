@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dependency Score | What If You Left Tomorrow?</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a25;--accent:#3b82f6;--accent-hover:#60a5fa;--accent-light:rgba(59,130,246,0.1);--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#2a2a3a;--success:#22c55e;--warning:#f59e0b;--danger:#ef4444}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.6}
+        .container{max-width:700px;margin:0 auto;padding:2rem}
+        header{text-align:center;margin-bottom:2rem;padding-top:2rem}
+        .badge{display:inline-block;background:var(--accent);color:white;padding:0.25rem 0.75rem;border-radius:9999px;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem}
+        h1{font-size:2.1rem;font-weight:700;margin-bottom:0.75rem;background:linear-gradient(135deg,var(--text-primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .subtitle{color:var(--text-secondary);font-size:1.05rem;max-width:530px;margin:0 auto}
+        .scenario-box{background:var(--bg-secondary);border:1px solid var(--danger);border-radius:1rem;padding:1.5rem;margin-bottom:2rem;text-align:center}
+        .scenario-box .icon{font-size:2rem;margin-bottom:0.5rem}
+        .scenario-box p{color:var(--text-secondary);font-size:0.95rem}
+        .scenario-box strong{color:var(--danger)}
+        .progress-container{background:var(--bg-secondary);border:1px solid var(--border);border-radius:1rem;padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+        .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem}
+        .progress-label{font-size:0.8rem;color:var(--text-muted)}
+        .progress-count{font-size:0.8rem;color:var(--accent);font-weight:600}
+        .progress-bar{height:6px;background:var(--bg-tertiary);border-radius:9999px;overflow:hidden}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-hover));border-radius:9999px;transition:width 0.3s}
+        .q-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:1rem;padding:2rem;display:none}
+        .q-card.active{display:block;animation:slideIn 0.3s ease}
+        @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        .q-category{display:inline-block;background:var(--accent-light);color:var(--accent);padding:0.2rem 0.6rem;border-radius:0.25rem;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem}
+        .q-text{font-size:1.15rem;font-weight:600;margin-bottom:1.25rem;line-height:1.35}
+        .options{display:flex;flex-direction:column;gap:0.75rem}
+        .option{background:var(--bg-tertiary);border:2px solid var(--border);border-radius:0.75rem;padding:1rem 1.25rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:1rem}
+        .option:hover{border-color:var(--accent);background:var(--accent-light)}
+        .option.selected{border-color:var(--accent);background:var(--accent-light)}
+        .option-indicator{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+        .option.selected .option-indicator{background:var(--accent);border-color:var(--accent)}
+        .option.selected .option-indicator::after{content:'';width:8px;height:8px;background:white;border-radius:50%}
+        .option-text{font-size:0.95rem}
+        .risk-tag{font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:9999px;margin-left:auto;flex-shrink:0}
+        .risk-tag.high{background:rgba(239,68,68,0.2);color:var(--danger)}
+        .risk-tag.medium{background:rgba(245,158,11,0.2);color:var(--warning)}
+        .risk-tag.low{background:rgba(34,197,94,0.2);color:var(--success)}
+        .nav-buttons{display:flex;gap:1rem;margin-top:1.5rem}
+        .btn{flex:1;padding:0.875rem 1.25rem;border-radius:0.5rem;font-weight:600;font-size:0.95rem;cursor:pointer;transition:all 0.2s;border:none}
+        .btn-primary{background:var(--accent);color:white}
+        .btn-primary:hover{background:var(--accent-hover)}
+        .btn-secondary{background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border)}
+        .btn-secondary:hover{background:var(--border);color:var(--text-primary)}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        /* Results */
+        .results-page{display:none}
+        .results-page.active{display:block;animation:fadeIn 0.4s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .score-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:1rem;padding:2.5rem;text-align:center;margin-bottom:2rem}
+        .gauge{width:180px;height:90px;margin:0 auto 1rem;position:relative;overflow:hidden}
+        .gauge-bg{width:180px;height:90px;border-radius:90px 90px 0 0;background:conic-gradient(from 0.75turn at 50% 100%,var(--success) 0%,var(--warning) 40%,var(--danger) 80%);position:absolute;top:0}
+        .gauge-needle{width:4px;height:80px;background:white;position:absolute;bottom:0;left:50%;transform-origin:bottom center;transform:translateX(-50%) rotate(-90deg);transition:transform 1s ease;border-radius:2px}
+        .gauge-center{width:20px;height:20px;background:var(--bg-secondary);border-radius:50%;position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:3px solid white}
+        .score-number{font-size:3rem;font-weight:700;line-height:1}
+        .score-label{font-size:0.85rem;color:var(--text-muted);margin-top:0.25rem}
+        .score-verdict{font-size:1.4rem;font-weight:600;margin-top:0.75rem}
+        .score-desc{color:var(--text-secondary);max-width:450px;margin:0.5rem auto 0;font-size:0.95rem}
+        .risk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:2rem}
+        .risk-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:0.75rem;padding:1.25rem}
+        .risk-card h4{font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em}
+        .risk-card .score{font-size:1.75rem;font-weight:700;line-height:1}
+        .risk-card .detail{font-size:0.8rem;color:var(--text-secondary);margin-top:0.25rem}
+        .scenarios{background:var(--bg-secondary);border:1px solid var(--border);border-radius:1rem;padding:2rem;margin-bottom:2rem}
+        .scenarios h3{font-size:1.1rem;margin-bottom:1rem}
+        .scenario-item{padding:1rem;background:var(--bg-tertiary);border-radius:0.75rem;margin-bottom:0.75rem}
+        .scenario-item:last-child{margin-bottom:0}
+        .scenario-item h4{font-size:0.95rem;margin-bottom:0.25rem}
+        .scenario-item p{font-size:0.85rem;color:var(--text-secondary)}
+        .download-section{background:linear-gradient(135deg,var(--accent-light),var(--bg-secondary));border:2px solid var(--accent);border-radius:1rem;padding:2.5rem;text-align:center;margin-bottom:2rem}
+        .download-section h3{font-size:1.4rem;margin-bottom:0.5rem}
+        .download-section>p{color:var(--text-secondary);margin-bottom:1.5rem}
+        .download-features{display:flex;justify-content:center;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+        .download-feature{display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;color:var(--text-secondary)}
+        .download-feature .icon{color:var(--success)}
+        .email-form{display:flex;gap:0.75rem;max-width:450px;margin:0 auto;flex-wrap:wrap}
+        .email-form input[type="email"]{flex:1;min-width:200px;padding:0.875rem 1rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:0.5rem;color:var(--text-primary);font-size:1rem}
+        .email-form input:focus{outline:none;border-color:var(--accent)}
+        .email-form .btn{flex:none;min-width:180px}
+        .download-complete{display:none;color:var(--success);padding:1rem;font-size:1rem}
+        .download-complete.active{display:block}
+        footer{text-align:center;padding:2rem;color:var(--text-muted);font-size:0.875rem}
+        footer a{color:var(--accent);text-decoration:none}
+        @media(max-width:640px){.container{padding:1rem}h1{font-size:1.65rem}.score-number{font-size:2.25rem}.risk-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <span class="badge">Free Assessment</span>
+        <h1>What If You Left Tomorrow?</h1>
+        <p class="subtitle">How long would your business survive without you? This 10-question assessment reveals your single points of failure.</p>
+    </header>
+
+    <div class="scenario-box">
+        <div class="icon">⚠️</div>
+        <p>Imagine you had a medical emergency and <strong>couldn't work for 30 days</strong>. What would happen to your business? Let's find out.</p>
+    </div>
+
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-header">
+            <span class="progress-label">Assessment Progress</span>
+            <span class="progress-count"><span id="currentQ">1</span> of <span id="totalQ">10</span></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:10%"></div></div>
+    </div>
+
+    <div id="questionsContainer"></div>
+
+    <div class="results-page" id="resultsPage">
+        <div class="score-card">
+            <div class="gauge" id="gauge">
+                <div class="gauge-bg"></div>
+                <div class="gauge-needle" id="needle"></div>
+                <div class="gauge-center"></div>
+            </div>
+            <div class="score-number" id="totalScore">0</div>
+            <div class="score-label">Owner Dependency Index (out of 100)</div>
+            <div class="score-verdict" id="verdict"></div>
+            <div class="score-desc" id="verdictDesc"></div>
+        </div>
+
+        <div class="risk-grid" id="riskGrid"></div>
+
+        <div class="scenarios" id="scenariosSection">
+            <h3>What Would Actually Happen</h3>
+            <div id="scenariosList"></div>
+        </div>
+
+        <div class="download-section">
+            <h3>📄 Get Your Independence Roadmap</h3>
+            <p>Download a detailed PDF with specific steps to reduce your dependency score, build a business that runs without you, and create real freedom.</p>
+            <div class="download-features">
+                <div class="download-feature"><span class="icon">✓</span><span>Risk-by-risk action plan</span></div>
+                <div class="download-feature"><span class="icon">✓</span><span>Succession readiness checklist</span></div>
+                <div class="download-feature"><span class="icon">✓</span><span>90-day freedom roadmap</span></div>
+            </div>
+            <form class="email-form" id="emailForm" onsubmit="handleDownload(event)">
+                <input type="email" id="userEmail" placeholder="Enter your work email" required>
+                <button type="submit" class="btn btn-primary">📥 Download PDF</button>
+            </form>
+            <div class="download-complete" id="downloadComplete">✓ Report downloaded! Check your downloads folder.</div>
+        </div>
+    </div>
+    <footer><p>Built by <a href="#">Mo Roowala</a> | AI Automation for Distributors</p></footer>
+</div>
+<script>
+const { jsPDF } = window.jspdf;
+
+const questions = [
+    {
+        category: "Operations",
+        question: "If you didn't show up for a week, could orders still ship correctly?",
+        options: [
+            { text: "No, I approve most orders or handle key accounts personally", score: 10, risk: "high" },
+            { text: "Some would, but big orders would stall", score: 6, risk: "medium" },
+            { text: "Yes, my team handles day-to-day order flow", score: 2, risk: "low" }
+        ]
+    },
+    {
+        category: "Pricing",
+        question: "Does anyone else know your top customers' special pricing arrangements?",
+        options: [
+            { text: "No, it's mostly in my head or my email", score: 10, risk: "high" },
+            { text: "Some is documented, but I'm the final authority", score: 6, risk: "medium" },
+            { text: "Yes, pricing rules are in our system and team knows them", score: 2, risk: "low" }
+        ]
+    },
+    {
+        category: "Knowledge",
+        question: "How much critical business knowledge exists only in your head?",
+        options: [
+            { text: "A lot: supplier contacts, customer history, process workarounds", score: 10, risk: "high" },
+            { text: "Some things, but key processes are documented", score: 5, risk: "medium" },
+            { text: "Very little, we've documented everything important", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Decisions",
+        question: "How many daily decisions require your personal approval?",
+        options: [
+            { text: "Most: pricing, purchasing, hiring, complaints, exceptions", score: 10, risk: "high" },
+            { text: "Several key ones, team handles the routine stuff", score: 5, risk: "medium" },
+            { text: "Very few, I've empowered my team with clear guidelines", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Relationships",
+        question: "How many of your top 10 customers have a relationship with your company beyond just you?",
+        options: [
+            { text: "Most call me directly for everything", score: 10, risk: "high" },
+            { text: "Half have other contacts, half rely on me", score: 5, risk: "medium" },
+            { text: "All of them work with my team; I'm involved strategically", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Financial",
+        question: "Could your business get a bank loan or be acquired based on documented processes and systems?",
+        options: [
+            { text: "Honestly, no. It runs on tribal knowledge and relationships", score: 10, risk: "high" },
+            { text: "Partially. Some things are documented, but gaps exist", score: 5, risk: "medium" },
+            { text: "Yes, we have SOPs, documented systems, and transferable processes", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Suppliers",
+        question: "Could your team handle a major supplier price change or disruption without you?",
+        options: [
+            { text: "No, I negotiate everything and make all supplier decisions", score: 10, risk: "high" },
+            { text: "For routine changes yes, but crises need me", score: 5, risk: "medium" },
+            { text: "Yes, we have processes and backup plans documented", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Technology",
+        question: "If a key system went down, who would fix it or manage the crisis?",
+        options: [
+            { text: "Me. I'm the only one who understands how everything connects", score: 10, risk: "high" },
+            { text: "We have some IT support, but I'd need to guide them", score: 5, risk: "medium" },
+            { text: "Our IT team or vendor handles it with documented procedures", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Team",
+        question: "Is there someone who could step in as acting leader for 30 days?",
+        options: [
+            { text: "No one could fill my role, even temporarily", score: 10, risk: "high" },
+            { text: "Someone could handle basics, but not the full scope", score: 5, risk: "medium" },
+            { text: "Yes, I have a capable #2 who knows the business well", score: 1, risk: "low" }
+        ]
+    },
+    {
+        category: "Growth",
+        question: "Could your business grow 20% next year if you stepped back to part-time?",
+        options: [
+            { text: "Impossible. I AM the growth engine", score: 10, risk: "high" },
+            { text: "It would plateau, but not collapse", score: 5, risk: "medium" },
+            { text: "Yes, the systems and team could drive growth without me", score: 1, risk: "low" }
+        ]
+    }
+];
+
+let currentQuestion = 0;
+let answers = [];
+
+function init() {
+    document.getElementById('totalQ').textContent = questions.length;
+    renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+    const q = questions[idx];
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = `
+        <div class="q-card active">
+            <span class="q-category">${q.category}</span>
+            <h2 class="q-text">${q.question}</h2>
+            <div class="options">
+                ${q.options.map((o,i) => `
+                    <div class="option" onclick="selectOption(${i})" data-idx="${i}">
+                        <div class="option-indicator"></div>
+                        <span class="option-text">${o.text}</span>
+                        <span class="risk-tag ${o.risk}">${o.risk} risk</span>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="prevQ()" ${idx===0?'disabled':''}>← Back</button>
+                <button class="btn btn-primary" onclick="nextQ()" id="nextBtn" disabled>${idx===questions.length-1?'See My Score':'Next →'}</button>
+            </div>
+        </div>`;
+
+    if (answers[idx] !== undefined) {
+        document.querySelectorAll('.option')[answers[idx].optionIndex].classList.add('selected');
+        document.getElementById('nextBtn').disabled = false;
+    }
+    document.getElementById('currentQ').textContent = idx + 1;
+    document.getElementById('progressFill').style.width = ((idx+1)/questions.length*100) + '%';
+}
+
+function selectOption(optIdx) {
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.option')[optIdx].classList.add('selected');
+    const q = questions[currentQuestion];
+    answers[currentQuestion] = {
+        optionIndex: optIdx,
+        score: q.options[optIdx].score,
+        risk: q.options[optIdx].risk,
+        category: q.category,
+        question: q.question,
+        answer: q.options[optIdx].text
+    };
+    document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQ() {
+    if (currentQuestion < questions.length-1) { currentQuestion++; renderQuestion(currentQuestion); }
+    else showResults();
+}
+
+function prevQ() {
+    if (currentQuestion > 0) { currentQuestion--; renderQuestion(currentQuestion); }
+}
+
+function showResults() {
+    document.getElementById('questionsContainer').style.display = 'none';
+    document.getElementById('progressContainer').style.display = 'none';
+    document.querySelector('.scenario-box').style.display = 'none';
+    document.getElementById('resultsPage').classList.add('active');
+
+    const totalScore = answers.reduce((s,a) => s+a.score, 0);
+    document.getElementById('totalScore').textContent = totalScore;
+
+    // Gauge needle
+    const needleAngle = -90 + (totalScore/100)*180;
+    setTimeout(() => {
+        document.getElementById('needle').style.transform = `translateX(-50%) rotate(${needleAngle}deg)`;
+    }, 200);
+
+    let verdict, verdictDesc, scoreColor;
+    if (totalScore >= 80) {
+        verdict = "Your business can't survive without you";
+        verdictDesc = "You don't own a business. You own a job you can never leave. Every major function depends on you personally.";
+        scoreColor = [239,68,68];
+    } else if (totalScore >= 60) {
+        verdict = "High dependency, major risks";
+        verdictDesc = "Your business would struggle significantly within days of your absence. Several critical functions have no backup.";
+        scoreColor = [245,158,11];
+    } else if (totalScore >= 40) {
+        verdict = "Moderate dependency, some risks";
+        verdictDesc = "Your team could keep things running short-term, but growth would stop and problems would pile up.";
+        scoreColor = [245,158,11];
+    } else {
+        verdict = "Well-built, low dependency";
+        verdictDesc = "Your business has strong systems and capable people. You could step back and it would continue to operate.";
+        scoreColor = [34,197,94];
+    }
+
+    const verdictEl = document.getElementById('verdict');
+    verdictEl.textContent = verdict;
+    verdictEl.style.color = `rgb(${scoreColor.join(',')})`;
+    document.getElementById('totalScore').style.color = `rgb(${scoreColor.join(',')})`;
+    document.getElementById('verdictDesc').textContent = verdictDesc;
+
+    // Risk categories
+    const cats = {};
+    answers.forEach(a => {
+        if (!cats[a.category]) cats[a.category] = {total:0,count:0,risks:[]};
+        cats[a.category].total += a.score;
+        cats[a.category].count++;
+        cats[a.category].risks.push(a);
+    });
+
+    const riskGrid = document.getElementById('riskGrid');
+    riskGrid.innerHTML = Object.entries(cats).map(([cat,data]) => {
+        const avg = data.total / data.count;
+        const color = avg >= 8 ? 'var(--danger)' : avg >= 4 ? 'var(--warning)' : 'var(--success)';
+        const level = avg >= 8 ? 'Critical' : avg >= 4 ? 'At Risk' : 'Healthy';
+        return `<div class="risk-card">
+            <h4>${cat}</h4>
+            <div class="score" style="color:${color}">${level}</div>
+            <div class="detail">${data.risks[0].answer.substring(0,60)}...</div>
+        </div>`;
+    }).join('');
+
+    // Scenarios
+    const highRisks = answers.filter(a => a.score >= 8);
+    const scenariosList = document.getElementById('scenariosList');
+    
+    const scenarioTexts = {
+        Operations: { title: "Orders would stall or ship wrong", desc: "Without you approving and overseeing, order accuracy drops and key accounts don't get their special handling. Within a week, your biggest customers start calling." },
+        Pricing: { title: "Margin would hemorrhage", desc: "Nobody knows the special pricing arrangements. Reps either overprice (losing deals) or underprice (losing margin). Either way, money walks out the door." },
+        Knowledge: { title: "Institutional knowledge would be lost", desc: "All those supplier workarounds, customer preferences, and process shortcuts that only you know? Gone. Your team would be learning from scratch." },
+        Decisions: { title: "Everything would bottleneck", desc: "Without your approval, work piles up. Team members either freeze (waiting for you) or guess wrong. Both cost money and trust." },
+        Relationships: { title: "Key accounts would feel abandoned", desc: "Your best customers have a relationship with YOU, not your company. If you disappear, so does their loyalty. Competitors would circle." },
+        Financial: { title: "Business value would plummet", desc: "Without documented processes, no buyer or lender would touch this business. Your life's work has no transferable value." },
+        Suppliers: { title: "Supply chain disruptions would spiral", desc: "Without your supplier relationships and negotiation skills, the team can't handle price changes or shortages effectively." },
+        Technology: { title: "System issues would become crises", desc: "Nobody else understands how the systems connect. A routine IT issue becomes a multi-day outage." },
+        Team: { title: "No one could lead", desc: "Without a clear #2, the team lacks direction. Politics emerge. Your best people start updating their resumes." },
+        Growth: { title: "Growth would flatline immediately", desc: "You are the growth engine. Without you, the business can only maintain, not grow. Over time, maintaining becomes shrinking." }
+    };
+
+    scenariosList.innerHTML = highRisks.map(a => {
+        const s = scenarioTexts[a.category];
+        return s ? `<div class="scenario-item"><h4>⚠️ ${s.title}</h4><p>${s.desc}</p></div>` : '';
+    }).join('');
+
+    if (highRisks.length === 0) {
+        scenariosList.innerHTML = '<div class="scenario-item"><h4>✅ Low Risk Profile</h4><p>Your business is well-positioned to operate independently. Focus on continuous improvement and succession planning.</p></div>';
+    }
+
+    window.depData = { totalScore, answers, cats, highRisks, verdict, scoreColor };
+}
+
+function handleDownload(e) {
+    e.preventDefault();
+    const email = document.getElementById('userEmail').value;
+    const leads = JSON.parse(localStorage.getItem('dependency_leads') || '[]');
+    leads.push({ email, timestamp: new Date().toISOString(), score: window.depData.totalScore, answers });
+    localStorage.setItem('dependency_leads', JSON.stringify(leads));
+    generatePDF(email);
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('downloadComplete').classList.add('active');
+}
+
+function generatePDF(email) {
+    const d = window.depData;
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    const m = 20, cw = pw - 2*m;
+    let y = 0;
+
+    const txt = (text,size,style='normal',color=[40,40,40]) => { doc.setFontSize(size); doc.setFont('helvetica',style); doc.setTextColor(...color); };
+    const addBg = () => { doc.setFillColor(248,249,251); doc.rect(0,0,pw,297,'F'); };
+    const cp = (need=25) => { if(y+need>268){doc.addPage();addBg();y=18;} };
+
+    // Cover
+    addBg();
+    doc.setFillColor(30,30,42);
+    doc.rect(0,0,pw,48,'F');
+    txt('BUSINESS DEPENDENCY REPORT',20,'bold',[255,255,255]);
+    doc.text('BUSINESS DEPENDENCY REPORT',pw/2,18,{align:'center'});
+    txt('What If You Left Tomorrow?',10,'normal',[180,180,200]);
+    doc.text('What If You Left Tomorrow?',pw/2,28,{align:'center'});
+    txt(`${email} | ${new Date().toLocaleDateString()}`,8,'normal',[140,140,160]);
+    doc.text(`${email} | ${new Date().toLocaleDateString()}`,pw/2,38,{align:'center'});
+
+    y = 58;
+
+    // Score
+    const scoreCol = d.totalScore >= 80 ? [239,68,68] : d.totalScore >= 60 ? [245,158,11] : d.totalScore >= 40 ? [245,158,11] : [34,197,94];
+    doc.setFillColor(245,248,255);
+    doc.roundedRect(m,y,cw,40,3,3,'F');
+    doc.setDrawColor(...scoreCol);
+    doc.roundedRect(m,y,cw,40,3,3,'S');
+    txt('OWNER DEPENDENCY INDEX',10,'bold',scoreCol);
+    doc.text('OWNER DEPENDENCY INDEX',pw/2,y+10,{align:'center'});
+    txt(d.totalScore.toString()+' / 100',28,'bold',scoreCol);
+    doc.text(d.totalScore.toString()+' / 100',pw/2,y+27,{align:'center'});
+    txt(d.verdict,10,'normal',[100,100,100]);
+    doc.text(d.verdict,pw/2,y+36,{align:'center'});
+    y += 55;
+
+    // Risk assessment
+    txt('RISK ASSESSMENT BY AREA',14,'bold',[30,30,30]);
+    doc.text('RISK ASSESSMENT BY AREA',m,y);
+    y += 10;
+
+    d.answers.forEach(a => {
+        cp(18);
+        const rColor = a.score >= 8 ? [239,68,68] : a.score >= 4 ? [245,158,11] : [34,197,94];
+        const level = a.score >= 8 ? 'CRITICAL' : a.score >= 4 ? 'AT RISK' : 'HEALTHY';
+        
+        doc.setFillColor(...rColor);
+        doc.roundedRect(m,y,5,5,1,1,'F');
+        txt(a.category.toUpperCase(),9,'bold',[50,50,50]);
+        doc.text(a.category.toUpperCase(),m+10,y+4);
+        txt(level,8,'bold',rColor);
+        doc.text(level,pw-m,y+4,{align:'right'});
+        y += 7;
+        txt(a.answer,8,'normal',[100,100,100]);
+        const lines = doc.splitTextToSize(a.answer, cw-10);
+        doc.text(lines,m+10,y);
+        y += lines.length*4+5;
+    });
+
+    // Independence Roadmap
+    doc.addPage();
+    y = 20;
+    txt('YOUR INDEPENDENCE ROADMAP',16,'bold',[59,130,246]);
+    doc.text('YOUR INDEPENDENCE ROADMAP',pw/2,y,{align:'center'});
+    y += 5;
+    txt('How to build a business that thrives without you',10,'normal',[100,100,100]);
+    doc.text('How to build a business that thrives without you',pw/2,y+5,{align:'center'});
+    y += 18;
+
+    const roadmap = {
+        Operations: {
+            title: "Systematize Operations",
+            steps: [
+                "Document your order handling process step by step. Include every exception and workaround you do.",
+                "Create tiered approval rules: orders under $X auto-approve, $X-$Y need manager, only $Y+ need you.",
+                "Train two team members on key account handling. Have them shadow you on calls for 2 weeks.",
+                "Implement order tracking dashboards so the team can self-monitor without asking you for status."
+            ]
+        },
+        Pricing: {
+            title: "Codify Pricing Knowledge",
+            steps: [
+                "Document every special pricing arrangement in a single spreadsheet or system. No exceptions.",
+                "Create a pricing matrix by customer tier, product category, and volume. Make rules, not gut calls.",
+                "Train sales team on the matrix. Role-play scenarios. Test them with real quoting exercises.",
+                "Implement system-based pricing with approval workflows. Your price rules should outlive your involvement."
+            ]
+        },
+        Knowledge: {
+            title: "Transfer Institutional Knowledge",
+            steps: [
+                "Record yourself explaining key processes (use Loom or similar). 5-minute videos for each critical workflow.",
+                "Create an 'If I'm Not Here' document for your top person. Cover: key suppliers, system passwords, customer quirks, emergency contacts.",
+                "Build a company wiki or shared drive with all SOPs, contact lists, and process documents.",
+                "Schedule monthly 'knowledge transfer' sessions where you teach one team member one thing only you know."
+            ]
+        },
+        Decisions: {
+            title: "Distribute Decision Authority",
+            steps: [
+                "List every decision type you make in a typical week. Categorize: must be me, could be delegated, should be automated.",
+                "For each delegatable decision, write a clear decision framework with criteria and limits.",
+                "Formally authorize team members to make specific decisions. Put it in writing so they feel empowered.",
+                "Start with low-risk decisions. As trust builds over 60-90 days, expand their authority gradually."
+            ]
+        },
+        Relationships: {
+            title: "Build Multi-Threaded Relationships",
+            steps: [
+                "Introduce a second team member to every top-10 customer within the next 30 days.",
+                "Have that team member attend your next meeting/call with each key account. Warm handoff.",
+                "Transition routine communication to the team member. Keep strategic conversations for yourself.",
+                "Create customer success processes that don't depend on personal relationships for retention."
+            ]
+        },
+        Financial: {
+            title: "Document for Transferability",
+            steps: [
+                "Create a business operations manual. Start with the 10 most critical processes.",
+                "Standardize financial reporting. Monthly P&L, cash flow, and KPI reviews should run without you.",
+                "Document your vendor agreements, lease terms, and legal obligations in one accessible location.",
+                "Get a business valuation. Understanding your transferability gaps makes them real and urgent."
+            ]
+        },
+        Suppliers: {
+            title: "Systematize Supplier Management",
+            steps: [
+                "Document all supplier contacts, terms, and negotiation history in a shared system.",
+                "Create a supplier scorecard and review process that your team can run.",
+                "Develop backup supplier relationships for critical products. Reduce single-source dependency.",
+                "Build a price change response playbook: when supplier raises prices, here's the step-by-step response."
+            ]
+        },
+        Technology: {
+            title: "Reduce Tech Dependency on You",
+            steps: [
+                "Document all system integrations and how they connect. Draw a simple diagram.",
+                "Establish a relationship with an IT support company or MSP for emergencies.",
+                "Cross-train at least one team member on basic system administration.",
+                "Create runbooks for common system issues: 'If X breaks, do Y.'"
+            ]
+        },
+        Team: {
+            title: "Develop Your #2",
+            steps: [
+                "Identify your strongest leader. Start including them in strategic discussions immediately.",
+                "Delegate one area of full responsibility to them. Let them own it completely for 90 days.",
+                "Give them visibility into financials and business metrics. They can't lead what they can't see.",
+                "Create a formal succession plan. Even a simple one-page document changes the dynamic."
+            ]
+        },
+        Growth: {
+            title: "Build Growth Systems",
+            steps: [
+                "Document your sales process. How do leads come in? How are they qualified? How are deals closed?",
+                "Train team members on business development activities you currently do alone.",
+                "Create marketing systems that generate leads without your personal network being the only source.",
+                "Set growth targets with clear accountability. Your team should own numbers, not just tasks."
+            ]
+        }
+    };
+
+    d.answers.sort((a,b) => b.score - a.score).forEach(a => {
+        const plan = roadmap[a.category];
+        if (!plan) return;
+        cp(55);
+
+        const rColor = a.score >= 8 ? [239,68,68] : a.score >= 4 ? [245,158,11] : [34,197,94];
+        doc.setFillColor(...rColor);
+        doc.roundedRect(m,y,cw,10,2,2,'F');
+        txt(plan.title.toUpperCase(),10,'bold',[255,255,255]);
+        doc.text(plan.title.toUpperCase(),m+5,y+7);
+        const riskLabel = a.score >= 8 ? 'CRITICAL' : a.score >= 4 ? 'AT RISK' : 'HEALTHY';
+        txt(riskLabel,9,'bold',[255,255,255]);
+        doc.text(riskLabel,pw-m-5,y+7,{align:'right'});
+        y += 15;
+
+        plan.steps.forEach(step => {
+            cp(14);
+            txt(step,8,'normal',[60,60,60]);
+            const lines = doc.splitTextToSize('  '+step,cw-10);
+            doc.text(lines,m+5,y);
+            y += lines.length*4+3;
+        });
+        y += 8;
+    });
+
+    // Freedom Score Target
+    cp(50);
+    y += 5;
+    doc.setFillColor(240,255,240);
+    doc.roundedRect(m,y,cw,35,3,3,'F');
+    doc.setDrawColor(34,197,94);
+    doc.roundedRect(m,y,cw,35,3,3,'S');
+    txt('YOUR TARGET: OWNER DEPENDENCY INDEX OF 20 OR BELOW',11,'bold',[34,197,94]);
+    doc.text('YOUR TARGET: OWNER DEPENDENCY INDEX OF 20 OR BELOW',pw/2,y+12,{align:'center'});
+    txt('At this score, you can take a month off and your business thrives.',10,'normal',[50,80,50]);
+    doc.text('At this score, you can take a month off and your business thrives.',pw/2,y+22,{align:'center'});
+    txt('You choose to be there, not because you have to be.',10,'normal',[50,80,50]);
+    doc.text('You choose to be there, not because you have to be.',pw/2,y+30,{align:'center'});
+    y += 45;
+
+    // CTA
+    cp(40);
+    doc.setFillColor(30,30,42);
+    doc.roundedRect(m,y,cw,35,3,3,'F');
+    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",13,'bold',[255,255,255]);
+    doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+11,{align:'center'});
+    txt("Let's create the systems and automation that set you free.",9,'normal',[180,180,200]);
+    doc.text("Let's create the systems and automation that set you free.",pw/2,y+20,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',[245,200,80]);
+    doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+
+    // Footer
+    const pc = doc.internal.getNumberOfPages();
+    for(let i=1;i<=pc;i++){
+        doc.setPage(i);
+        doc.setFillColor(30,30,42);
+        doc.rect(0,287,pw,10,'F');
+        txt('Mo Roowala | Deep Line Operations | AI Automation for Distributors',7,'normal',[130,130,150]);
+        doc.text('Mo Roowala | Deep Line Operations | AI Automation for Distributors',pw/2,292,{align:'center'});
+    }
+
+    doc.save('Business-Dependency-Report.pdf');
+}
+
+init();
+</script>
+</body>
+</html>

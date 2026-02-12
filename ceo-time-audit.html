@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEO Time Audit | What's Eating Your Week?</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--card:#12121a;--cell:#1a1a25;--border:#2a2a3a;--text:#f1f5f9;--muted:#94a3b8;--dim:#64748b}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+        .container{max-width:960px;margin:0 auto;padding:1.5rem}
+        header{text-align:center;margin-bottom:1.5rem;padding-top:1rem}
+        .badge{display:inline-block;background:#f59e0b;color:#000;padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem}
+        h1{font-size:2rem;font-weight:700;margin-bottom:0.5rem;background:linear-gradient(135deg,var(--text),#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .subtitle{color:var(--muted);font-size:1rem;max-width:500px;margin:0 auto}
+        .section{background:var(--card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem}
+        .section h2{font-size:1.1rem;margin-bottom:0.25rem}
+        .section .hint{font-size:0.8rem;color:var(--dim);margin-bottom:1rem}
+        /* Palette */
+        .palette{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem}
+        .palette-item{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.75rem;border-radius:0.5rem;cursor:pointer;border:2px solid transparent;font-size:0.75rem;font-weight:600;transition:all 0.15s;user-select:none}
+        .palette-item:hover{transform:scale(1.03)}
+        .palette-item.active{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,0.2)}
+        .palette-item .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+        /* Calendar Grid */
+        .cal-wrapper{overflow-x:auto;margin-bottom:1rem}
+        .cal{display:grid;grid-template-columns:60px repeat(5,1fr);gap:1px;background:var(--border);border-radius:0.5rem;overflow:hidden;user-select:none}
+        .cal-header{background:#1e1e2e;padding:0.5rem;text-align:center;font-size:0.75rem;font-weight:600;color:var(--muted)}
+        .cal-time{background:#1e1e2e;padding:0.35rem 0.5rem;font-size:0.7rem;color:var(--dim);display:flex;align-items:center}
+        .cal-cell{background:var(--cell);padding:0.3rem;min-height:28px;cursor:pointer;transition:background 0.1s;position:relative;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.8)}
+        .cal-cell:hover{filter:brightness(1.3)}
+        /* Stats Bar */
+        .stats-bar{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+        .stat{flex:1;min-width:120px;background:var(--cell);border-radius:0.5rem;padding:0.75rem;text-align:center}
+        .stat .num{font-size:1.4rem;font-weight:700}
+        .stat .label{font-size:0.7rem;color:var(--dim)}
+        .time-bar{height:24px;border-radius:0.25rem;overflow:hidden;display:flex;margin-top:1rem}
+        .time-bar .seg{display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600;color:#fff;transition:width 0.3s}
+        /* Ad Hoc Section */
+        .adhoc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem}
+        .adhoc-item{background:var(--cell);border-radius:0.5rem;padding:0.75rem}
+        .adhoc-item label{display:block;font-size:0.85rem;margin-bottom:0.25rem}
+        .adhoc-item .hint{font-size:0.7rem;color:var(--dim);margin-bottom:0.4rem}
+        .adhoc-item input{width:100%;padding:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:0.35rem;color:var(--text);font-size:0.9rem}
+        .adhoc-item input:focus{outline:none;border-color:#f59e0b}
+        .btn{width:100%;padding:0.9rem;border-radius:0.5rem;font-weight:600;font-size:1rem;cursor:pointer;border:none;margin-top:1rem;transition:all 0.2s}
+        .btn-primary{background:#f59e0b;color:#000}
+        .btn-primary:hover{background:#fbbf24}
+        /* Results */
+        .results-page{display:none}.results-page.active{display:block;animation:fadeIn 0.4s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+        .impact-card{background:var(--card);border:1px solid var(--border);border-radius:1rem;padding:2rem;text-align:center;margin-bottom:1.5rem}
+        .impact-number{font-size:3rem;font-weight:700;line-height:1}
+        .impact-label{color:var(--dim);font-size:0.9rem;margin-top:0.25rem}
+        .impact-context{color:var(--muted);margin-top:0.75rem;font-size:0.9rem}
+        .reclaim-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-top:1.25rem}
+        .reclaim-item{background:var(--cell);border-radius:0.5rem;padding:1rem;text-align:center}
+        .reclaim-item .number{font-size:1.3rem;font-weight:700;color:#22c55e}
+        .reclaim-item .desc{font-size:0.7rem;color:var(--dim);margin-top:0.2rem}
+        .before-after{background:var(--card);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem}
+        .before-after h3{font-size:1rem;margin-bottom:1rem}
+        .ba-row{display:flex;gap:1rem}
+        .ba-col{flex:1;background:var(--cell);border-radius:0.75rem;padding:1rem}
+        .ba-col h4{font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem}
+        .ba-col.before h4{color:#ef4444}.ba-col.after h4{color:#22c55e}
+        .ba-stat{display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.8rem;border-bottom:1px solid var(--border)}
+        .ba-stat:last-child{border-bottom:none}
+        .ba-stat .val{font-weight:600}
+        .download-section{background:linear-gradient(135deg,rgba(245,158,11,0.1),var(--card));border:2px solid #f59e0b;border-radius:1rem;padding:2rem;text-align:center;margin-bottom:1.5rem}
+        .download-section h3{font-size:1.3rem;margin-bottom:0.4rem}
+        .download-section>p{color:var(--muted);margin-bottom:1.25rem;font-size:0.9rem}
+        .email-form{display:flex;gap:0.75rem;max-width:420px;margin:0 auto;flex-wrap:wrap}
+        .email-form input[type="email"]{flex:1;min-width:200px;padding:0.75rem;background:var(--bg);border:1px solid var(--border);border-radius:0.5rem;color:var(--text);font-size:0.95rem}
+        .email-form input:focus{outline:none;border-color:#f59e0b}
+        .email-form .btn{width:auto;min-width:160px;margin-top:0}
+        .download-complete{display:none;color:#22c55e;padding:0.75rem;font-size:0.95rem}
+        .download-complete.active{display:block}
+        footer{text-align:center;padding:1.5rem;color:var(--dim);font-size:0.8rem}
+        footer a{color:#f59e0b;text-decoration:none}
+        @media(max-width:700px){.container{padding:1rem}h1{font-size:1.5rem}.reclaim-grid{grid-template-columns:repeat(2,1fr)}.adhoc-grid{grid-template-columns:1fr}.ba-row{flex-direction:column}.cal{font-size:0.6rem}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <span class="badge">Free Tool</span>
+        <h1>What's Eating Your Week?</h1>
+        <p class="subtitle">Paint your actual calendar. See what a machine should be doing instead of you.</p>
+    </header>
+
+    <div id="inputPage">
+        <div class="section">
+            <h2>Step 1: Paint Your Typical Week</h2>
+            <p class="hint">Select a category below, then click or drag on the calendar to fill in your schedule. 9 AM to 9 PM, Monday through Friday.</p>
+
+            <div class="palette" id="palette"></div>
+
+            <div class="cal-wrapper">
+                <div class="cal" id="calendar"></div>
+            </div>
+
+            <div class="time-bar" id="liveBar"></div>
+            <div class="stats-bar" id="liveStats"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 2: What Else Eats Your Time?</h2>
+            <p class="hint">These tasks don't always show on a calendar but consume real hours every week.</p>
+            <div class="adhoc-grid">
+                <div class="adhoc-item"><label>Evening email/texts (after 9 PM)</label><div class="hint">Checking phone, responding to messages</div><input type="number" id="adhoc_evening" min="0" max="20" step="0.5" value="0" oninput="updateStats()"></div>
+                <div class="adhoc-item"><label>Weekend work</label><div class="hint">Catching up, checking in, emergencies</div><input type="number" id="adhoc_weekend" min="0" max="20" step="0.5" value="0" oninput="updateStats()"></div>
+                <div class="adhoc-item"><label>Unplanned interruptions</label><div class="hint">Walk-ins, surprise calls, "got a minute?"</div><input type="number" id="adhoc_interruptions" min="0" max="20" step="0.5" value="0" oninput="updateStats()"></div>
+                <div class="adhoc-item"><label>Worrying/thinking about work</label><div class="hint">Laying in bed thinking about problems</div><input type="number" id="adhoc_worry" min="0" max="20" step="0.5" value="0" oninput="updateStats()"></div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="analyze()">🔍 Analyze My Week</button>
+    </div>
+
+    <div class="results-page" id="resultsPage">
+        <div class="impact-card">
+            <div class="impact-number" style="color:#ef4444" id="automatableHours">0</div>
+            <div class="impact-label">hours per week you spend on tasks a machine could handle</div>
+            <div class="impact-context" id="impactContext"></div>
+        </div>
+
+        <div class="impact-card" style="border-color:#22c55e">
+            <div class="impact-number" style="color:#22c55e" id="reclaimedDays">0</div>
+            <div class="impact-label">days per year you could reclaim</div>
+            <div class="reclaim-grid" id="reclaimGrid"></div>
+        </div>
+
+        <div class="before-after">
+            <h3>Your Week: Before vs After Automation</h3>
+            <div class="ba-row">
+                <div class="ba-col before" id="beforeCol"><h4>🔴 Now</h4></div>
+                <div class="ba-col after" id="afterCol"><h4>🟢 After</h4></div>
+            </div>
+        </div>
+
+        <div class="download-section">
+            <h3>📄 Get Your Time Recovery Plan</h3>
+            <p>Detailed PDF with automation recommendations for each time-waster and your "life reclaimed" projection.</p>
+            <form class="email-form" id="emailForm" onsubmit="handleDownload(event)">
+                <input type="email" id="userEmail" placeholder="Work email" required>
+                <button type="submit" class="btn btn-primary">📥 Download PDF</button>
+            </form>
+            <div class="download-complete" id="downloadComplete">✓ Report downloaded!</div>
+        </div>
+    </div>
+    <footer><p>Built by <a href="#">Mo Roowala</a> | AI Automation for Distributors</p></footer>
+</div>
+<script>
+const { jsPDF } = window.jspdf;
+
+const categories = [
+    { id:'strategy', name:'Strategy & Growth', short:'Strategy', color:'#22c55e', type:'strategic', save:0 },
+    { id:'customers', name:'Customer Calls/Meetings', short:'Customers', color:'#06b6d4', type:'strategic', save:0 },
+    { id:'pricing', name:'Pricing & Quotes', short:'Pricing', color:'#ef4444', type:'automatable', save:0.75 },
+    { id:'orders', name:'Order Issues', short:'Orders', color:'#f97316', type:'automatable', save:0.65 },
+    { id:'inventory', name:'Inventory/Purchasing', short:'Inventory', color:'#f43f5e', type:'automatable', save:0.6 },
+    { id:'reports', name:'Reports & Data', short:'Reports', color:'#e11d48', type:'automatable', save:0.8 },
+    { id:'admin', name:'Admin & Paperwork', short:'Admin', color:'#dc2626', type:'automatable', save:0.7 },
+    { id:'fires', name:'Putting Out Fires', short:'Fires', color:'#b91c1c', type:'automatable', save:0.45 },
+    { id:'email', name:'Email & Comms', short:'Email', color:'#eab308', type:'delegatable', save:0.35 },
+    { id:'meetings', name:'Internal Meetings', short:'Meetings', color:'#a3a3a3', type:'delegatable', save:0.25 },
+    { id:'people', name:'People Management', short:'People', color:'#8b5cf6', type:'delegatable', save:0.15 },
+    { id:'break', name:'Break / Personal', short:'Break', color:'#374151', type:'neutral', save:0 }
+];
+
+const days = ['Mon','Tue','Wed','Thu','Fri'];
+const hours = [];
+for(let h=9;h<=20;h++) hours.push(h<12?h+'am':h===12?'12pm':(h-12)+'pm');
+
+let selectedCat = 0;
+let grid = {}; // key: "day-hour" -> categoryIndex
+let isDragging = false;
+
+function init() {
+    // Palette
+    const pal = document.getElementById('palette');
+    pal.innerHTML = categories.map((c,i) => `
+        <div class="palette-item ${i===0?'active':''}" onclick="selectCat(${i})" id="pal_${i}" style="background:${c.color}22">
+            <div class="dot" style="background:${c.color}"></div>
+            <span>${c.name}</span>
+        </div>
+    `).join('');
+
+    // Calendar
+    const cal = document.getElementById('calendar');
+    let html = '<div class="cal-header"></div>';
+    days.forEach(d => html += `<div class="cal-header">${d}</div>`);
+
+    hours.forEach((h,hi) => {
+        html += `<div class="cal-time">${h}</div>`;
+        days.forEach((d,di) => {
+            const key = `${di}-${hi}`;
+            html += `<div class="cal-cell" id="c_${key}" data-key="${key}" 
+                onmousedown="startPaint('${key}')" 
+                onmouseenter="paint('${key}')"
+                ontouchstart="startPaint('${key}')"
+                ontouchmove="touchPaint(event)"></div>`;
+        });
+    });
+    cal.innerHTML = html;
+    document.addEventListener('mouseup', () => isDragging = false);
+    document.addEventListener('touchend', () => isDragging = false);
+    updateStats();
+}
+
+function selectCat(i) {
+    selectedCat = i;
+    document.querySelectorAll('.palette-item').forEach(p => p.classList.remove('active'));
+    document.getElementById('pal_'+i).classList.add('active');
+}
+
+function startPaint(key) {
+    isDragging = true;
+    toggleCell(key);
+}
+
+function paint(key) {
+    if(isDragging) toggleCell(key);
+}
+
+function touchPaint(e) {
+    if(!isDragging) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if(el && el.dataset && el.dataset.key) toggleCell(el.dataset.key);
+}
+
+function toggleCell(key) {
+    const cell = document.getElementById('c_'+key);
+    if(!cell) return;
+    const cat = categories[selectedCat];
+    if(grid[key] === selectedCat) {
+        delete grid[key];
+        cell.style.background = '';
+        cell.textContent = '';
+    } else {
+        grid[key] = selectedCat;
+        cell.style.background = cat.color + 'cc';
+        cell.textContent = cat.short;
+    }
+    updateStats();
+}
+
+function updateStats() {
+    const counts = {};
+    categories.forEach((c,i) => counts[i] = 0);
+    Object.values(grid).forEach(ci => counts[ci]++);
+
+    const adhocEvening = parseFloat(document.getElementById('adhoc_evening')?.value) || 0;
+    const adhocWeekend = parseFloat(document.getElementById('adhoc_weekend')?.value) || 0;
+    const adhocInterruptions = parseFloat(document.getElementById('adhoc_interruptions')?.value) || 0;
+    const adhocWorry = parseFloat(document.getElementById('adhoc_worry')?.value) || 0;
+    const adhocTotal = adhocEvening + adhocWeekend + adhocInterruptions + adhocWorry;
+
+    let strategic=0, delegatable=0, automatable=0, neutral=0;
+    categories.forEach((c,i) => {
+        if(c.type==='strategic') strategic += counts[i];
+        else if(c.type==='delegatable') delegatable += counts[i];
+        else if(c.type==='automatable') automatable += counts[i];
+        else neutral += counts[i];
+    });
+
+    // Ad-hoc is mostly automatable/delegatable
+    automatable += adhocInterruptions * 0.5;
+    delegatable += adhocEvening + adhocWeekend + adhocInterruptions * 0.5 + adhocWorry;
+
+    const total = strategic + delegatable + automatable + neutral + adhocTotal;
+
+    // Live bar
+    const bar = document.getElementById('liveBar');
+    if(total > 0) {
+        bar.innerHTML = `
+            <div class="seg" style="width:${strategic/total*100}%;background:#22c55e">${strategic>0?strategic+'h':''}</div>
+            <div class="seg" style="width:${delegatable/total*100}%;background:#eab308">${delegatable>0?Math.round(delegatable)+'h':''}</div>
+            <div class="seg" style="width:${automatable/total*100}%;background:#ef4444">${automatable>0?Math.round(automatable)+'h':''}</div>
+            <div class="seg" style="width:${neutral/total*100}%;background:#374151">${neutral>0?neutral+'h':''}</div>
+        `;
+    }
+
+    // Live stats
+    const calHours = Object.keys(grid).length;
+    document.getElementById('liveStats').innerHTML = `
+        <div class="stat"><div class="num">${calHours + adhocTotal}</div><div class="label">Total Hours</div></div>
+        <div class="stat"><div class="num" style="color:#22c55e">${strategic}</div><div class="label">Strategic</div></div>
+        <div class="stat"><div class="num" style="color:#eab308">${Math.round(delegatable)}</div><div class="label">Delegatable</div></div>
+        <div class="stat"><div class="num" style="color:#ef4444">${Math.round(automatable)}</div><div class="label">Automatable</div></div>
+    `;
+}
+
+function analyze() {
+    const calHours = Object.keys(grid).length;
+    const adhocEvening = parseFloat(document.getElementById('adhoc_evening').value) || 0;
+    const adhocWeekend = parseFloat(document.getElementById('adhoc_weekend').value) || 0;
+    const adhocInterruptions = parseFloat(document.getElementById('adhoc_interruptions').value) || 0;
+    const adhocWorry = parseFloat(document.getElementById('adhoc_worry').value) || 0;
+
+    if(calHours < 10) { alert('Please fill in more of your calendar (at least 10 hours).'); return; }
+
+    // Count hours per category
+    const catHours = {};
+    categories.forEach((c,i) => catHours[i] = 0);
+    Object.values(grid).forEach(ci => catHours[ci]++);
+
+    // Build task breakdown
+    let totalHrs = 0;
+    let automatableHrs = 0;
+    const breakdown = [];
+
+    categories.forEach((c,i) => {
+        let hrs = catHours[i] || 0;
+        if(hrs === 0) return;
+        const saved = hrs * c.save;
+        automatableHrs += saved;
+        totalHrs += hrs;
+        breakdown.push({ ...c, hours: hrs, saved });
+    });
+
+    // Add ad hoc
+    const adhocs = [
+        { name:'Evening email/texts', hours:adhocEvening, save:0.6, type:'delegatable' },
+        { name:'Weekend work', hours:adhocWeekend, save:0.4, type:'delegatable' },
+        { name:'Unplanned interruptions', hours:adhocInterruptions, save:0.4, type:'automatable' },
+        { name:'Worrying about work', hours:adhocWorry, save:0.3, type:'automatable' }
+    ];
+    adhocs.forEach(a => {
+        if(a.hours > 0) {
+            automatableHrs += a.hours * a.save;
+            totalHrs += a.hours;
+            breakdown.push({ name:a.name, hours:a.hours, saved:a.hours*a.save, type:a.type, color:'#6b7280' });
+        }
+    });
+
+    // Show results
+    document.getElementById('inputPage').style.display = 'none';
+    document.getElementById('resultsPage').classList.add('active');
+
+    document.getElementById('automatableHours').textContent = automatableHrs.toFixed(1);
+    const yearlyHrs = Math.round(automatableHrs * 52);
+    const yearlyDays = Math.round(yearlyHrs / 8);
+    document.getElementById('reclaimedDays').textContent = yearlyDays;
+
+    const pctAutomate = ((automatableHrs / totalHrs) * 100).toFixed(0);
+    document.getElementById('impactContext').innerHTML = `<strong>${pctAutomate}%</strong> of your ${totalHrs}-hour work week is spent on tasks that don't need you. That's <strong>${yearlyHrs.toLocaleString()} hours per year</strong>.`;
+
+    const dinners = Math.round(yearlyHrs / 2.5);
+    const vacWeeks = (yearlyDays / 5).toFixed(1);
+    const events = Math.round(yearlyHrs / 2);
+    document.getElementById('reclaimGrid').innerHTML = `
+        <div class="reclaim-item"><div class="number">${dinners}</div><div class="desc">Family dinners</div></div>
+        <div class="reclaim-item"><div class="number">${vacWeeks}</div><div class="desc">Weeks of vacation</div></div>
+        <div class="reclaim-item"><div class="number">${events}</div><div class="desc">Kids' events</div></div>
+        <div class="reclaim-item"><div class="number">${yearlyHrs.toLocaleString()}</div><div class="desc">Hours for growth</div></div>
+    `;
+
+    // Before/After
+    const bCol = document.getElementById('beforeCol');
+    const aCol = document.getElementById('afterCol');
+    bCol.innerHTML = '<h4>🔴 Now</h4>';
+    aCol.innerHTML = '<h4>🟢 After</h4>';
+    breakdown.sort((a,b) => b.hours - a.hours).forEach(t => {
+        bCol.innerHTML += `<div class="ba-stat"><span>${t.name}</span><span class="val">${t.hours}h</span></div>`;
+        const after = (t.hours - t.saved).toFixed(1);
+        aCol.innerHTML += `<div class="ba-stat"><span>${t.name}</span><span class="val" style="color:${t.saved>0?'#22c55e':'inherit'}">${after}h</span></div>`;
+    });
+    bCol.innerHTML += `<div class="ba-stat" style="border-top:2px solid var(--border);margin-top:0.4rem;padding-top:0.4rem"><span><strong>Total</strong></span><span class="val">${totalHrs}h</span></div>`;
+    aCol.innerHTML += `<div class="ba-stat" style="border-top:2px solid var(--border);margin-top:0.4rem;padding-top:0.4rem"><span><strong>Total</strong></span><span class="val" style="color:#22c55e">${(totalHrs - automatableHrs).toFixed(1)}h</span></div>`;
+
+    window._data = { totalHrs, automatableHrs, yearlyHrs, yearlyDays, breakdown, dinners, vacWeeks, events };
+}
+
+function handleDownload(e) {
+    e.preventDefault();
+    const email = document.getElementById('userEmail').value;
+    const leads = JSON.parse(localStorage.getItem('timeaudit_leads') || '[]');
+    leads.push({ email, timestamp: new Date().toISOString(), data: window._data });
+    localStorage.setItem('timeaudit_leads', JSON.stringify(leads));
+    generatePDF(email);
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('downloadComplete').classList.add('active');
+}
+
+function generatePDF(email) {
+    const d = window._data;
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    const m = 18, cw = pw - 2*m;
+    let y = 0;
+    const txt = (s,sz,st='normal',c=[40,40,40]) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
+    const cp = (n=25) => { if(y+n>268){doc.addPage();addPageBg();y=18;} };
+    const addPageBg = () => { doc.setFillColor(248,249,251); doc.rect(0,0,pw,297,'F'); };
+
+    // Page 1
+    addPageBg();
+    doc.setFillColor(30,30,42);
+    doc.rect(0,0,pw,48,'F');
+    txt('CEO TIME AUDIT',20,'bold',[255,255,255]);
+    doc.text('CEO TIME AUDIT',pw/2,18,{align:'center'});
+    txt("Your personalized time recovery analysis",10,'normal',[180,180,200]);
+    doc.text("Your personalized time recovery analysis",pw/2,28,{align:'center'});
+    txt(`${email} | ${new Date().toLocaleDateString()}`,8,'normal',[140,140,160]);
+    doc.text(`${email} | ${new Date().toLocaleDateString()}`,pw/2,38,{align:'center'});
+
+    y = 58;
+
+    // Key finding box
+    doc.setFillColor(255,250,240);
+    doc.setDrawColor(245,158,11);
+    doc.roundedRect(m,y,cw,28,2,2,'FD');
+    txt('KEY FINDING',8,'bold',[245,158,11]);
+    doc.text('KEY FINDING',m+5,y+8);
+    txt(`You spend ${d.automatableHrs.toFixed(1)} hours/week on automatable tasks`,11,'bold',[40,40,40]);
+    doc.text(`You spend ${d.automatableHrs.toFixed(1)} hours/week on automatable tasks`,m+5,y+17);
+    txt(`That's ${d.yearlyDays} days/year, ${d.dinners} family dinners, ${d.vacWeeks} weeks of vacation`,9,'normal',[100,100,100]);
+    doc.text(`That's ${d.yearlyDays} days/year, ${d.dinners} family dinners, ${d.vacWeeks} weeks of vacation`,m+5,y+24);
+    y += 36;
+
+    // Breakdown table
+    txt('TIME BREAKDOWN',11,'bold',[30,30,42]);
+    doc.text('TIME BREAKDOWN',m,y); y += 7;
+    
+    doc.setFillColor(30,30,42);
+    doc.roundedRect(m,y,cw,7,1,1,'F');
+    txt('Task',7,'bold',[255,255,255]); doc.text('Task',m+3,y+5);
+    txt('Now',7,'bold',[255,255,255]); doc.text('Now',m+100,y+5);
+    txt('After',7,'bold',[255,255,255]); doc.text('After',m+120,y+5);
+    txt('Saved',7,'bold',[255,255,255]); doc.text('Saved',m+142,y+5);
+    y += 10;
+
+    d.breakdown.sort((a,b)=>b.saved-a.saved).forEach((t,i) => {
+        cp(7);
+        const bg = i%2===0 ? [243,244,246] : [248,249,251];
+        doc.setFillColor(...bg);
+        doc.rect(m,y-3,cw,7,'F');
+        txt(t.name,8,'normal',[50,50,50]); doc.text(t.name,m+3,y+1);
+        txt(t.hours+'h',8,'normal',[50,50,50]); doc.text(t.hours+'h',m+100,y+1);
+        txt((t.hours-t.saved).toFixed(1)+'h',8,'bold',[34,150,34]); doc.text((t.hours-t.saved).toFixed(1)+'h',m+120,y+1);
+        txt(t.saved.toFixed(1)+'h',8,'bold',[200,50,50]); doc.text(t.saved.toFixed(1)+'h',m+142,y+1);
+        y += 7;
+    });
+    y += 8;
+
+    // Automation guide
+    cp(20);
+    txt('AUTOMATION RECOMMENDATIONS',11,'bold',[30,30,42]);
+    doc.text('AUTOMATION RECOMMENDATIONS',m,y); y += 8;
+
+    const guides = {
+        'Pricing & Quotes': { solution:'Rule-based pricing engine with auto-approval', steps:['Set margin floors per product category','Auto-approve quotes within defined ranges','Alert only for exceptions outside parameters'] },
+        'Order Issues': { solution:'Order validation + customer self-service portal', steps:['Implement pre-processing validation rules','Create customer portal for order status','Build exception-only escalation alerts'] },
+        'Inventory/Purchasing': { solution:'Demand forecasting + automated reorder points', steps:['Set auto-reorder for top SKUs by demand history','Deploy ABC classification for prioritization','Create inventory health dashboard'] },
+        'Reports & Data': { solution:'Automated dashboards and scheduled reports', steps:['Auto-generate top 10 reports on schedule','Build real-time KPI dashboard','Eliminate manual spreadsheet compilation'] },
+        'Admin & Paperwork': { solution:'Document automation and digital workflows', steps:['Digitize approval chains with thresholds','Automate invoice processing and AP/AR','Implement e-signatures for routine documents'] },
+        'Putting Out Fires': { solution:'Proactive monitoring and early warning system', steps:['Build alerts for top 5 fire types','Create response playbooks for team','Implement root cause tracking to prevent repeats'] },
+        'Email & Comms': { solution:'Smart filtering, templates, and batching', steps:['Create templates for 20 most common emails','Batch to 3 fixed times daily','Delegate routine correspondence'] },
+        'Internal Meetings': { solution:'Async updates and meeting optimization', steps:['Convert status meetings to async dashboards','Enforce 25-min defaults and required agendas','Cancel any meeting without measurable purpose'] }
+    };
+
+    d.breakdown.filter(t=>t.saved>0.5).sort((a,b)=>b.saved-a.saved).slice(0,5).forEach(t => {
+        const g = guides[t.name];
+        if(!g) return;
+        cp(25);
+        doc.setFillColor(240,245,255);
+        doc.roundedRect(m,y,cw,6,1,1,'F');
+        txt(`${t.name} (save ${t.saved.toFixed(1)}h/wk)`,8,'bold',[59,130,246]);
+        doc.text(`${t.name} (save ${t.saved.toFixed(1)}h/wk)`,m+3,y+4); y += 9;
+        txt(`Solution: ${g.solution}`,8,'bold',[60,60,60]);
+        doc.text(`Solution: ${g.solution}`,m+3,y); y += 5;
+        g.steps.forEach(s => {
+            cp(6);
+            txt('  '+s,7.5,'normal',[80,80,80]);
+            doc.text('  '+s,m+5,y); y += 4.5;
+        });
+        y += 5;
+    });
+
+    // CTA
+    cp(40);
+    doc.setFillColor(30,30,42);
+    doc.roundedRect(m,y,cw,35,3,3,'F');
+    txt("GET YOUR TIME BACK",13,'bold',[255,255,255]);
+    doc.text("GET YOUR TIME BACK",pw/2,y+11,{align:'center'});
+    txt("Let's build the systems that give you back "+d.yearlyDays+" days per year.",9,'normal',[180,180,200]);
+    doc.text("Let's build the systems that give you back "+d.yearlyDays+" days per year.",pw/2,y+20,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',[245,200,80]);
+    doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+
+    // Footer
+    const pc = doc.internal.getNumberOfPages();
+    for(let i=1;i<=pc;i++){
+        doc.setPage(i);
+        doc.setFillColor(30,30,42);
+        doc.rect(0,287,pw,10,'F');
+        txt('Mo Roowala | Deep Line Operations | AI Automation for Distributors',7,'normal',[130,130,150]);
+        doc.text('Mo Roowala | Deep Line Operations | AI Automation for Distributors',pw/2,292,{align:'center'});
+    }
+    doc.save('CEO-Time-Audit-Report.pdf');
+}
+init();
+</script>
+</body>
+</html>

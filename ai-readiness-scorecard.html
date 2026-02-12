@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Readiness Scorecard | Free Assessment for Distributors</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --accent: #8b5cf6;
+            --accent-hover: #a78bfa;
+            --accent-light: rgba(139, 92, 246, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2a2a3a;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-top: 2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .progress-count {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 100%);
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            display: none;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .question-category {
+            display: inline-block;
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .option.selected {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .option-indicator {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .option.selected .option-indicator {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .option.selected .option-indicator::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .option-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results Page */
+        .results-page {
+            display: none;
+        }
+
+        .results-page.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 8px solid var(--bg-tertiary);
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .score-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-description {
+            color: var(--text-secondary);
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        /* Category Breakdown */
+        .breakdown-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .breakdown-section h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .category-label {
+            width: 100px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .category-bar-container {
+            flex: 1;
+            height: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .category-bar {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+
+        .category-score {
+            width: 50px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Download Section */
+        .download-section {
+            background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-secondary) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .download-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .download-section > p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .download-features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .download-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .download-feature .icon {
+            color: var(--success);
+        }
+
+        .email-form {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 450px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .email-form input[type="email"] {
+            flex: 1;
+            min-width: 220px;
+            padding: 0.875rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .email-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .email-form .btn {
+            flex: none;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .download-complete {
+            display: none;
+            color: var(--success);
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .download-complete.active {
+            display: block;
+        }
+
+        /* Quick Preview */
+        .preview-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .preview-section h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .preview-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .preview-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-light);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .preview-content h4 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .preview-content p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .score-circle {
+                width: 130px;
+                height: 130px;
+            }
+
+            .score-number {
+                font-size: 2.5rem;
+            }
+
+            .category-label {
+                width: 80px;
+                font-size: 0.75rem;
+            }
+
+            .download-features {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="badge">Free Assessment</span>
+            <h1>AI Readiness Scorecard</h1>
+            <p class="subtitle">Discover how ready your distribution business is for AI automation. Takes 2 minutes.</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-header">
+                <span class="progress-label">Assessment Progress</span>
+                <span class="progress-count"><span id="currentQ">1</span> of <span id="totalQ">12</span></span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 8%"></div>
+            </div>
+        </div>
+
+        <!-- Questions -->
+        <div id="questionsContainer">
+            <!-- Questions will be injected here -->
+        </div>
+
+        <!-- Results Page -->
+        <div class="results-page" id="resultsPage">
+            <div class="score-card">
+                <div class="score-circle" id="scoreCircle">
+                    <span class="score-number" id="totalScore">0</span>
+                    <span class="score-label">out of 100</span>
+                </div>
+                <h2 class="score-title" id="scoreTitle">Your AI Readiness</h2>
+                <p class="score-description" id="scoreDescription"></p>
+            </div>
+
+            <div class="breakdown-section">
+                <h3>Category Breakdown</h3>
+                <div id="categoryBreakdown">
+                    <!-- Categories will be injected here -->
+                </div>
+            </div>
+
+            <!-- Download Section -->
+            <div class="download-section" id="downloadSection">
+                <h3>📄 Get Your Full Report</h3>
+                <p>Download a detailed PDF with specific action steps for each category, quick wins, and a 90-day roadmap.</p>
+                
+                <div class="download-features">
+                    <div class="download-feature">
+                        <span class="icon">✓</span>
+                        <span>Personalized action steps</span>
+                    </div>
+                    <div class="download-feature">
+                        <span class="icon">✓</span>
+                        <span>90-day implementation roadmap</span>
+                    </div>
+                    <div class="download-feature">
+                        <span class="icon">✓</span>
+                        <span>ROI projection</span>
+                    </div>
+                </div>
+
+                <form class="email-form" id="emailForm" onsubmit="handleDownload(event)">
+                    <input type="email" id="userEmail" placeholder="Enter your work email" required>
+                    <button type="submit" class="btn btn-primary">
+                        <span>📥</span> Download PDF Report
+                    </button>
+                </form>
+                <div class="download-complete" id="downloadComplete">
+                    ✓ Report downloaded! Check your downloads folder.
+                </div>
+            </div>
+
+            <!-- Quick Preview -->
+            <div class="preview-section">
+                <h3>Preview: Your Top 3 Quick Wins</h3>
+                <div id="previewList">
+                    <!-- Preview items will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built by <a href="#">Mo Roowala</a> | AI Automation for Distributors</p>
+        </footer>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        const questions = [
+            {
+                category: "Data",
+                question: "Where does most of your critical business data live?",
+                options: [
+                    { text: "Spreadsheets and email", score: 1 },
+                    { text: "Basic ERP or accounting software", score: 2 },
+                    { text: "Modern ERP with centralized database", score: 3 }
+                ]
+            },
+            {
+                category: "Data",
+                question: "How confident are you in your inventory accuracy?",
+                options: [
+                    { text: "We often have discrepancies", score: 1 },
+                    { text: "Mostly accurate, some issues", score: 2 },
+                    { text: "Very accurate, regularly audited", score: 3 }
+                ]
+            },
+            {
+                category: "Data",
+                question: "Can you easily pull reports on customer buying patterns?",
+                options: [
+                    { text: "No, it would take hours of manual work", score: 1 },
+                    { text: "Sometimes, depends on the report", score: 2 },
+                    { text: "Yes, we have dashboards for this", score: 3 }
+                ]
+            },
+            {
+                category: "Processes",
+                question: "How are most customer orders entered into your system?",
+                options: [
+                    { text: "Manually typed from emails/calls", score: 1 },
+                    { text: "Mix of manual and some automation", score: 2 },
+                    { text: "Mostly automated (EDI, portal, API)", score: 3 }
+                ]
+            },
+            {
+                category: "Processes",
+                question: "How do your sales reps determine pricing for quotes?",
+                options: [
+                    { text: "They decide themselves or ask a manager", score: 1 },
+                    { text: "Price lists exist but lots of exceptions", score: 2 },
+                    { text: "System-driven pricing with clear rules", score: 3 }
+                ]
+            },
+            {
+                category: "Processes",
+                question: "Are your key processes documented?",
+                options: [
+                    { text: "No, knowledge is in people's heads", score: 1 },
+                    { text: "Some documentation, often outdated", score: 2 },
+                    { text: "Yes, well-documented and maintained", score: 3 }
+                ]
+            },
+            {
+                category: "People",
+                question: "How would your team react to AI tools handling some of their tasks?",
+                options: [
+                    { text: "Resistant, they'd see it as a threat", score: 1 },
+                    { text: "Mixed feelings, would need convincing", score: 2 },
+                    { text: "Excited, they want to work smarter", score: 3 }
+                ]
+            },
+            {
+                category: "People",
+                question: "Does anyone on your team have experience with automation or AI tools?",
+                options: [
+                    { text: "No, we'd need outside help", score: 1 },
+                    { text: "Some basic experience with tools", score: 2 },
+                    { text: "Yes, we have tech-savvy people", score: 3 }
+                ]
+            },
+            {
+                category: "People",
+                question: "Is leadership actively pushing for modernization?",
+                options: [
+                    { text: "No, 'if it ain't broke don't fix it'", score: 1 },
+                    { text: "Interested but cautious", score: 2 },
+                    { text: "Yes, it's a strategic priority", score: 3 }
+                ]
+            },
+            {
+                category: "Technology",
+                question: "How old is your core ERP or business system?",
+                options: [
+                    { text: "10+ years or using legacy software", score: 1 },
+                    { text: "5-10 years old", score: 2 },
+                    { text: "Less than 5 years, cloud-based", score: 3 }
+                ]
+            },
+            {
+                category: "Technology",
+                question: "Can your systems talk to each other (ERP, WMS, CRM)?",
+                options: [
+                    { text: "No, lots of manual data transfer", score: 1 },
+                    { text: "Some integrations, still gaps", score: 2 },
+                    { text: "Yes, most systems are connected", score: 3 }
+                ]
+            },
+            {
+                category: "Technology",
+                question: "Have you tried any AI or automation tools before?",
+                options: [
+                    { text: "No, this would be new for us", score: 1 },
+                    { text: "Tried something, mixed results", score: 2 },
+                    { text: "Yes, actively using AI tools", score: 3 }
+                ]
+            }
+        ];
+
+        // Detailed recommendations per category and score level
+        const detailedRecs = {
+            Data: {
+                low: {
+                    title: "Build Your Data Foundation",
+                    actions: [
+                        "Week 1-2: Audit all data sources. List every spreadsheet, system, and manual process that holds critical business data.",
+                        "Week 3-4: Identify your 'single source of truth' for inventory, customers, and pricing. If none exists, choose one system to be the master.",
+                        "Week 5-8: Migrate top 100 SKUs and top 50 customers into your chosen system with complete, accurate data.",
+                        "Week 9-12: Establish data entry standards. Create simple checklists for staff to ensure consistent data quality going forward."
+                    ],
+                    quickWin: "Start with a physical inventory count of your top 20 SKUs. Compare to system. This 2-hour exercise reveals your data accuracy baseline."
+                },
+                medium: {
+                    title: "Strengthen Data Quality",
+                    actions: [
+                        "Week 1-2: Run data quality reports. Identify records with missing fields, duplicates, or obvious errors.",
+                        "Week 3-4: Clean your customer master data. Standardize company names, addresses, and contact info.",
+                        "Week 5-8: Implement automated data validation rules in your ERP to catch errors at entry.",
+                        "Week 9-12: Set up weekly data quality dashboards to monitor accuracy trends."
+                    ],
+                    quickWin: "Export your customer list and remove duplicates. Most distributors find 5-15% duplicate records eating up their CRM."
+                },
+                high: {
+                    title: "Leverage Data for Intelligence",
+                    actions: [
+                        "Week 1-2: Identify 3 business questions you wish you could answer instantly (e.g., 'Which customers are at risk of churning?').",
+                        "Week 3-4: Build or request dashboards that answer these questions using your existing data.",
+                        "Week 5-8: Implement predictive analytics for demand forecasting on your top 50 SKUs.",
+                        "Week 9-12: Create automated alerts for anomalies (sudden demand spikes, pricing outliers, inventory discrepancies)."
+                    ],
+                    quickWin: "Pull a report of customers who ordered last year but not this year. Call the top 5. This takes 30 minutes and often recovers thousands in revenue."
+                }
+            },
+            Processes: {
+                low: {
+                    title: "Document and Standardize",
+                    actions: [
+                        "Week 1-2: Pick your most painful process (usually order entry or quoting). Shadow the person who does it and write down every step.",
+                        "Week 3-4: Identify bottlenecks and redundant steps. Mark which steps could be automated vs. need human judgment.",
+                        "Week 5-8: Create a simple process map (even a Word doc with steps). Share with team for feedback.",
+                        "Week 9-12: Standardize the process. Everyone follows the same steps. Track time savings."
+                    ],
+                    quickWin: "Time how long it takes to enter one order from email. Multiply by daily orders. This is your 'automation opportunity' in hours per week."
+                },
+                medium: {
+                    title: "Eliminate Manual Handoffs",
+                    actions: [
+                        "Week 1-2: Map where data gets re-entered or copied between systems. Each handoff is an error opportunity.",
+                        "Week 3-4: Prioritize integrations by volume and error rate. High volume + high errors = fix first.",
+                        "Week 5-8: Implement your first integration (often ERP to accounting or ERP to shipping).",
+                        "Week 9-12: Build exception handling. Automate the 80% that's standard; flag the 20% that needs review."
+                    ],
+                    quickWin: "Implement email templates for common customer communications. Reduces typing and ensures consistent messaging."
+                },
+                high: {
+                    title: "Intelligent Automation",
+                    actions: [
+                        "Week 1-2: Identify decisions that follow clear rules (pricing, credit approval, reorder points). These are automation candidates.",
+                        "Week 3-4: Document the decision logic. If X, then Y. Build decision trees.",
+                        "Week 5-8: Implement rule-based automation for one decision type. Start with low-risk (e.g., auto-approve orders under $500 for established customers).",
+                        "Week 9-12: Add AI layer for pattern recognition (e.g., flag orders that look unusual based on customer history)."
+                    ],
+                    quickWin: "Set up automatic reorder point alerts for your top 20 SKUs. Takes 30 minutes in most ERPs; prevents stockouts forever."
+                }
+            },
+            People: {
+                low: {
+                    title: "Build Internal Champions",
+                    actions: [
+                        "Week 1-2: Identify your most tech-curious team member. This person will be your pilot user.",
+                        "Week 3-4: Have them experiment with free AI tools (ChatGPT for email drafting, etc.). Let them discover the value.",
+                        "Week 5-8: Ask them to share one win with the team. Peer endorsement beats top-down mandates.",
+                        "Week 9-12: Address concerns directly. Have honest conversations about what AI will and won't replace. Focus on 'work smarter' not 'fewer jobs'."
+                    ],
+                    quickWin: "Share one concrete example of AI saving time in distribution (plenty of case studies online). Make it real, not theoretical."
+                },
+                medium: {
+                    title: "Expand Capabilities",
+                    actions: [
+                        "Week 1-2: Survey the team on biggest time-wasters. What tasks do they wish were automated?",
+                        "Week 3-4: Match complaints to available solutions. Create a 'what if' roadmap.",
+                        "Week 5-8: Run a small pilot with 2-3 team members. Measure time saved and satisfaction.",
+                        "Week 9-12: Create internal documentation. The team should be able to use new tools without constant IT help."
+                    ],
+                    quickWin: "Let your most skeptical team member choose the first process to automate. Buy-in comes from ownership."
+                },
+                high: {
+                    title: "Scale the Culture",
+                    actions: [
+                        "Week 1-2: Formalize an 'automation suggestion' process. Anyone can propose improvements.",
+                        "Week 3-4: Create success metrics for automation projects. Track hours saved, errors reduced, revenue impact.",
+                        "Week 5-8: Recognize and reward team members who drive improvements. Tie it to performance reviews.",
+                        "Week 9-12: Build internal training program. Make AI/automation literacy part of onboarding."
+                    ],
+                    quickWin: "Start a monthly 'automation wins' share. 15 minutes in team meeting. Builds momentum and surfaces ideas."
+                }
+            },
+            Technology: {
+                low: {
+                    title: "Modernize Foundation",
+                    actions: [
+                        "Week 1-2: Inventory all systems currently in use. Note age, vendor, and integration capabilities.",
+                        "Week 3-4: Identify the biggest pain point. Usually it's either the ERP or the gap between ERP and everything else.",
+                        "Week 5-8: Research modern alternatives. Focus on cloud-native systems with open APIs.",
+                        "Week 9-12: Build a business case for upgrade. Calculate cost of current inefficiencies vs. cost of new system."
+                    ],
+                    quickWin: "Check if your current ERP vendor has newer modules you're not using. Sometimes the upgrade is already paid for."
+                },
+                medium: {
+                    title: "Connect Your Stack",
+                    actions: [
+                        "Week 1-2: List all manual data transfers between systems. Each one is an integration opportunity.",
+                        "Week 3-4: Evaluate integration platforms (Zapier, Make, or ERP-specific connectors). Often cheaper than custom code.",
+                        "Week 5-8: Build your first integration. Start with highest-volume data flow.",
+                        "Week 9-12: Document integration and create monitoring. You need to know when data stops flowing."
+                    ],
+                    quickWin: "Connect your ERP to your email/calendar. Automatic reminders for follow-ups based on order status."
+                },
+                high: {
+                    title: "Enable AI Readiness",
+                    actions: [
+                        "Week 1-2: Audit your API capabilities. What data can be accessed programmatically?",
+                        "Week 3-4: Identify AI-ready use cases. Start with classification (categorizing), prediction (forecasting), or extraction (parsing documents).",
+                        "Week 5-8: Run a proof-of-concept with one AI use case. Measure accuracy and business impact.",
+                        "Week 9-12: Scale what works. Build internal capability or partner with experts for complex implementations."
+                    ],
+                    quickWin: "Enable API access on your ERP if not already active. This is the prerequisite for most modern integrations."
+                }
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = [];
+        let categoryScores = {};
+        let totalScore = 0;
+
+        // Initialize
+        function init() {
+            document.getElementById('totalQ').textContent = questions.length;
+            renderQuestion(0);
+        }
+
+        function renderQuestion(index) {
+            const container = document.getElementById('questionsContainer');
+            const q = questions[index];
+            
+            container.innerHTML = `
+                <div class="question-card active">
+                    <span class="question-category">${q.category}</span>
+                    <h2 class="question-text">${q.question}</h2>
+                    <div class="options">
+                        ${q.options.map((opt, i) => `
+                            <div class="option" onclick="selectOption(${i}, ${opt.score})" data-index="${i}">
+                                <div class="option-indicator"></div>
+                                <span class="option-text">${opt.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="nav-buttons">
+                        <button class="btn btn-secondary" onclick="prevQuestion()" ${index === 0 ? 'disabled' : ''}>← Back</button>
+                        <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn" disabled>
+                            ${index === questions.length - 1 ? 'See Results' : 'Next →'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            if (answers[index] !== undefined) {
+                const options = container.querySelectorAll('.option');
+                options[answers[index].optionIndex].classList.add('selected');
+                document.getElementById('nextBtn').disabled = false;
+            }
+
+            updateProgress();
+        }
+
+        function selectOption(optionIndex, score) {
+            const options = document.querySelectorAll('.option');
+            options.forEach(o => o.classList.remove('selected'));
+            options[optionIndex].classList.add('selected');
+            
+            answers[currentQuestion] = {
+                optionIndex: optionIndex,
+                score: score,
+                category: questions[currentQuestion].category,
+                question: questions[currentQuestion].question,
+                answer: questions[currentQuestion].options[optionIndex].text
+            };
+
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion(currentQuestion);
+            } else {
+                calculateResults();
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion(currentQuestion);
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            const pct = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = pct + '%';
+        }
+
+        function calculateResults() {
+            categoryScores = {};
+            answers.forEach(a => {
+                if (!categoryScores[a.category]) {
+                    categoryScores[a.category] = { total: 0, count: 0, answers: [] };
+                }
+                categoryScores[a.category].total += a.score;
+                categoryScores[a.category].count++;
+                categoryScores[a.category].answers.push(a);
+            });
+
+            const maxScore = questions.length * 3;
+            const actualScore = answers.reduce((sum, a) => sum + a.score, 0);
+            totalScore = Math.round((actualScore / maxScore) * 100);
+        }
+
+        function showResults() {
+            document.getElementById('questionsContainer').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('resultsPage').classList.add('active');
+
+            document.getElementById('totalScore').textContent = totalScore;
+
+            let scoreColor, title, description;
+            if (totalScore >= 75) {
+                scoreColor = '#22c55e';
+                title = 'AI Ready!';
+                description = 'Your business has strong foundations for AI automation. You can move quickly on high-impact projects with minimal groundwork.';
+            } else if (totalScore >= 50) {
+                scoreColor = '#f59e0b';
+                title = 'Getting There';
+                description = 'You have some good foundations but need targeted improvements. Start with quick wins while building infrastructure.';
+            } else {
+                scoreColor = '#ef4444';
+                title = 'Foundation Building Needed';
+                description = 'Before diving into AI, focus on data and process basics. The good news: addressing these gaps will pay dividends even without AI.';
+            }
+
+            document.getElementById('scoreCircle').style.setProperty('--score-color', scoreColor);
+            document.getElementById('totalScore').style.color = scoreColor;
+            document.getElementById('scoreTitle').textContent = title;
+            document.getElementById('scoreDescription').textContent = description;
+
+            const categoryColors = {
+                'Data': '#6366f1',
+                'Processes': '#10b981',
+                'People': '#f59e0b',
+                'Technology': '#8b5cf6'
+            };
+
+            const breakdownHtml = Object.entries(categoryScores).map(([cat, data]) => {
+                const catScore = Math.round((data.total / (data.count * 3)) * 100);
+                return `
+                    <div class="category-row">
+                        <span class="category-label">${cat}</span>
+                        <div class="category-bar-container">
+                            <div class="category-bar" style="width: ${catScore}%; background: ${categoryColors[cat]}"></div>
+                        </div>
+                        <span class="category-score" style="color: ${categoryColors[cat]}">${catScore}%</span>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('categoryBreakdown').innerHTML = breakdownHtml;
+
+            // Quick preview
+            const previews = getQuickWins();
+            document.getElementById('previewList').innerHTML = previews.slice(0, 3).map(p => `
+                <div class="preview-item">
+                    <div class="preview-icon">${p.icon}</div>
+                    <div class="preview-content">
+                        <h4>${p.title}</h4>
+                        <p>${p.quickWin}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getQuickWins() {
+            const wins = [];
+            Object.entries(categoryScores).forEach(([cat, data]) => {
+                const catScore = data.total / (data.count * 3);
+                let level = catScore < 0.4 ? 'low' : catScore < 0.7 ? 'medium' : 'high';
+                const rec = detailedRecs[cat][level];
+                const icons = { Data: '📊', Processes: '⚙️', People: '👥', Technology: '💻' };
+                wins.push({
+                    category: cat,
+                    icon: icons[cat],
+                    title: rec.title,
+                    quickWin: rec.quickWin,
+                    actions: rec.actions,
+                    score: catScore
+                });
+            });
+            return wins.sort((a, b) => a.score - b.score);
+        }
+
+        function handleDownload(e) {
+            e.preventDefault();
+            const email = document.getElementById('userEmail').value;
+            
+            // Store lead
+            const leads = JSON.parse(localStorage.getItem('scorecard_leads') || '[]');
+            leads.push({
+                email: email,
+                timestamp: new Date().toISOString(),
+                totalScore: totalScore,
+                categoryScores: categoryScores,
+                answers: answers
+            });
+            localStorage.setItem('scorecard_leads', JSON.stringify(leads));
+
+            // Generate PDF
+            generatePDF(email);
+
+            document.getElementById('emailForm').style.display = 'none';
+            document.getElementById('downloadComplete').classList.add('active');
+        }
+
+        function generatePDF(email) {
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 20;
+            const contentWidth = pageWidth - 2 * margin;
+            let y = 20;
+
+            // Helper functions
+            const addText = (text, size, style = 'normal', color = [30, 30, 30]) => {
+                doc.setFontSize(size);
+                doc.setFont('helvetica', style);
+                doc.setTextColor(...color);
+            };
+
+            const checkPage = (needed = 30) => {
+                if (y + needed > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            };
+
+            // Background
+            doc.setFillColor(248, 249, 251);
+            doc.rect(0, 0, pageWidth, 297, 'F');
+            
+            // Header
+            doc.setFillColor(30, 30, 42);
+            doc.rect(0, 0, pageWidth, 48, 'F');
+            
+            addText('AI READINESS REPORT', 20, 'bold', [255, 255, 255]);
+            doc.text('AI READINESS REPORT', pageWidth / 2, 18, { align: 'center' });
+            
+            addText('Personalized Assessment for Your Distribution Business', 10, 'normal', [180, 180, 200]);
+            doc.text('Personalized Assessment for Your Distribution Business', pageWidth / 2, 28, { align: 'center' });
+            
+            addText(`${new Date().toLocaleDateString()}`, 8, 'normal', [140, 140, 160]);
+            doc.text(`${new Date().toLocaleDateString()}`, pageWidth / 2, 38, { align: 'center' });
+
+            y = 58;
+
+            // Score Section
+            addText('YOUR OVERALL SCORE', 14, 'bold', [99, 102, 241]);
+            doc.text('YOUR OVERALL SCORE', margin, y);
+            y += 12;
+
+            // Score circle simulation
+            const scoreColor = totalScore >= 75 ? [34, 197, 94] : totalScore >= 50 ? [245, 158, 11] : [239, 68, 68];
+            doc.setFillColor(...scoreColor);
+            doc.circle(50, y + 15, 18, 'F');
+            addText(totalScore.toString(), 24, 'bold', [255, 255, 255]);
+            doc.text(totalScore.toString(), 50, y + 20, { align: 'center' });
+
+            const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
+            addText(title, 16, 'bold', scoreColor);
+            doc.text(title, 80, y + 10);
+
+            const desc = totalScore >= 75 
+                ? 'Your business has strong foundations for AI automation.'
+                : totalScore >= 50 
+                ? 'You have good foundations but need targeted improvements.'
+                : 'Focus on data and process basics before diving into AI.';
+            addText(desc, 10, 'normal', [100, 100, 100]);
+            const descLines = doc.splitTextToSize(desc, contentWidth - 70);
+            doc.text(descLines, 80, y + 20);
+
+            y += 50;
+
+            // Category Breakdown
+            checkPage(60);
+            addText('CATEGORY BREAKDOWN', 14, 'bold', [99, 102, 241]);
+            doc.text('CATEGORY BREAKDOWN', margin, y);
+            y += 10;
+
+            const catColors = {
+                'Data': [99, 102, 241],
+                'Processes': [16, 185, 129],
+                'People': [245, 158, 11],
+                'Technology': [139, 92, 246]
+            };
+
+            Object.entries(categoryScores).forEach(([cat, data]) => {
+                const catScore = Math.round((data.total / (data.count * 3)) * 100);
+                
+                addText(cat, 11, 'bold', [50, 50, 50]);
+                doc.text(cat, margin, y + 5);
+                
+                // Progress bar background
+                doc.setFillColor(230, 230, 230);
+                doc.roundedRect(margin + 35, y, 100, 6, 2, 2, 'F');
+                
+                // Progress bar fill
+                doc.setFillColor(...catColors[cat]);
+                doc.roundedRect(margin + 35, y, catScore, 6, 2, 2, 'F');
+                
+                addText(`${catScore}%`, 10, 'bold', catColors[cat]);
+                doc.text(`${catScore}%`, margin + 145, y + 5);
+                
+                y += 12;
+            });
+
+            y += 10;
+
+            // Detailed Recommendations
+            const quickWins = getQuickWins();
+            
+            quickWins.forEach((rec, idx) => {
+                checkPage(80);
+                
+                // Section header
+                doc.setFillColor(...catColors[rec.category]);
+                doc.rect(margin, y, contentWidth, 10, 'F');
+                addText(`${rec.category.toUpperCase()}: ${rec.title}`, 12, 'bold', [255, 255, 255]);
+                doc.text(`${rec.category.toUpperCase()}: ${rec.title}`, margin + 5, y + 7);
+                y += 15;
+
+                // Quick Win
+                addText('⚡ QUICK WIN', 10, 'bold', catColors[rec.category]);
+                doc.text('QUICK WIN', margin, y);
+                y += 6;
+                
+                addText(rec.quickWin, 10, 'normal', [60, 60, 60]);
+                const qwLines = doc.splitTextToSize(rec.quickWin, contentWidth);
+                doc.text(qwLines, margin, y);
+                y += qwLines.length * 5 + 8;
+
+                // 90-Day Action Plan
+                checkPage(50);
+                addText('90-DAY ACTION PLAN', 10, 'bold', [50, 50, 50]);
+                doc.text('90-DAY ACTION PLAN', margin, y);
+                y += 6;
+
+                rec.actions.forEach((action, i) => {
+                    checkPage(20);
+                    addText(action, 9, 'normal', [70, 70, 70]);
+                    const actionLines = doc.splitTextToSize(`${i + 1}. ${action}`, contentWidth - 5);
+                    doc.text(actionLines, margin + 5, y);
+                    y += actionLines.length * 4.5 + 3;
+                });
+
+                y += 10;
+            });
+
+            // ROI Projection
+            checkPage(50);
+            doc.setFillColor(240, 245, 255);
+            doc.rect(margin, y, contentWidth, 40, 'F');
+            
+            addText('POTENTIAL ROI', 12, 'bold', [99, 102, 241]);
+            doc.text('POTENTIAL ROI', margin + 5, y + 10);
+            
+            addText('Based on industry benchmarks for distributors implementing AI automation:', 10, 'normal', [70, 70, 70]);
+            doc.text('Based on industry benchmarks for distributors implementing AI automation:', margin + 5, y + 18);
+            
+            const roiText = '• 15-30% reduction in order processing time\n• 20-40% fewer pricing errors\n• 10-25% improvement in inventory accuracy\n• 2-4 hours saved per employee per week';
+            addText(roiText, 9, 'normal', [50, 50, 50]);
+            doc.text(roiText.split('\n'), margin + 5, y + 26);
+            
+            y += 50;
+
+            // CTA Section
+            checkPage(60);
+            doc.setFillColor(99, 102, 241);
+            doc.rect(margin, y, contentWidth, 45, 'F');
+            
+            addText('READY TO TAKE THE NEXT STEP?', 14, 'bold', [255, 255, 255]);
+            doc.text('READY TO TAKE THE NEXT STEP?', pageWidth / 2, y + 12, { align: 'center' });
+            
+            addText("Let's discuss how to implement these recommendations for your specific situation.", 10, 'normal', [220, 220, 255]);
+            doc.text("Let's discuss how to implement these recommendations for your specific situation.", pageWidth / 2, y + 22, { align: 'center' });
+            
+            addText('mo@deeplineop.ai', 12, 'bold', [245, 200, 80]);
+            doc.text('mo@deeplineop.ai', pageWidth / 2, y + 34, { align: 'center' });
+
+            // Footer on all pages
+            const pc = doc.internal.getNumberOfPages();
+            for(let pg=1;pg<=pc;pg++){
+                doc.setPage(pg);
+                doc.setFillColor(30, 30, 42);
+                doc.rect(0, 287, pageWidth, 10, 'F');
+                addText('Mo Roowala | Deep Line Operations | AI Automation for Distributors', 7, 'normal', [130, 130, 150]);
+                doc.text('Mo Roowala | Deep Line Operations | AI Automation for Distributors', pageWidth / 2, 292, { align: 'center' });
+            }
+
+            // Save
+            doc.save('AI-Readiness-Report.pdf');
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

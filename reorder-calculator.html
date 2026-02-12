@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reorder Point Calculator | Free Tool for Distributors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --accent: #10b981;
+            --accent-hover: #34d399;
+            --accent-light: rgba(16, 185, 129, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2a2a3a;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-group .hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-with-unit {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .input-with-unit input {
+            flex: 1;
+            border-radius: 0.5rem 0 0 0.5rem;
+            border-right: none;
+        }
+
+        .input-with-unit .unit {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-left: none;
+            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: var(--accent);
+            color: white;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Results */
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-main {
+            background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-tertiary) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-main .label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .result-main .value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .result-main .unit {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .result-breakdown {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .breakdown-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .breakdown-item .label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .breakdown-item .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .formula-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .formula-box h4 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .formula {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            background: var(--bg-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .tip-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .tip-box .icon {
+            font-size: 1.25rem;
+        }
+
+        .tip-box p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .tip-box strong {
+            color: var(--warning);
+        }
+
+        /* CTA */
+        .cta-section {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .cta-section h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .cta-section p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 450px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .email-form input[type="email"] {
+            flex: 1;
+            min-width: 220px;
+            padding: 0.875rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .email-form input[type="email"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .email-form .btn {
+            margin-top: 0;
+            width: auto;
+            min-width: 150px;
+        }
+
+        .success-message {
+            display: none;
+            color: var(--accent);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .result-breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .result-main .value {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="badge">Free Calculator</span>
+            <h1>Reorder Point Calculator</h1>
+            <p class="subtitle">Know exactly when to reorder inventory to avoid stockouts and overstocking.</p>
+        </header>
+
+        <div class="main-card">
+            <form id="calcForm" onsubmit="calculate(event)">
+                <div class="form-group">
+                    <label for="dailySales">Average Daily Sales</label>
+                    <p class="hint">How many units do you sell per day on average?</p>
+                    <div class="input-with-unit">
+                        <input type="number" id="dailySales" placeholder="e.g., 50" step="0.1" min="0" required>
+                        <span class="unit">units/day</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="leadTime">Lead Time</label>
+                    <p class="hint">How many days from order to delivery?</p>
+                    <div class="input-with-unit">
+                        <input type="number" id="leadTime" placeholder="e.g., 14" step="1" min="1" required>
+                        <span class="unit">days</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="safetyDays">Safety Stock (Days)</label>
+                    <p class="hint">Extra buffer days to protect against variability</p>
+                    <div class="input-with-unit">
+                        <input type="number" id="safetyDays" placeholder="e.g., 7" step="1" min="0" required>
+                        <span class="unit">days</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Calculate Reorder Point</button>
+            </form>
+
+            <div class="results-section" id="results">
+                <div class="result-main">
+                    <div class="label">Reorder Point</div>
+                    <div class="value" id="reorderPoint">-</div>
+                    <div class="unit">units</div>
+                </div>
+
+                <div class="result-breakdown">
+                    <div class="breakdown-item">
+                        <div class="label">Lead Time Demand</div>
+                        <div class="value" id="leadTimeDemand">-</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="label">Safety Stock</div>
+                        <div class="value" id="safetyStock">-</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="label">Days Until Stockout</div>
+                        <div class="value" id="daysUntilStockout">-</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="label">Weekly Usage</div>
+                        <div class="value" id="weeklyUsage">-</div>
+                    </div>
+                </div>
+
+                <div class="formula-box">
+                    <h4>How It's Calculated</h4>
+                    <div class="formula" id="formulaDisplay">
+                        Reorder Point = (Daily Sales × Lead Time) + (Daily Sales × Safety Days)
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <span class="icon">💡</span>
+                    <p><strong>Pro tip:</strong> Set up automatic alerts when inventory hits <span id="tipReorderPoint">this level</span>. Better yet, automate the PO generation entirely.</p>
+                </div>
+
+                <button class="btn reset-btn" onclick="resetForm()">← Calculate Another</button>
+            </div>
+        </div>
+
+        <div class="cta-section" id="ctaSection" style="display: none;">
+            <h3>Want automated reorder alerts?</h3>
+            <p>I can set up automatic notifications and even auto-generate POs when you hit reorder points. No more stockouts, no more guessing.</p>
+            <form class="email-form" id="emailForm" onsubmit="submitEmail(event)">
+                <input type="email" id="userEmail" placeholder="Enter your work email" required>
+                <button type="submit" class="btn">Learn More</button>
+            </form>
+            <div class="success-message" id="successMessage">
+                ✓ Thanks! I'll send you info on inventory automation.
+            </div>
+        </div>
+
+        <footer>
+            <p>Built by <a href="#">Mo Roowala</a> | AI Automation for Distributors</p>
+        </footer>
+    </div>
+
+    <script>
+        function calculate(e) {
+            e.preventDefault();
+
+            const dailySales = parseFloat(document.getElementById('dailySales').value);
+            const leadTime = parseInt(document.getElementById('leadTime').value);
+            const safetyDays = parseInt(document.getElementById('safetyDays').value);
+
+            const leadTimeDemand = dailySales * leadTime;
+            const safetyStock = dailySales * safetyDays;
+            const reorderPoint = leadTimeDemand + safetyStock;
+            const weeklyUsage = dailySales * 7;
+
+            // Calculate days until stockout at reorder point
+            const daysUntilStockout = Math.round(reorderPoint / dailySales);
+
+            // Update display
+            document.getElementById('reorderPoint').textContent = Math.round(reorderPoint).toLocaleString();
+            document.getElementById('leadTimeDemand').textContent = Math.round(leadTimeDemand).toLocaleString();
+            document.getElementById('safetyStock').textContent = Math.round(safetyStock).toLocaleString();
+            document.getElementById('daysUntilStockout').textContent = daysUntilStockout + ' days';
+            document.getElementById('weeklyUsage').textContent = Math.round(weeklyUsage).toLocaleString();
+            document.getElementById('tipReorderPoint').textContent = Math.round(reorderPoint).toLocaleString() + ' units';
+
+            // Update formula display with actual numbers
+            document.getElementById('formulaDisplay').innerHTML = 
+                `(${dailySales} × ${leadTime}) + (${dailySales} × ${safetyDays}) = <strong>${Math.round(reorderPoint)}</strong>`;
+
+            // Show results
+            document.getElementById('results').classList.add('active');
+            document.getElementById('ctaSection').style.display = 'block';
+            document.getElementById('calcForm').style.display = 'none';
+
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function resetForm() {
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('ctaSection').style.display = 'none';
+            document.getElementById('calcForm').style.display = 'block';
+            document.getElementById('calcForm').reset();
+        }
+
+        function submitEmail(e) {
+            e.preventDefault();
+            const email = document.getElementById('userEmail').value;
+            
+            // Store lead
+            const leads = JSON.parse(localStorage.getItem('reorder_leads') || '[]');
+            leads.push({
+                email: email,
+                timestamp: new Date().toISOString(),
+                dailySales: document.getElementById('dailySales').value,
+                leadTime: document.getElementById('leadTime').value,
+                safetyDays: document.getElementById('safetyDays').value
+            });
+            localStorage.setItem('reorder_leads', JSON.stringify(leads));
+
+            document.getElementById('emailForm').style.display = 'none';
+            document.getElementById('successMessage').classList.add('active');
+        }
+    </script>
+</body>
+</html>
