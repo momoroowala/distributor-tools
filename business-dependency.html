@@ -412,318 +412,258 @@ function generatePDF(email) {
     const d = window.depData;
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
-    const m = 20, cw = pw - 2*m;
+    const ph = doc.internal.pageSize.getHeight();
+    const m = 16, cw = pw - 2*m;
     let y = 0;
 
-    const txt = (text,size,style='normal',color=[52,52,56]) => { doc.setFontSize(size); doc.setFont('helvetica',style); doc.setTextColor(...color); };
-    const addBg = () => { doc.setFillColor(236,233,228); doc.rect(0,0,pw,297,'F'); };
-    const cp = (need=25) => { if(y+need>268){doc.addPage();addBg();y=18;} };
-
-    // Cover
-    addBg();
-    doc.setFillColor(30,30,42);
-    doc.rect(0,0,pw,48,'F');
-    txt('BUSINESS DEPENDENCY REPORT',20,'bold',[255,255,255]);
-    doc.text('BUSINESS DEPENDENCY REPORT',pw/2,18,{align:'center'});
-    txt('What If You Left Tomorrow?',10,'normal',[180,180,200]);
-    doc.text('What If You Left Tomorrow?',pw/2,28,{align:'center'});
-    txt(`${email} | ${new Date().toLocaleDateString()}`,8,'normal',[140,140,160]);
-    doc.text(`${email} | ${new Date().toLocaleDateString()}`,pw/2,38,{align:'center'});
-
-    y = 58;
-
-    // Score
-    const scoreCol = d.totalScore >= 80 ? [239,68,68] : d.totalScore >= 60 ? [245,158,11] : d.totalScore >= 40 ? [245,158,11] : [34,197,94];
-    doc.setFillColor(230,233,240);
-    doc.roundedRect(m,y,cw,40,3,3,'F');
-    doc.setDrawColor(...scoreCol);
-    doc.roundedRect(m,y,cw,40,3,3,'S');
-    txt('OWNER DEPENDENCY INDEX',10,'bold',scoreCol);
-    doc.text('OWNER DEPENDENCY INDEX',pw/2,y+10,{align:'center'});
-    txt(d.totalScore.toString()+' / 100',28,'bold',scoreCol);
-    doc.text(d.totalScore.toString()+' / 100',pw/2,y+27,{align:'center'});
-    txt(d.verdict,10,'normal',[100,100,100]);
-    doc.text(d.verdict,pw/2,y+36,{align:'center'});
-    y += 55;
-
-    // Risk assessment
-    txt('RISK ASSESSMENT BY AREA',14,'bold',[48,48,52]);
-    doc.text('RISK ASSESSMENT BY AREA',m,y);
-    y += 10;
-
-    d.answers.forEach(a => {
-        cp(18);
-        const rColor = a.score >= 8 ? [239,68,68] : a.score >= 4 ? [245,158,11] : [34,197,94];
-        const level = a.score >= 8 ? 'CRITICAL' : a.score >= 4 ? 'AT RISK' : 'HEALTHY';
-        
-        doc.setFillColor(...rColor);
-        doc.roundedRect(m,y,5,5,1,1,'F');
-        txt(a.category.toUpperCase(),9,'bold',[58,58,62]);
-        doc.text(a.category.toUpperCase(),m+10,y+4);
-        txt(level,8,'bold',rColor);
-        doc.text(level,pw-m,y+4,{align:'right'});
-        y += 7;
-        txt(a.answer,8,'normal',[100,100,100]);
-        const lines = doc.splitTextToSize(a.answer, cw-10);
-        doc.text(lines,m+10,y);
-        y += lines.length*4+5;
-    });
-
-    // Independence Roadmap
-    doc.addPage();
-    y = 20;
-    txt('YOUR INDEPENDENCE ROADMAP',16,'bold',[59,130,246]);
-    doc.text('YOUR INDEPENDENCE ROADMAP',pw/2,y,{align:'center'});
-    y += 5;
-    txt('How to build a business that thrives without you',10,'normal',[100,100,100]);
-    doc.text('How to build a business that thrives without you',pw/2,y+5,{align:'center'});
-    y += 18;
-
-    const roadmap = {
-        Operations: {
-            title: "Systematize Operations",
-            steps: [
-                "Document your order handling process step by step. Include every exception and workaround you do.",
-                "Create tiered approval rules: orders under $X auto-approve, $X-$Y need manager, only $Y+ need you.",
-                "Train two team members on key account handling. Have them shadow you on calls for 2 weeks.",
-                "Implement order tracking dashboards so the team can self-monitor without asking you for status."
-            ]
-        },
-        Pricing: {
-            title: "Codify Pricing Knowledge",
-            steps: [
-                "Document every special pricing arrangement in a single spreadsheet or system. No exceptions.",
-                "Create a pricing matrix by customer tier, product category, and volume. Make rules, not gut calls.",
-                "Train sales team on the matrix. Role-play scenarios. Test them with real quoting exercises.",
-                "Implement system-based pricing with approval workflows. Your price rules should outlive your involvement."
-            ]
-        },
-        Knowledge: {
-            title: "Transfer Institutional Knowledge",
-            steps: [
-                "Record yourself explaining key processes (use Loom or similar). 5-minute videos for each critical workflow.",
-                "Create an 'If I'm Not Here' document for your top person. Cover: key suppliers, system passwords, customer quirks, emergency contacts.",
-                "Build a company wiki or shared drive with all SOPs, contact lists, and process documents.",
-                "Schedule monthly 'knowledge transfer' sessions where you teach one team member one thing only you know."
-            ]
-        },
-        Decisions: {
-            title: "Distribute Decision Authority",
-            steps: [
-                "List every decision type you make in a typical week. Categorize: must be me, could be delegated, should be automated.",
-                "For each delegatable decision, write a clear decision framework with criteria and limits.",
-                "Formally authorize team members to make specific decisions. Put it in writing so they feel empowered.",
-                "Start with low-risk decisions. As trust builds over 60-90 days, expand their authority gradually."
-            ]
-        },
-        Relationships: {
-            title: "Build Multi-Threaded Relationships",
-            steps: [
-                "Introduce a second team member to every top-10 customer within the next 30 days.",
-                "Have that team member attend your next meeting/call with each key account. Warm handoff.",
-                "Transition routine communication to the team member. Keep strategic conversations for yourself.",
-                "Create customer success processes that don't depend on personal relationships for retention."
-            ]
-        },
-        Financial: {
-            title: "Document for Transferability",
-            steps: [
-                "Create a business operations manual. Start with the 10 most critical processes.",
-                "Standardize financial reporting. Monthly P&L, cash flow, and KPI reviews should run without you.",
-                "Document your vendor agreements, lease terms, and legal obligations in one accessible location.",
-                "Get a business valuation. Understanding your transferability gaps makes them real and urgent."
-            ]
-        },
-        Suppliers: {
-            title: "Systematize Supplier Management",
-            steps: [
-                "Document all supplier contacts, terms, and negotiation history in a shared system.",
-                "Create a supplier scorecard and review process that your team can run.",
-                "Develop backup supplier relationships for critical products. Reduce single-source dependency.",
-                "Build a price change response playbook: when supplier raises prices, here's the step-by-step response."
-            ]
-        },
-        Technology: {
-            title: "Reduce Tech Dependency on You",
-            steps: [
-                "Document all system integrations and how they connect. Draw a simple diagram.",
-                "Establish a relationship with an IT support company or MSP for emergencies.",
-                "Cross-train at least one team member on basic system administration.",
-                "Create runbooks for common system issues: 'If X breaks, do Y.'"
-            ]
-        },
-        Team: {
-            title: "Develop Your #2",
-            steps: [
-                "Identify your strongest leader. Start including them in strategic discussions immediately.",
-                "Delegate one area of full responsibility to them. Let them own it completely for 90 days.",
-                "Give them visibility into financials and business metrics. They can't lead what they can't see.",
-                "Create a formal succession plan. Even a simple one-page document changes the dynamic."
-            ]
-        },
-        Growth: {
-            title: "Build Growth Systems",
-            steps: [
-                "Document your sales process. How do leads come in? How are they qualified? How are deals closed?",
-                "Train team members on business development activities you currently do alone.",
-                "Create marketing systems that generate leads without your personal network being the only source.",
-                "Set growth targets with clear accountability. Your team should own numbers, not just tasks."
-            ]
-        }
+    const C = {
+        bg: [218,215,210], card: [240,238,235], cardAlt: [232,230,226],
+        dark: [32,34,44], darkSoft: [48,50,58],
+        text: [45,45,50], textMid: [75,75,80], textLight: [100,100,105], textMuted: [130,130,135],
+        white: [255,255,255], shadow: [195,192,188],
+        blue: [50,115,210], blueBg: [225,232,242],
+        red: [200,58,48], green: [35,160,88], amber: [210,145,30], purple: [125,80,200]
     };
 
-    d.answers.sort((a,b) => b.score - a.score).forEach(a => {
+    const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
+    const fill = (c) => doc.setFillColor(...c);
+    const newPage = () => {
+        doc.addPage();
+        fill(C.bg); doc.rect(0,0,pw,ph,'F');
+        fill(C.blue); doc.rect(0,0,pw,1.2,'F');
+        fill([225,222,218]); doc.rect(0,0,6,ph,'F');
+        fill(C.blue); doc.rect(5,20,1,30,'F');
+        y = 16;
+    };
+    const cp = (n=25) => { if(y+n>262){newPage();return true;} return false; };
+    const card = (x,yc,w,h,opts={}) => {
+        fill(C.shadow); doc.roundedRect(x+1,yc+1,w,h,2.5,2.5,'F');
+        fill(opts.bg||C.card); doc.roundedRect(x,yc,w,h,2.5,2.5,'F');
+        if(opts.accent){fill(opts.accent);doc.roundedRect(x,yc,3.5,h,2.5,0,'F');doc.rect(x+1.5,yc,2,h,'F');}
+    };
+    const secTitle = (title,yy,color=C.blue) => {
+        fill(color); doc.roundedRect(m,yy,3,10,1,1,'F');
+        txt(title,11,'bold',C.text); doc.text(title,m+8,yy+7);
+        doc.setDrawColor(...C.shadow); doc.setLineWidth(0.3); doc.line(m+8,yy+10,pw-m,yy+10);
+        return yy+14;
+    };
+
+    // ================================================================
+    // PAGE 1: COVER
+    // ================================================================
+    fill(C.bg); doc.rect(0,0,pw,ph,'F');
+    fill(C.dark); doc.rect(0,0,pw,78,'F');
+    fill(C.blue); doc.rect(0,76.5,pw,1.5,'F');
+
+    fill(C.blue); doc.circle(pw/2,18,7,'F');
+    txt('A',10,'bold',C.dark); doc.text('A',pw/2,21,{align:'center'});
+    txt('BUSINESS DEPENDENCY REPORT',18,'bold',C.white); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,40,{align:'center'});
+    txt('What If You Left Tomorrow?',9,'normal',[170,170,185]); doc.text('What If You Left Tomorrow?',pw/2,49,{align:'center'});
+    fill(C.darkSoft); doc.roundedRect(pw/2-45,56,90,9,4,4,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'normal',[155,155,170]);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,62,{align:'center'});
+
+    y = 88;
+
+    // Score visualization
+    const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : d.totalScore >= 30 ? C.blue : C.green;
+    card(m,y,cw,44,{accent:scoreCol});
+    txt('OWNER DEPENDENCY INDEX',7,'bold',scoreCol); doc.text('OWNER DEPENDENCY INDEX',m+cw/2,y+8,{align:'center'});
+
+    // Score gauge circle
+    fill(scoreCol); doc.circle(m+cw/2,y+24,13,'F');
+    txt(d.totalScore.toString(),18,'bold',C.white); doc.text(d.totalScore.toString(),m+cw/2,y+28,{align:'center'});
+    txt('/100',7,'normal',C.white); doc.text('/100',m+cw/2+12,y+28);
+    txt(d.verdict,8,'normal',C.textMid); doc.text(d.verdict,m+cw/2,y+40,{align:'center'});
+    y += 52;
+
+    // Risk summary metrics
+    const critical = d.answers.filter(a=>a.score>=8).length;
+    const atRisk = d.answers.filter(a=>a.score>=4&&a.score<8).length;
+    const healthy = d.answers.filter(a=>a.score<4).length;
+    const metW = (cw-8)/3;
+    [{val:critical,label:'CRITICAL',color:C.red},{val:atRisk,label:'AT RISK',color:C.amber},{val:healthy,label:'HEALTHY',color:C.green}].forEach((mt,i) => {
+        const x = m+i*(metW+4);
+        card(x,y,metW,26,{accent:mt.color});
+        txt(mt.val.toString(),16,'bold',mt.color); doc.text(mt.val.toString(),x+metW/2+2,y+13,{align:'center'});
+        txt(mt.label+' AREAS',6,'bold',C.textMid); doc.text(mt.label+' AREAS',x+metW/2+2,y+20,{align:'center'});
+    });
+    y += 34;
+
+    // Risk assessment by area
+    y = secTitle('RISK ASSESSMENT BY AREA', y);
+    card(m,y,cw,d.answers.length*11+8);
+    let rY = y+7;
+    d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
+        const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
+        const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
+        fill(rColor); doc.circle(m+8,rY+1,2,'F');
+        txt(a.category.toUpperCase(),7,'bold',C.text); doc.text(a.category.toUpperCase(),m+14,rY+2.5);
+        txt(level,6.5,'bold',rColor); doc.text(level,pw-m-8,rY+2.5,{align:'right'});
+
+        // Mini bar
+        const barX = m+60, barW = 60;
+        fill(C.cardAlt); doc.roundedRect(barX,rY-1,barW,4,1.5,1.5,'F');
+        fill(rColor); doc.roundedRect(barX,rY-1,(a.score/10)*barW,4,1.5,1.5,'F');
+        rY += 11;
+    });
+    y = rY+6;
+
+    // ================================================================
+    // INDEPENDENCE ROADMAP
+    // ================================================================
+    newPage();
+    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
+    fill(C.blue); doc.rect(m,y+14,cw,2,'F');
+    txt('INDEPENDENCE ROADMAP',12,'bold',C.white); doc.text('INDEPENDENCE ROADMAP',pw/2,y+10,{align:'center'});
+    y += 24;
+
+    const roadmap = {
+        Operations: {title:"Systematize Operations",steps:["Document order handling step by step, including every exception and workaround.","Create tiered approvals: <$X auto, $X-$Y manager, >$Y you only.","Train two team members on key account handling. Shadow you for 2 weeks.","Implement tracking dashboards so team self-monitors without asking you."]},
+        Pricing: {title:"Codify Pricing Knowledge",steps:["Document every special arrangement in a single system. No exceptions.","Create pricing matrix by tier, category, volume. Rules, not gut calls.","Train sales team on the matrix. Role-play real scenarios.","Implement system-based pricing with approval workflows."]},
+        Knowledge: {title:"Transfer Institutional Knowledge",steps:["Record yourself explaining key processes (5-min videos per workflow).","Create 'If I'm Not Here' doc: suppliers, passwords, customer quirks, contacts.","Build company wiki with all SOPs, contact lists, process documents.","Monthly knowledge transfer sessions: teach one person one thing only you know."]},
+        Decisions: {title:"Distribute Decision Authority",steps:["List every decision type per week. Categorize: must be you, delegatable, automatable.","Write clear decision frameworks with criteria and limits for each.","Formally authorize team members. Put it in writing so they feel empowered.","Start low-risk. Expand authority over 60-90 days as trust builds."]},
+        Relationships: {title:"Multi-Thread Relationships",steps:["Introduce a second team member to every top-10 customer within 30 days.","Have them attend your next call with each key account. Warm handoff.","Transition routine communication to team. Keep strategic conversations.","Create processes that don't depend on personal relationships for retention."]},
+        Financial: {title:"Document for Transferability",steps:["Create a business operations manual. Start with 10 most critical processes.","Standardize financial reporting. Monthly P&L and KPI reviews run without you.","Document vendor agreements, lease terms, legal obligations in one location.","Get a business valuation. Makes transferability gaps real and urgent."]},
+        Suppliers: {title:"Systematize Supplier Management",steps:["Document all contacts, terms, negotiation history in shared system.","Create a supplier scorecard and review process your team can run.","Develop backup suppliers for critical products. Reduce single-source risk.","Build price change response playbook: step-by-step when suppliers raise prices."]},
+        Technology: {title:"Reduce Tech Dependency",steps:["Document all system integrations. Draw a simple connection diagram.","Establish IT support relationship (MSP) for emergencies.","Cross-train at least one team member on basic system administration.","Create runbooks for common issues: 'If X breaks, do Y.'"]},
+        Team: {title:"Develop Your #2",steps:["Identify strongest leader. Include in strategic discussions immediately.","Delegate one area of full responsibility. Let them own it for 90 days.","Give visibility into financials and metrics. They can't lead what they can't see.","Create a formal succession plan. Even one page changes the dynamic."]},
+        Growth: {title:"Build Growth Systems",steps:["Document your sales process: how leads come, qualify, close.","Train team on business development you currently do alone.","Create marketing that generates leads beyond your personal network.","Set growth targets with clear accountability. Team owns numbers, not just tasks."]}
+    };
+
+    let roadIdx = 0;
+    d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
         const plan = roadmap[a.category];
-        if (!plan) return;
-        cp(55);
+        if(!plan) return;
+        roadIdx++;
+        cp(60);
 
-        const rColor = a.score >= 8 ? [239,68,68] : a.score >= 4 ? [245,158,11] : [34,197,94];
-        doc.setFillColor(...rColor);
-        doc.roundedRect(m,y,cw,10,2,2,'F');
-        txt(plan.title.toUpperCase(),10,'bold',[255,255,255]);
-        doc.text(plan.title.toUpperCase(),m+5,y+7);
-        const riskLabel = a.score >= 8 ? 'CRITICAL' : a.score >= 4 ? 'AT RISK' : 'HEALTHY';
-        txt(riskLabel,9,'bold',[255,255,255]);
-        doc.text(riskLabel,pw-m-5,y+7,{align:'right'});
-        y += 15;
+        const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
+        const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
 
-        plan.steps.forEach(step => {
-            cp(14);
-            txt(step,8,'normal',[65,65,68]);
-            const lines = doc.splitTextToSize('  '+step,cw-10);
-            doc.text(lines,m+5,y);
-            y += lines.length*4+3;
+        fill(rColor); doc.roundedRect(m,y,cw,10,2,2,'F');
+        fill(C.dark); doc.circle(m+8,y+5,4.5,'F');
+        txt(roadIdx.toString(),8,'bold',C.white); doc.text(roadIdx.toString(),m+8,y+7.5,{align:'center'});
+        txt(plan.title.toUpperCase(),9,'bold',C.white); doc.text(plan.title.toUpperCase(),m+17,y+7);
+        txt(level,7,'bold',C.white); doc.text(level,pw-m-5,y+7,{align:'right'});
+        y += 14;
+
+        plan.steps.forEach((step,si) => {
+            cp(12);
+            fill(rColor); doc.circle(m+5,y+1,2.5,'F');
+            txt((si+1).toString(),6,'bold',C.white); doc.text((si+1).toString(),m+5,y+2.8,{align:'center'});
+            txt(step,7,'normal',C.text);
+            const sL = doc.splitTextToSize(step,cw-16);
+            doc.text(sL,m+12,y+2);
+            y += sL.length*3.5+2.5;
         });
         y += 8;
     });
 
-    // ---- 90-DAY INDEPENDENCE ROADMAP ----
-    doc.addPage(); addBg(); y = 20;
-    txt('YOUR 90-DAY INDEPENDENCE ROADMAP',16,'bold',[59,130,246]);
-    doc.text('YOUR 90-DAY INDEPENDENCE ROADMAP',pw/2,y,{align:'center'});
-    y += 15;
+    // ================================================================
+    // 90-DAY ROADMAP + VALUATION
+    // ================================================================
+    newPage();
+    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
+    fill(C.blue); doc.rect(m,y+14,cw,2,'F');
+    txt('90-DAY INDEPENDENCE ROADMAP',12,'bold',C.white); doc.text('90-DAY INDEPENDENCE ROADMAP',pw/2,y+10,{align:'center'});
+    y += 24;
 
-    const criticalAreas = d.answers.filter(a=>a.score>=8).map(a=>a.category);
-    const atRiskAreas = d.answers.filter(a=>a.score>=4 && a.score<8).map(a=>a.category);
+    const critAreas = d.answers.filter(a=>a.score>=8).map(a=>a.category);
+    const riskAreas = d.answers.filter(a=>a.score>=4&&a.score<8).map(a=>a.category);
 
-    const phases = [
-        { title:'DAYS 1-14: DOCUMENT EVERYTHING', color:[239,68,68], items:[
-            'Write down every process only you know how to do. Record yourself (Loom/video) walking through each one.',
-            'Create an "If I\'m Not Here" emergency document: passwords, key contacts, vendor terms, customer quirks.',
-            criticalAreas[0] ? `Priority: Address ${criticalAreas[0]} dependency (your highest risk area).` : 'Identify and address your single highest-risk dependency.',
-            'Introduce a second team member to your top 10 customer relationships.',
-            'Set tiered decision authority: define what your team can approve without you.'
+    const timePhases = [
+        {title:'DAYS 1-14: DOCUMENT',color:C.red,items:[
+            'Record every process only you know (video + written).',
+            "Create emergency 'If I'm Not Here' document.",
+            critAreas[0]?`Priority: Address ${critAreas[0]} (highest risk).`:'Address your highest-risk dependency.',
+            'Introduce second team member to top 10 customers.'
         ]},
-        { title:'DAYS 15-30: DELEGATE & TRAIN', color:[245,158,11], items:[
-            'Assign ownership of 3-5 processes to specific team members. Written authority, not just verbal.',
-            criticalAreas[1] ? `Train team on ${criticalAreas[1]} responsibilities with structured playbooks.` : 'Create step-by-step playbooks for your most critical handoff areas.',
-            'Build a company wiki or shared drive with all SOPs and process documents.',
-            'Start weekly "knowledge transfer" sessions: teach one person one thing only you know.',
-            'Test: take one full day offline. Note everything that breaks or waits for you.'
+        {title:'DAYS 15-30: DELEGATE',color:C.amber,items:[
+            'Assign ownership of 3-5 processes to specific people.',
+            'Create step-by-step playbooks for critical handoffs.',
+            'Start weekly knowledge transfer sessions.',
+            'Test: take one full day offline. Note what breaks.'
         ]},
-        { title:'DAYS 31-60: SYSTEMATIZE', color:[59,130,246], items:[
-            'Implement system-based controls: pricing rules, approval workflows, inventory alerts.',
-            'Create customer success processes that don\'t depend on personal relationships.',
-            atRiskAreas[0] ? `Automate or systematize ${atRiskAreas[0]} to remove your daily involvement.` : 'Automate your at-risk areas with technology and clear processes.',
-            'Standardize financial reporting. Monthly P&L and KPI reviews should run without you.',
-            'Test: take a 3-day weekend. Measure what happens vs. a normal week.'
+        {title:'DAYS 31-60: SYSTEMATIZE',color:C.blue,items:[
+            'Implement system controls: pricing rules, approval workflows, alerts.',
+            'Build customer success processes independent of personal relationships.',
+            'Standardize financial reporting to run without you.',
+            'Test: take a 3-day weekend. Measure impact.'
         ]},
-        { title:'DAYS 61-90: VERIFY & OPTIMIZE', color:[139,92,246], items:[
-            'Re-take this assessment. Compare scores area by area. Celebrate improvements.',
-            'Test: take a full week off (or simulate it). Only respond to true emergencies.',
-            'Identify your successor or #2. Start including them in all strategic discussions.',
-            'Create a formal business continuity plan: what happens if you\'re out for 30, 60, 90 days.',
-            `Target: reduce your Owner Dependency Index from ${d.totalScore} to below ${Math.max(20, d.totalScore - 30)}.`
+        {title:'DAYS 61-90: VERIFY',color:C.purple,items:[
+            'Re-take this assessment. Compare scores area by area.',
+            'Test: simulate a full week off. Only respond to true emergencies.',
+            'Identify and develop your #2 for strategic discussions.',
+            `Target: reduce index from ${d.totalScore} to below ${Math.max(20,d.totalScore-30)}.`
         ]}
     ];
 
-    phases.forEach(phase => {
-        cp(50);
-        doc.setFillColor(...phase.color);
-        doc.roundedRect(m,y,cw,8,2,2,'F');
-        txt(phase.title,10,'bold',[255,255,255]);
-        doc.text(phase.title,m+4,y+6);
+    timePhases.forEach((phase,pi) => {
+        cp(40);
+        const dotX = m+6;
+        fill(phase.color); doc.circle(dotX,y+5,3.5,'F');
+        txt((pi+1).toString(),7,'bold',C.white); doc.text((pi+1).toString(),dotX,y+7,{align:'center'});
+        if(pi<timePhases.length-1){doc.setDrawColor(...C.shadow);doc.setLineWidth(0.8);doc.line(dotX,y+9,dotX,y+38);}
+
+        fill(phase.color); doc.roundedRect(m+16,y,cw-16,8,2,2,'F');
+        txt(phase.title,8,'bold',C.white); doc.text(phase.title,m+22,y+6);
         y += 12;
 
         phase.items.forEach(item => {
-            cp(14);
-            txt(item,8,'normal',[65,65,68]);
-            const lines = doc.splitTextToSize('  '+item,cw-10);
-            doc.text(lines,m+5,y);
-            y += lines.length*4+3;
+            fill(phase.color); doc.circle(m+20,y+1.5,1.2,'F');
+            txt(item,7.5,'normal',C.text);
+            const iL = doc.splitTextToSize(item,cw-30);
+            doc.text(iL,m+25,y+2.5);
+            y += iL.length*3.8+2;
         });
         y += 8;
     });
 
-    // ---- BUSINESS VALUATION IMPACT ----
-    cp(70);
-    y += 5;
-    txt('WHY THIS MATTERS: BUSINESS VALUE',14,'bold',[59,130,246]);
-    doc.text('WHY THIS MATTERS: BUSINESS VALUE',pw/2,y,{align:'center'});
-    y += 12;
+    // Valuation impact
+    y = secTitle('BUSINESS VALUATION IMPACT', y, C.blue);
+    const halfW = (cw-6)/2;
+    card(m,y,halfW,32,{accent:C.red});
+    txt('OWNER-DEPENDENT',6.5,'bold',C.red); doc.text('OWNER-DEPENDENT',m+9,y+8);
+    txt('2-3x',16,'bold',C.red); doc.text('2-3x',m+9,y+18);
+    txt('earnings multiple (if it sells)',6.5,'normal',C.textMid); doc.text('earnings multiple (if it sells)',m+9,y+24);
 
-    doc.setFillColor(228,232,240);
-    doc.roundedRect(m,y,cw,55,3,3,'F');
-    doc.setDrawColor(59,130,246);
-    doc.roundedRect(m,y,cw,55,3,3,'S');
+    card(m+halfW+6,y,halfW,32,{accent:C.green});
+    txt('SYSTEMATIZED',6.5,'bold',C.green); doc.text('SYSTEMATIZED',m+halfW+15,y+8);
+    txt('4-6x',16,'bold',C.green); doc.text('4-6x',m+halfW+15,y+18);
+    txt('earnings multiple or higher',6.5,'normal',C.textMid); doc.text('earnings multiple or higher',m+halfW+15,y+24);
+    y += 40;
 
-    txt('Owner dependency directly impacts what your business is worth.',9,'bold',[58,58,62]);
-    doc.text('Owner dependency directly impacts what your business is worth.',pw/2,y+10,{align:'center'});
-
-    const valData = [
-        'Owner-dependent businesses sell for 2-3x earnings (if they sell at all).',
-        'Systematized businesses sell for 4-6x earnings, sometimes higher.',
-        'Buyers pay a premium for businesses that run without the founder.',
-        'Every process you document and delegate increases your company\'s transferability.',
-        `Your current score of ${d.totalScore}/100 suggests ${d.totalScore >= 70 ? 'significant valuation risk from owner dependency.' : d.totalScore >= 40 ? 'moderate transferability. Room for improvement.' : 'good independence. Your business has strong transfer value.'}`
-    ];
-
-    let valY = y + 18;
-    valData.forEach(item => {
-        txt(item,8,'normal',[65,65,68]);
-        const lines = doc.splitTextToSize('  '+item,cw-14);
-        doc.text(lines,m+5,valY);
-        valY += lines.length*4+2;
-    });
-    y += 65;
-
-    // Freedom Score Target
-    cp(40);
-    doc.setFillColor(228,240,228);
-    doc.roundedRect(m,y,cw,35,3,3,'F');
-    doc.setDrawColor(34,197,94);
-    doc.roundedRect(m,y,cw,35,3,3,'S');
-    txt('YOUR TARGET: OWNER DEPENDENCY INDEX OF 20 OR BELOW',11,'bold',[34,197,94]);
-    doc.text('YOUR TARGET: OWNER DEPENDENCY INDEX OF 20 OR BELOW',pw/2,y+12,{align:'center'});
-    txt('At that score, you can take a month off and your business thrives.',10,'normal',[50,80,50]);
-    doc.text('At that score, you can take a month off and your business thrives.',pw/2,y+22,{align:'center'});
-    txt('You choose to be there, not because you have to be.',10,'normal',[50,80,50]);
-    doc.text('You choose to be there, not because you have to be.',pw/2,y+30,{align:'center'});
-    y += 45;
+    // Target
+    card(m,y,cw,22,{bg:[225,240,225],accent:C.green});
+    txt('YOUR TARGET: DEPENDENCY INDEX OF 20 OR BELOW',8,'bold',C.green);
+    doc.text('YOUR TARGET: DEPENDENCY INDEX OF 20 OR BELOW',m+cw/2,y+8,{align:'center'});
+    txt('Take a month off and your business thrives. You choose to be there, not because you have to.',7,'normal',C.textMid);
+    doc.text('Take a month off and your business thrives. You choose to be there, not because you have to.',m+cw/2,y+16,{align:'center'});
+    y += 30;
 
     // CTA
     cp(40);
-    doc.setFillColor(30,30,42);
-    doc.roundedRect(m,y,cw,35,3,3,'F');
-    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",13,'bold',[255,255,255]);
-    doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+11,{align:'center'});
-    txt("Let's create the systems and automation that set you free.",9,'normal',[180,180,200]);
+    fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
+    fill(C.blue); doc.rect(m,y+34,cw,2,'F');
+    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",12,'bold',C.white); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+12,{align:'center'});
+    txt("Let's create the systems and automation that set you free.",8,'normal',[175,175,190]);
     doc.text("Let's create the systems and automation that set you free.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',[245,200,80]);
-    doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    txt('mo@deeplineop.ai',11,'bold',[100,160,235]); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        doc.setFillColor(30,30,42);
-        doc.rect(0,287,pw,10,'F');
-        txt('Mo Roowala | Deep Line Operations | AI Automation for Distributors',7,'normal',[130,130,150]);
-        doc.text('Mo Roowala | Deep Line Operations | AI Automation for Distributors',pw/2,292,{align:'center'});
+        fill(C.dark); doc.rect(0,ph-8,pw,8,'F');
+        fill(C.blue); doc.rect(0,ph-8,pw,0.5,'F');
+        txt('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',6,'normal',[140,140,155]);
+        doc.text('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',pw/2,ph-3,{align:'center'});
+        txt(`Page ${i} of ${pc}`,5.5,'normal',[120,120,135]); doc.text(`Page ${i} of ${pc}`,pw-m,ph-3,{align:'right'});
     }
-
     doc.save('Business-Dependency-Report.pdf');
 }
+
 
 init();
 </script>

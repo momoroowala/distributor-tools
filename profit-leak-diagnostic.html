@@ -422,331 +422,324 @@ function handleDownload(e) {
 function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
-    const m = 20;
-    const cw = pw - 2 * m;
+    const ph = doc.internal.pageSize.getHeight();
+    const m = 16, cw = pw - 2*m;
     let y = 0;
 
-    const txt = (text, size, style='normal', color=[52,52,56]) => {
-        doc.setFontSize(size);
-        doc.setFont('helvetica', style);
-        doc.setTextColor(...color);
+    const C = {
+        bg: [218,215,210], card: [240,238,235], cardAlt: [232,230,226],
+        dark: [32,34,44], darkSoft: [48,50,58],
+        text: [45,45,50], textMid: [75,75,80], textLight: [100,100,105], textMuted: [130,130,135],
+        white: [255,255,255], shadow: [195,192,188],
+        red: [200,58,48], redLight: [230,90,75], redBg: [235,222,220],
+        green: [35,160,88], amber: [210,145,30], blue: [50,115,210], purple: [125,80,200]
     };
-    const addBg = () => { doc.setFillColor(236,233,228); doc.rect(0,0,pw,297,'F'); };
-    const checkPage = (need=25) => { if(y+need>268){doc.addPage();addBg();y=18;} };
 
-    // ---- PAGE 1: COVER ----
-    addBg();
-    doc.setFillColor(30, 30, 42);
-    doc.rect(0, 0, pw, 48, 'F');
-    txt('PROFIT LEAK DIAGNOSTIC', 20, 'bold', [255,255,255]);
-    doc.text('PROFIT LEAK DIAGNOSTIC', pw/2, 18, {align:'center'});
-    txt('Your Personalized Recovery Plan', 10, 'normal', [180,180,200]);
-    doc.text('Your Personalized Recovery Plan', pw/2, 28, {align:'center'});
-    txt(`${email} | ${new Date().toLocaleDateString()}`, 8, 'normal', [140,140,160]);
-    doc.text(`${email} | ${new Date().toLocaleDateString()}`, pw/2, 38, {align:'center'});
+    const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
+    const fill = (c) => doc.setFillColor(...c);
+    const newPage = () => {
+        doc.addPage();
+        fill(C.bg); doc.rect(0,0,pw,ph,'F');
+        fill(C.red); doc.rect(0,0,pw,1.2,'F');
+        fill([225,222,218]); doc.rect(0,0,6,ph,'F');
+        fill(C.red); doc.rect(5,20,1,30,'F');
+        y = 16;
+    };
+    const cp = (n=25) => { if(y+n>262){newPage(); return true;} return false; };
+    const card = (x,yc,w,h,opts={}) => {
+        fill(C.shadow); doc.roundedRect(x+1,yc+1,w,h,2.5,2.5,'F');
+        fill(opts.bg||C.card); doc.roundedRect(x,yc,w,h,2.5,2.5,'F');
+        if(opts.accent){fill(opts.accent);doc.roundedRect(x,yc,3.5,h,2.5,0,'F');doc.rect(x+1.5,yc,2,h,'F');}
+    };
+    const secTitle = (title,yy,color=C.red) => {
+        fill(color); doc.roundedRect(m,yy,3,10,1,1,'F');
+        txt(title,11,'bold',C.text); doc.text(title,m+8,yy+7);
+        doc.setDrawColor(...C.shadow); doc.setLineWidth(0.3); doc.line(m+8,yy+10,pw-m,yy+10);
+        return yy+14;
+    };
 
-    y = 58;
+    // ================================================================
+    // PAGE 1: COVER
+    // ================================================================
+    fill(C.bg); doc.rect(0,0,pw,ph,'F');
+    fill(C.dark); doc.rect(0,0,pw,78,'F');
+    fill(C.red); doc.rect(0,76.5,pw,1.5,'F');
 
-    // Total
-    doc.setFillColor(255, 245, 245);
-    doc.roundedRect(m, y, cw, 40, 3, 3, 'F');
-    doc.setDrawColor(239, 68, 68);
-    doc.roundedRect(m, y, cw, 40, 3, 3, 'S');
-    txt('YOUR ESTIMATED ANNUAL PROFIT LEAKAGE', 10, 'bold', [239,68,68]);
-    doc.text('YOUR ESTIMATED ANNUAL PROFIT LEAKAGE', pw/2, y+12, {align:'center'});
-    txt('$' + runningLeak.toLocaleString(), 28, 'bold', [239,68,68]);
-    doc.text('$' + runningLeak.toLocaleString(), pw/2, y+28, {align:'center'});
+    fill(C.red); doc.circle(pw/2,18,7,'F');
+    txt('A',10,'bold',C.dark); doc.text('A',pw/2,21,{align:'center'});
+    txt('PROFIT LEAK DIAGNOSTIC',20,'bold',C.white); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,40,{align:'center'});
+    txt('Your Personalized Recovery Plan',9,'normal',[170,170,185]); doc.text('Your Personalized Recovery Plan',pw/2,49,{align:'center'});
+    fill(C.darkSoft); doc.roundedRect(pw/2-45,56,90,9,4,4,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'normal',[155,155,170]);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,62,{align:'center'});
+
+    y = 88;
+
+    // Big number
+    card(m,y,cw,36,{accent:C.red});
+    txt('YOUR ESTIMATED ANNUAL PROFIT LEAKAGE',7,'bold',C.red); doc.text('YOUR ESTIMATED ANNUAL PROFIT LEAKAGE',m+cw/2,y+8,{align:'center'});
+    txt('$' + runningLeak.toLocaleString(),26,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+22,{align:'center'});
     const rev = parseFloat(allValues.revenue) || 1;
-    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`, 10, 'normal', [100,100,100]);
-    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`, pw/2, y+37, {align:'center'});
+    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,8,'normal',C.textMid);
+    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,m+cw/2,y+30,{align:'center'});
+    y += 44;
 
-    y += 55;
+    // 3-column metrics
+    const metW = (cw-8)/3;
+    const perMonth = Math.round(runningLeak/12);
+    const perDay = Math.round(runningLeak/365);
+    const mets = [
+        {val:'$'+perMonth.toLocaleString(),label:'PER MONTH',color:C.red},
+        {val:'$'+perDay.toLocaleString(),label:'PER DAY',color:C.amber},
+        {val:((runningLeak/rev)*100).toFixed(1)+'%',label:'OF REVENUE',color:C.purple}
+    ];
+    mets.forEach((mt,i) => {
+        const x = m+i*(metW+4);
+        card(x,y,metW,28,{accent:mt.color});
+        txt(mt.val,14,'bold',mt.color); doc.text(mt.val,x+metW/2+2,y+13,{align:'center'});
+        txt(mt.label,6.5,'bold',C.textMid); doc.text(mt.label,x+metW/2+2,y+21,{align:'center'});
+    });
+    y += 36;
 
-    // Breakdown chart
-    txt('WHERE YOUR PROFIT IS LEAKING', 14, 'bold', [48,48,52]);
-    doc.text('WHERE YOUR PROFIT IS LEAKING', m, y);
-    y += 10;
-
-    const validLeaks = leaks.filter(l => l && l.leak > 0).sort((a, b) => b.leak - a.leak);
+    // Leak breakdown chart
+    y = secTitle('WHERE YOUR PROFIT IS LEAKING', y);
+    const validLeaks = leaks.filter(l=>l&&l.leak>0).sort((a,b)=>b.leak-a.leak);
     const maxLeak = validLeaks[0]?.leak || 1;
 
+    card(m,y,cw,validLeaks.length*13+10);
+    let bY = y+8;
     validLeaks.forEach(l => {
-        checkPage(18);
-        const barWidth = (l.leak / maxLeak) * (cw - 80);
+        fill(C.red); doc.circle(m+8,bY+1,1.8,'F');
+        txt(l.label,7.5,'bold',C.text); doc.text(l.label,m+14,bY+2.5);
+        txt('$'+l.leak.toLocaleString(),7.5,'bold',C.red); doc.text('$'+l.leak.toLocaleString(),pw-m-8,bY+2.5,{align:'right'});
 
-        txt(l.label, 9, 'bold', [58,58,62]);
-        doc.text(l.label, m, y + 4);
-        txt('$' + l.leak.toLocaleString(), 9, 'bold', [239,68,68]);
-        doc.text('$' + l.leak.toLocaleString(), pw - m, y + 4, {align:'right'});
-
-        doc.setFillColor(245, 230, 230);
-        doc.roundedRect(m, y + 7, cw, 5, 2, 2, 'F');
-        doc.setFillColor(239, 68, 68);
-        doc.roundedRect(m, y + 7, Math.max(barWidth, 3), 5, 2, 2, 'F');
-
-        txt(l.desc, 7, 'normal', [120,120,120]);
-        doc.text(l.desc, m, y + 18);
-        y += 23;
+        const barX=m+8, barW=cw-50;
+        const w = Math.max((l.leak/maxLeak)*barW,2);
+        fill(C.cardAlt); doc.roundedRect(barX,bY+5,barW,3.5,1,1,'F');
+        fill(C.red); doc.roundedRect(barX,bY+5,w,3.5,1,1,'F');
+        bY += 13;
     });
+    y = bY+6;
 
-    y += 10;
+    // ================================================================
+    // DETAILED RECOVERY PLANS
+    // ================================================================
+    newPage();
+    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
+    fill(C.red); doc.rect(m,y+14,cw,2,'F');
+    txt('DETAILED RECOVERY PLAN',12,'bold',C.white); doc.text('DETAILED RECOVERY PLAN',pw/2,y+10,{align:'center'});
+    y += 24;
 
-    // ---- DETAILED FIX PLANS ----
     const fixes = {
         "Pricing Inconsistency": {
-            priority: "CRITICAL",
-            impact: "Typically recovers 1-3% of revenue",
-            steps: [
-                "Week 1: Audit last 90 days of pricing. Pull every quote and compare margins across same SKUs, same customer tiers.",
-                "Week 2: Identify your top 50 SKUs by volume. Set floor prices and target margins for each.",
-                "Week 3-4: Create a pricing matrix by customer tier (A/B/C) and volume break. Document the rules.",
-                "Week 5-6: Implement approval workflow. Any quote below floor requires manager approval with a documented reason.",
-                "Week 7-8: Configure your ERP's pricing module (most have one that's underused). Automate the matrix.",
-                "Month 3: Review pricing compliance weekly. Track override frequency and margin impact."
-            ],
-            roi: "3-5x return in first year. One distributor recovered $101,700 annually on $32M revenue."
+            priority:"CRITICAL", impact:"Recovers 1-3% of revenue",
+            quickWin:"Audit top 50 SKUs. Set floor prices. One distributor recovered $101,700 on $32M revenue.",
+            steps:["Week 1-2: Pull every quote from last 90 days. Compare margins across same SKUs and customer tiers.",
+                "Week 3-4: Create pricing matrix by customer tier (A/B/C) and product category with floor prices.",
+                "Week 5-6: Implement approval workflow. Below-floor quotes require manager sign-off with documented reason.",
+                "Week 7-8: Configure ERP pricing module. Automate the matrix rules.",
+                "Month 3: Review pricing compliance weekly. Track override frequency and margin impact."]
         },
         "Order Processing Waste": {
-            priority: "HIGH",
-            impact: "Reduces labor cost 30-50% and errors 70%+",
-            steps: [
-                "Week 1: Time-study your order entry process. Document every step from email received to order in system.",
-                "Week 2: Categorize orders by complexity. Most distributors find 60-80% follow standard patterns.",
-                "Week 3-4: Set up email parsing rules or basic automation for standard orders.",
-                "Week 5-6: Implement order validation rules in your ERP to catch errors before they ship.",
-                "Week 7-8: Create customer self-service portal for top 20 accounts (they prefer it).",
-                "Month 3: Measure error rate weekly. Target 70% reduction in order corrections."
-            ],
-            roi: "Typical payback in 4-6 months. Most savings come from error reduction, not just speed."
+            priority:"HIGH", impact:"Reduces labor 30-50%, errors 70%+",
+            quickWin:"Add order validation screen with summary. Catches 40% of entry errors immediately.",
+            steps:["Week 1-2: Time-study your order entry. Document every step from email to system.",
+                "Week 3-4: Categorize orders by complexity. 60-80% follow standard patterns.",
+                "Week 5-6: Set up email parsing or automation for standard orders.",
+                "Week 7-8: Create customer self-service portal for top 20 accounts.",
+                "Month 3: Measure error rate weekly. Target 70% reduction in corrections."]
         },
         "Slow Quote Response": {
-            priority: "HIGH",
-            impact: "Increases quote-to-close rate 15-25%",
-            steps: [
-                "Week 1: Measure current quote turnaround. Track from 'request received' to 'quote sent'. Be honest.",
-                "Week 2: Create templates for your 10 most common quote types. Pre-populate pricing.",
-                "Week 3-4: Implement a quoting tool or configure your ERP's quote module with templates and auto-pricing.",
-                "Week 5-6: Set response time targets. Same-day for standard quotes, 24hr for complex.",
-                "Week 7-8: Add automated follow-up. If a quote isn't responded to in 3 days, trigger a reminder.",
-                "Month 3: Track win rate by response time. You'll see the correlation immediately."
-            ],
-            roi: "Every hour shaved off response time increases win rate 2-5%. On high-value quotes, this is massive."
+            priority:"HIGH", impact:"Increases quote-to-close 15-25%",
+            quickWin:"Create templates for top 10 quote types with pre-populated pricing.",
+            steps:["Week 1-2: Measure current turnaround from request received to quote sent.",
+                "Week 3-4: Build quoting tool or configure ERP quote module with auto-pricing.",
+                "Week 5-6: Set targets: same-day for standard, 24hr for complex.",
+                "Week 7-8: Add automated 3-day follow-up on open quotes.",
+                "Month 3: Track win rate by response time. Correlation is immediate."]
         },
         "Inventory Mismanagement": {
-            priority: "HIGH",
-            impact: "Reduces carrying costs 20-30%, stockouts 50%+",
-            steps: [
-                "Week 1: Run an ABC analysis. Classify inventory by annual revenue contribution (A=top 80%, B=next 15%, C=bottom 5%).",
-                "Week 2: Calculate reorder points for all A items. Use: (avg daily usage x lead time) + safety stock.",
-                "Week 3-4: Set up automatic reorder alerts in your ERP for A items. Many systems have this built-in.",
-                "Week 5-6: Identify dead stock (no movement in 12+ months). Create a liquidation plan.",
-                "Week 7-8: Implement cycle counting instead of annual full counts. Count A items monthly, B quarterly, C annually.",
-                "Month 3: Review fill rate and stockout metrics weekly. Target 95%+ fill rate."
-            ],
-            roi: "Reducing excess inventory by 10% frees significant working capital. Reducing stockouts directly recovers lost sales."
+            priority:"HIGH", impact:"Reduces carrying costs 20-30%, stockouts 50%+",
+            quickWin:"Run ABC analysis today. Set reorder alerts for A items.",
+            steps:["Week 1-2: Classify inventory: A=top 80% revenue, B=next 15%, C=bottom 5%.",
+                "Week 3-4: Calculate reorder points for A items. Set up ERP auto-alerts.",
+                "Week 5-6: Identify and liquidate dead stock (no movement 12+ months).",
+                "Week 7-8: Implement cycle counting: A monthly, B quarterly, C annually.",
+                "Month 3: Track fill rate weekly. Target 95%+."]
         },
         "Preventable Customer Churn": {
-            priority: "MEDIUM",
-            impact: "Retaining just 5% more customers can increase profit 25-95%",
-            steps: [
-                "Week 1: Pull a list of customers who ordered last year but not this year. This is your 'silent churn' list.",
-                "Week 2: Call the top 10 churned customers. Ask what happened. Document every answer.",
-                "Week 3-4: Identify the top 3 churn reasons. Common: price, service speed, stockouts, competitor poached them.",
-                "Week 5-6: Set up automated 'at risk' alerts. If an A or B customer's order frequency drops 30%, flag them.",
-                "Week 7-8: Create a customer health dashboard. Track order frequency, average order value, and complaints.",
-                "Month 3: Implement quarterly business reviews with top 20 accounts. Proactive beats reactive."
-            ],
-            roi: "Customer retention has the highest ROI of any business activity. One saved $50K account pays for the entire program."
+            priority:"MEDIUM", impact:"5% more retention = 25-95% more profit",
+            quickWin:"Call top 10 churned customers. Ask what happened. Document everything.",
+            steps:["Week 1-2: Pull customers who ordered last year but not this year (silent churn list).",
+                "Week 3-4: Identify top 3 churn reasons: price, service, stockouts, competition.",
+                "Week 5-6: Set automated 'at risk' alerts when A/B customer frequency drops 30%.",
+                "Week 7-8: Create customer health dashboard: frequency, order value, complaints.",
+                "Month 3: Quarterly business reviews with top 20 accounts."]
         },
         "Wasted Labor Hours": {
-            priority: "MEDIUM",
-            impact: "Frees 20-40% of admin time for higher-value work",
-            steps: [
-                "Week 1: Survey your team. Ask: 'What tasks do you do every day that feel like a waste of time?' You'll get gold.",
-                "Week 2: Rank tasks by frequency and time consumed. The top 5 are your automation targets.",
-                "Week 3-4: Implement quick wins first (email templates, auto-reports, standardized forms).",
-                "Week 5-6: Evaluate RPA (Robotic Process Automation) for high-volume repetitive tasks like data entry.",
-                "Week 7-8: Redeploy freed-up time to customer-facing activities. More selling, less admin.",
-                "Month 3: Measure hours saved per employee per week. Celebrate and share wins internally."
-            ],
-            roi: "Even freeing 5 hours per employee per week across 10 employees = 2,600 hours/year of recovered capacity."
+            priority:"MEDIUM", impact:"Frees 20-40% of admin time",
+            quickWin:"Survey your team: 'What tasks feel like a waste of time?' You'll get gold.",
+            steps:["Week 1-2: Rank tasks by frequency and time consumed. Top 5 are automation targets.",
+                "Week 3-4: Implement quick wins: email templates, auto-reports, standard forms.",
+                "Week 5-6: Evaluate RPA for high-volume repetitive tasks like data entry.",
+                "Week 7-8: Redeploy freed time to customer-facing activities.",
+                "Month 3: Measure hours saved per employee per week."]
         },
         "Slow Price Pass-Through": {
-            priority: "MEDIUM",
-            impact: "Protects margin during supplier increase cycles",
-            steps: [
-                "Week 1: List all supplier price changes in the last 12 months. Note how many days between their change and yours.",
-                "Week 2: Create a price change playbook. When supplier notifies, who does what, in what order?",
-                "Week 3-4: Set up a supplier price monitoring system. Even a shared spreadsheet with alerts is better than email chains.",
-                "Week 5-6: Pre-calculate customer price adjustments. Build formulas that auto-calculate new prices when supplier costs change.",
-                "Week 7-8: Implement automated customer notifications for price changes. Professional and fast.",
-                "Month 3: Target same-week pass-through for all supplier changes. Track days-to-update as a KPI."
-            ],
-            roi: "Every day of delay costs margin. Cutting pass-through time from 14 days to 2 days can recover tens of thousands annually."
+            priority:"MEDIUM", impact:"Protects margin during supplier increase cycles",
+            quickWin:"List all supplier changes in 12 months. Note lag between their change and yours.",
+            steps:["Week 1-2: Create price change playbook: who does what, in what order.",
+                "Week 3-4: Set up supplier price monitoring (shared spreadsheet with alerts).",
+                "Week 5-6: Pre-calculate customer adjustments with auto-pricing formulas.",
+                "Week 7-8: Implement automated customer price change notifications.",
+                "Month 3: Target same-week pass-through. Track days-to-update as KPI."]
         }
     };
 
-    // Fix plans
-    doc.addPage();
-    y = 20;
-    txt('DETAILED RECOVERY PLAN', 18, 'bold', [239,68,68]);
-    doc.text('DETAILED RECOVERY PLAN', pw/2, y, {align:'center'});
-    y += 5;
-    txt('Prioritized actions to recover your lost profit', 10, 'normal', [100,100,100]);
-    doc.text('Prioritized actions to recover your lost profit', pw/2, y + 5, {align:'center'});
-    y += 18;
-
-    validLeaks.forEach((leak, idx) => {
+    let fixIdx = 0;
+    validLeaks.forEach(leak => {
         const fix = fixes[leak.label];
-        if (!fix) return;
+        if(!fix) return;
+        fixIdx++;
+        cp(80);
 
-        checkPage(90);
+        const pColors = {CRITICAL:C.red, HIGH:C.amber, MEDIUM:C.blue};
+        const col = pColors[fix.priority]||C.textLight;
 
-        // Section header
-        const priorityColors = { CRITICAL: [239,68,68], HIGH: [245,158,11], MEDIUM: [99,102,241] };
-        const pColor = priorityColors[fix.priority] || [100,100,100];
+        // Header bar with number
+        fill(col); doc.roundedRect(m,y,cw,10,2,2,'F');
+        fill(C.dark); doc.circle(m+8,y+5,4.5,'F');
+        txt(fixIdx.toString(),8,'bold',C.white); doc.text(fixIdx.toString(),m+8,y+7.5,{align:'center'});
+        txt(leak.label.toUpperCase(),9,'bold',C.white); doc.text(leak.label.toUpperCase(),m+17,y+7);
+        txt('$'+leak.leak.toLocaleString()+'/yr',8,'bold',C.white); doc.text('$'+leak.leak.toLocaleString()+'/yr',pw-m-5,y+7,{align:'right'});
+        y += 14;
 
-        doc.setFillColor(...pColor);
-        doc.roundedRect(m, y, cw, 10, 2, 2, 'F');
-        txt(`#${idx+1}: ${leak.label.toUpperCase()}`, 11, 'bold', [255,255,255]);
-        doc.text(`#${idx+1}: ${leak.label.toUpperCase()}`, m + 5, y + 7);
-        txt(`$${leak.leak.toLocaleString()}/yr`, 11, 'bold', [255,255,255]);
-        doc.text(`$${leak.leak.toLocaleString()}/yr`, pw - m - 5, y + 7, {align:'right'});
-        y += 15;
+        // Priority + Impact
+        card(m,y,cw,14);
+        txt(`Priority: ${fix.priority}`,7,'bold',col); doc.text(`Priority: ${fix.priority}`,m+8,y+6);
+        txt(`Expected Impact: ${fix.impact}`,7,'normal',C.textMid); doc.text(`Expected Impact: ${fix.impact}`,m+50,y+6);
+        y += 18;
 
-        // Priority and Impact
-        txt(`Priority: ${fix.priority}`, 9, 'bold', pColor);
-        doc.text(`Priority: ${fix.priority}`, m, y);
-        y += 5;
-        txt(`Expected Impact: ${fix.impact}`, 9, 'normal', [82,82,85]);
-        doc.text(`Expected Impact: ${fix.impact}`, m, y);
-        y += 8;
+        // Quick Win
+        card(m,y,cw,12,{bg:[235,222,220],accent:C.red});
+        txt('QUICK WIN',6,'bold',C.red); doc.text('QUICK WIN',m+8,y+5);
+        txt(fix.quickWin,7,'normal',C.text);
+        const qwL = doc.splitTextToSize(fix.quickWin,cw-16);
+        doc.text(qwL,m+8,y+9.5);
+        y += Math.max(12, qwL.length*3.5+10);
 
         // Steps
-        txt('ACTION STEPS:', 9, 'bold', [58,58,62]);
-        doc.text('ACTION STEPS:', m, y);
-        y += 5;
-
-        fix.steps.forEach((step, i) => {
-            checkPage(15);
-            txt(step, 8, 'normal', [75,75,78]);
-            const lines = doc.splitTextToSize(step, cw - 5);
-            doc.text(lines, m + 3, y);
-            y += lines.length * 4 + 3;
+        txt('ACTION STEPS',6.5,'bold',C.textMid); doc.text('ACTION STEPS',m+2,y+3); y+=7;
+        fix.steps.forEach((step,si) => {
+            cp(12);
+            fill(col); doc.circle(m+5,y+1,2.5,'F');
+            txt((si+1).toString(),6,'bold',C.white); doc.text((si+1).toString(),m+5,y+2.8,{align:'center'});
+            txt(step,7,'normal',C.text);
+            const sL = doc.splitTextToSize(step,cw-16);
+            doc.text(sL,m+12,y+2);
+            y += sL.length*3.5+2.5;
         });
-
-        // ROI
-        checkPage(15);
-        doc.setFillColor(245, 250, 245);
-        const roiLines = doc.splitTextToSize(`ROI: ${fix.roi}`, cw - 10);
-        doc.roundedRect(m, y, cw, roiLines.length * 4.5 + 8, 2, 2, 'F');
-        txt(`ROI: ${fix.roi}`, 8, 'bold', [34,100,34]);
-        doc.text(roiLines, m + 5, y + 6);
-        y += roiLines.length * 4.5 + 15;
+        y += 8;
     });
 
-    // ---- 90-DAY ROADMAP ----
-    checkPage(80);
-    doc.addPage();
-    y = 20;
-    txt('YOUR 90-DAY PROFIT RECOVERY ROADMAP', 16, 'bold', [239,68,68]);
-    doc.text('YOUR 90-DAY PROFIT RECOVERY ROADMAP', pw/2, y, {align:'center'});
-    y += 15;
+    // ================================================================
+    // 90-DAY ROADMAP
+    // ================================================================
+    newPage();
+    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
+    fill(C.red); doc.rect(m,y+14,cw,2,'F');
+    txt('90-DAY PROFIT RECOVERY ROADMAP',12,'bold',C.white); doc.text('90-DAY PROFIT RECOVERY ROADMAP',pw/2,y+10,{align:'center'});
+    y += 24;
 
     const phases = [
-        { title: 'DAYS 1-14: QUICK WINS', color: [34,197,94], items: [
+        {title:'DAYS 1-14: QUICK WINS',color:C.green,items:[
             'Audit pricing on top 50 SKUs. Set floor prices immediately.',
             'Call top 10 churned customers. Document why they left.',
             'Survey employees on biggest time-wasters.',
             'Measure current quote turnaround and order error rate.'
         ]},
-        { title: 'DAYS 15-30: FOUNDATIONS', color: [245,158,11], items: [
+        {title:'DAYS 15-30: FOUNDATIONS',color:C.amber,items:[
             'Build pricing matrix by customer tier and volume.',
             'Create quote templates for top 10 quote types.',
-            'Run ABC analysis on inventory. Set reorder points for A items.',
+            'Run ABC analysis. Set reorder points for A items.',
             'Implement approval workflow for below-floor pricing.'
         ]},
-        { title: 'DAYS 31-60: AUTOMATION', color: [99,102,241], items: [
-            'Configure ERP pricing module with your matrix and rules.',
+        {title:'DAYS 31-60: AUTOMATION',color:C.blue,items:[
+            'Configure ERP pricing module with matrix and rules.',
             'Set up order validation and automated alerts.',
-            'Deploy automated reorder point notifications.',
-            'Implement customer health monitoring dashboard.'
+            'Deploy reorder point notifications.',
+            'Build customer health monitoring dashboard.'
         ]},
-        { title: 'DAYS 61-90: OPTIMIZATION', color: [139,92,246], items: [
+        {title:'DAYS 61-90: OPTIMIZATION',color:C.purple,items:[
             'Review all KPIs: error rate, quote speed, margin, fill rate.',
-            'Fine-tune automation rules based on real-world results.',
+            'Fine-tune automation rules based on real results.',
             'Expand automation to B-tier items and processes.',
-            'Calculate actual recovered profit. Celebrate wins with team.'
+            'Calculate actual recovered profit. Celebrate with team.'
         ]}
     ];
 
-    phases.forEach(phase => {
-        checkPage(45);
-        doc.setFillColor(...phase.color);
-        doc.roundedRect(m, y, cw, 8, 2, 2, 'F');
-        txt(phase.title, 10, 'bold', [255,255,255]);
-        doc.text(phase.title, m + 4, y + 6);
-        y += 13;
+    phases.forEach((phase,pi) => {
+        cp(45);
+        const dotX = m+6;
+        fill(phase.color); doc.circle(dotX,y+5,3.5,'F');
+        txt((pi+1).toString(),7,'bold',C.white); doc.text((pi+1).toString(),dotX,y+7,{align:'center'});
+        if(pi<phases.length-1){doc.setDrawColor(...C.shadow);doc.setLineWidth(0.8);doc.line(dotX,y+9,dotX,y+40);}
+
+        fill(phase.color); doc.roundedRect(m+16,y,cw-16,8,2,2,'F');
+        txt(phase.title,8,'bold',C.white); doc.text(phase.title,m+22,y+6);
+        y+=12;
 
         phase.items.forEach(item => {
-            checkPage(12);
-            txt(item, 9, 'normal', [65,65,68]);
-            const lines = doc.splitTextToSize('• ' + item, cw - 10);
-            doc.text(lines, m + 5, y);
-            y += lines.length * 4.5 + 2;
+            fill(phase.color); doc.circle(m+20,y+1.5,1.2,'F');
+            txt(item,7.5,'normal',C.text);
+            const iL = doc.splitTextToSize(item,cw-30);
+            doc.text(iL,m+25,y+2.5);
+            y += iL.length*3.8+2;
         });
-        y += 8;
+        y+=8;
     });
 
-    // ---- TOTAL RECOVERY PROJECTION ----
-    checkPage(50);
-    y += 5;
-    doc.setFillColor(255, 245, 245);
-    doc.roundedRect(m, y, cw, 35, 3, 3, 'F');
-    doc.setDrawColor(239, 68, 68);
-    doc.roundedRect(m, y, cw, 35, 3, 3, 'S');
+    // Recovery projection
+    y = secTitle('PROJECTED RECOVERY', y, C.green);
+    const conservative = Math.round(runningLeak*0.3);
+    const moderate = Math.round(runningLeak*0.5);
+    const aggressive = Math.round(runningLeak*0.7);
 
-    txt('PROJECTED ANNUAL RECOVERY', 12, 'bold', [239,68,68]);
-    doc.text('PROJECTED ANNUAL RECOVERY', pw/2, y + 10, {align:'center'});
+    const projW = (cw-8)/3;
+    [{val:conservative,label:'CONSERVATIVE (30%)',color:C.blue},{val:moderate,label:'MODERATE (50%)',color:C.green},{val:aggressive,label:'AGGRESSIVE (70%)',color:C.amber}].forEach((p,i) => {
+        const x = m+i*(projW+4);
+        card(x,y,projW,28,{accent:p.color});
+        txt('$'+p.val.toLocaleString(),13,'bold',p.color); doc.text('$'+p.val.toLocaleString(),x+projW/2+2,y+13,{align:'center'});
+        txt(p.label,5.5,'bold',C.textMid); doc.text(p.label,x+projW/2+2,y+21,{align:'center'});
+    });
+    y += 36;
 
-    const conservative = Math.round(runningLeak * 0.3);
-    const moderate = Math.round(runningLeak * 0.5);
-    const aggressive = Math.round(runningLeak * 0.7);
+    txt('Most distributors achieve moderate recovery within 6-12 months of starting.',7,'normal',C.textLight);
+    doc.text('Most distributors achieve moderate recovery within 6-12 months of starting.',pw/2,y,{align:'center'});
+    y += 12;
 
-    txt(`Conservative (30%): $${conservative.toLocaleString()}   |   Moderate (50%): $${moderate.toLocaleString()}   |   Aggressive (70%): $${aggressive.toLocaleString()}`, 9, 'normal', [82,82,85]);
-    doc.text(`Conservative (30%): $${conservative.toLocaleString()}  |  Moderate (50%): $${moderate.toLocaleString()}  |  Aggressive (70%): $${aggressive.toLocaleString()}`, pw/2, y + 20, {align:'center'});
+    // CTA
+    cp(40);
+    fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
+    fill(C.red); doc.rect(m,y+34,cw,2,'F');
+    txt("LET'S RECOVER YOUR PROFIT",13,'bold',C.white); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+12,{align:'center'});
+    txt("You know where the money is going. Let's build a plan to get it back.",8,'normal',[175,175,190]);
+    doc.text("You know where the money is going. Let's build a plan to get it back.",pw/2,y+20,{align:'center'});
+    txt('mo@deeplineop.ai',11,'bold',C.redLight); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
 
-    txt('Most distributors achieve moderate recovery within 6-12 months of starting.', 8, 'normal', [120,120,120]);
-    doc.text('Most distributors achieve moderate recovery within 6-12 months of starting.', pw/2, y + 28, {align:'center'});
-
-    y += 45;
-
-    // ---- CTA ----
-    checkPage(40);
-    doc.setFillColor(30, 30, 42);
-    doc.roundedRect(m, y, cw, 35, 3, 3, 'F');
-
-    txt("LET'S RECOVER YOUR PROFIT", 13, 'bold', [255,255,255]);
-    doc.text("LET'S RECOVER YOUR PROFIT", pw/2, y + 11, {align:'center'});
-
-    txt("You now know where the money is going. Let's build a plan to get it back.", 9, 'normal', [180,180,200]);
-    doc.text("You now know where the money is going. Let's build a plan to get it back.", pw/2, y + 20, {align:'center'});
-
-    txt('mo@deeplineop.ai', 12, 'bold', [245,200,80]);
-    doc.text('mo@deeplineop.ai', pw/2, y + 30, {align:'center'});
-
-    // Footer on every page
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
+    // Footer
+    const pc = doc.internal.getNumberOfPages();
+    for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        doc.setFillColor(30, 30, 42);
-        doc.rect(0, 287, pw, 10, 'F');
-        txt('Mo Roowala | Deep Line Operations | AI Automation for Distributors', 7, 'normal', [130,130,150]);
-        doc.text('Mo Roowala | Deep Line Operations | AI Automation for Distributors', pw/2, 292, {align:'center'});
+        fill(C.dark); doc.rect(0,ph-8,pw,8,'F');
+        fill(C.red); doc.rect(0,ph-8,pw,0.5,'F');
+        txt('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',6,'normal',[140,140,155]);
+        doc.text('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',pw/2,ph-3,{align:'center'});
+        txt(`Page ${i} of ${pc}`,5.5,'normal',[120,120,135]); doc.text(`Page ${i} of ${pc}`,pw-m,ph-3,{align:'right'});
     }
-
     doc.save('Profit-Leak-Diagnostic-Report.pdf');
 }
+
 
 init();
 </script>
