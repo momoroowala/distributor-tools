@@ -482,7 +482,7 @@ function generatePDF(email) {
     const rev = parseFloat(allValues.revenue) || 1;
     txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,8,'normal',C.textMid);
     doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,m+cw/2,y+30,{align:'center'});
-    y += 44;
+    y += 48;
 
     // 3-column metrics
     const metW = (cw-8)/3;
@@ -506,18 +506,35 @@ function generatePDF(email) {
     const validLeaks = leaks.filter(l=>l&&l.leak>0).sort((a,b)=>b.leak-a.leak);
     const maxLeak = validLeaks[0]?.leak || 1;
 
-    card(m,y,cw,validLeaks.length*13+10);
-    let bY = y+8;
-    validLeaks.forEach(l => {
-        fill(C.red); doc.circle(m+8,bY+1,1.8,'F');
-        txt(l.label,7.5,'bold',C.text); doc.text(l.label,m+14,bY+2.5);
-        txt('$'+l.leak.toLocaleString(),7.5,'bold',C.red); doc.text('$'+l.leak.toLocaleString(),pw-m-8,bY+2.5,{align:'right'});
+    // Use ranked colors: #1 darkest red, fading to amber/orange for lower items
+    const leakColors = [[180,40,35],[195,55,45],[210,80,50],[220,110,45],[215,140,35],[200,155,40],[185,160,50]];
 
-        const barX=m+8, barW=cw-50;
-        const w = Math.max((l.leak/maxLeak)*barW,2);
-        fill(C.cardAlt); doc.roundedRect(barX,bY+5,barW,3.5,1,1,'F');
-        fill(C.red); doc.roundedRect(barX,bY+5,w,3.5,1,1,'F');
-        bY += 13;
+    card(m,y,cw,validLeaks.length*16+14);
+    let bY = y+10;
+    validLeaks.forEach((l,li) => {
+        const barCol = leakColors[Math.min(li, leakColors.length-1)];
+
+        // Rank number instead of dot
+        fill(C.dark); doc.roundedRect(m+6,bY-2,10,8,2,2,'F');
+        txt((li+1).toString(),7,'bold',C.white); doc.text((li+1).toString(),m+11,bY+3.5,{align:'center'});
+
+        // Label
+        txt(l.label,8,'bold',C.text); doc.text(l.label,m+20,bY+3);
+
+        // Dollar amount right-aligned
+        txt('$'+l.leak.toLocaleString(),8,'bold',barCol); doc.text('$'+l.leak.toLocaleString(),pw-m-8,bY+3,{align:'right'});
+
+        // Horizontal bar below label
+        const barX=m+20, barW=cw-54;
+        const w = Math.max((l.leak/maxLeak)*barW,3);
+        fill(C.cardAlt); doc.roundedRect(barX,bY+6,barW,4,1.5,1.5,'F');
+        fill(barCol); doc.roundedRect(barX,bY+6,w,4,1.5,1.5,'F');
+
+        // Percentage label on bar
+        const pct = Math.round((l.leak/runningLeak)*100);
+        if(w > 15) { txt(pct+'%',5.5,'bold',C.white); doc.text(pct+'%',barX+w-2,bY+9,{align:'right'}); }
+
+        bY += 16;
     });
     y = bY+6;
 
@@ -723,9 +740,9 @@ function generatePDF(email) {
     fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
     fill(C.red); doc.rect(m,y+34,cw,2,'F');
     txt("LET'S RECOVER YOUR PROFIT",13,'bold',C.white); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+12,{align:'center'});
-    txt("You know where the money is going. Let's build a plan to get it back.",8,'normal',[175,175,190]);
+    txt("You know where the money is going. Let's build a plan to get it back.",8,'normal',[210,210,220]);
     doc.text("You know where the money is going. Let's build a plan to get it back.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',11,'bold',C.redLight); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.white); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();

@@ -957,10 +957,10 @@ function generatePDF(email) {
     fill(C.amber); doc.rect(m,y+34,cw,2,'F');
 
     txt("LET'S GET YOUR TIME BACK",13,'bold',C.white); doc.text("LET'S GET YOUR TIME BACK",pw/2,y+12,{align:'center'});
-    txt(`${d.automatableHrs.toFixed(0)} hours/week are going to tasks that don't need you. Let's build the systems to recover them.`,8,'normal',[175,175,190]);
+    txt(`${d.automatableHrs.toFixed(0)} hours/week are going to tasks that don't need you. Let's build the systems to recover them.`,8,'normal',[210,210,220]);
     const ctaL = doc.splitTextToSize(`${d.automatableHrs.toFixed(0)} hours/week are going to tasks that don't need you. Let's build the systems to recover them.`,cw-30);
     doc.text(ctaL,pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',11,'bold',C.amberLight); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.white); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
 
     // ---- FOOTER ON ALL PAGES ----
     const pc = doc.internal.getNumberOfPages();

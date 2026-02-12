@@ -647,9 +647,9 @@ function generatePDF(email) {
     fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
     fill(C.blue); doc.rect(m,y+34,cw,2,'F');
     txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",12,'bold',C.white); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+12,{align:'center'});
-    txt("Let's create the systems and automation that set you free.",8,'normal',[175,175,190]);
+    txt("Let's create the systems and automation that set you free.",8,'normal',[210,210,220]);
     doc.text("Let's create the systems and automation that set you free.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',11,'bold',[100,160,235]); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.white); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
