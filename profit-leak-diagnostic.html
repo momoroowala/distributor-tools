@@ -426,12 +426,12 @@ function generatePDF(email) {
     const cw = pw - 2 * m;
     let y = 0;
 
-    const txt = (text, size, style='normal', color=[40,40,40]) => {
+    const txt = (text, size, style='normal', color=[52,52,56]) => {
         doc.setFontSize(size);
         doc.setFont('helvetica', style);
         doc.setTextColor(...color);
     };
-    const addBg = () => { doc.setFillColor(248,249,251); doc.rect(0,0,pw,297,'F'); };
+    const addBg = () => { doc.setFillColor(236,233,228); doc.rect(0,0,pw,297,'F'); };
     const checkPage = (need=25) => { if(y+need>268){doc.addPage();addBg();y=18;} };
 
     // ---- PAGE 1: COVER ----
@@ -463,7 +463,7 @@ function generatePDF(email) {
     y += 55;
 
     // Breakdown chart
-    txt('WHERE YOUR PROFIT IS LEAKING', 14, 'bold', [30,30,30]);
+    txt('WHERE YOUR PROFIT IS LEAKING', 14, 'bold', [48,48,52]);
     doc.text('WHERE YOUR PROFIT IS LEAKING', m, y);
     y += 10;
 
@@ -474,7 +474,7 @@ function generatePDF(email) {
         checkPage(18);
         const barWidth = (l.leak / maxLeak) * (cw - 80);
 
-        txt(l.label, 9, 'bold', [50,50,50]);
+        txt(l.label, 9, 'bold', [58,58,62]);
         doc.text(l.label, m, y + 4);
         txt('$' + l.leak.toLocaleString(), 9, 'bold', [239,68,68]);
         doc.text('$' + l.leak.toLocaleString(), pw - m, y + 4, {align:'right'});
@@ -618,18 +618,18 @@ function generatePDF(email) {
         txt(`Priority: ${fix.priority}`, 9, 'bold', pColor);
         doc.text(`Priority: ${fix.priority}`, m, y);
         y += 5;
-        txt(`Expected Impact: ${fix.impact}`, 9, 'normal', [80,80,80]);
+        txt(`Expected Impact: ${fix.impact}`, 9, 'normal', [82,82,85]);
         doc.text(`Expected Impact: ${fix.impact}`, m, y);
         y += 8;
 
         // Steps
-        txt('ACTION STEPS:', 9, 'bold', [50,50,50]);
+        txt('ACTION STEPS:', 9, 'bold', [58,58,62]);
         doc.text('ACTION STEPS:', m, y);
         y += 5;
 
         fix.steps.forEach((step, i) => {
             checkPage(15);
-            txt(step, 8, 'normal', [70,70,70]);
+            txt(step, 8, 'normal', [75,75,78]);
             const lines = doc.splitTextToSize(step, cw - 5);
             doc.text(lines, m + 3, y);
             y += lines.length * 4 + 3;
@@ -690,7 +690,7 @@ function generatePDF(email) {
 
         phase.items.forEach(item => {
             checkPage(12);
-            txt(item, 9, 'normal', [60,60,60]);
+            txt(item, 9, 'normal', [65,65,68]);
             const lines = doc.splitTextToSize('• ' + item, cw - 10);
             doc.text(lines, m + 5, y);
             y += lines.length * 4.5 + 2;
@@ -713,7 +713,7 @@ function generatePDF(email) {
     const moderate = Math.round(runningLeak * 0.5);
     const aggressive = Math.round(runningLeak * 0.7);
 
-    txt(`Conservative (30%): $${conservative.toLocaleString()}   |   Moderate (50%): $${moderate.toLocaleString()}   |   Aggressive (70%): $${aggressive.toLocaleString()}`, 9, 'normal', [80,80,80]);
+    txt(`Conservative (30%): $${conservative.toLocaleString()}   |   Moderate (50%): $${moderate.toLocaleString()}   |   Aggressive (70%): $${aggressive.toLocaleString()}`, 9, 'normal', [82,82,85]);
     doc.text(`Conservative (30%): $${conservative.toLocaleString()}  |  Moderate (50%): $${moderate.toLocaleString()}  |  Aggressive (70%): $${aggressive.toLocaleString()}`, pw/2, y + 20, {align:'center'});
 
     txt('Most distributors achieve moderate recovery within 6-12 months of starting.', 8, 'normal', [120,120,120]);

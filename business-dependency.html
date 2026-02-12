@@ -415,8 +415,8 @@ function generatePDF(email) {
     const m = 20, cw = pw - 2*m;
     let y = 0;
 
-    const txt = (text,size,style='normal',color=[40,40,40]) => { doc.setFontSize(size); doc.setFont('helvetica',style); doc.setTextColor(...color); };
-    const addBg = () => { doc.setFillColor(248,249,251); doc.rect(0,0,pw,297,'F'); };
+    const txt = (text,size,style='normal',color=[52,52,56]) => { doc.setFontSize(size); doc.setFont('helvetica',style); doc.setTextColor(...color); };
+    const addBg = () => { doc.setFillColor(236,233,228); doc.rect(0,0,pw,297,'F'); };
     const cp = (need=25) => { if(y+need>268){doc.addPage();addBg();y=18;} };
 
     // Cover
@@ -434,7 +434,7 @@ function generatePDF(email) {
 
     // Score
     const scoreCol = d.totalScore >= 80 ? [239,68,68] : d.totalScore >= 60 ? [245,158,11] : d.totalScore >= 40 ? [245,158,11] : [34,197,94];
-    doc.setFillColor(245,248,255);
+    doc.setFillColor(230,233,240);
     doc.roundedRect(m,y,cw,40,3,3,'F');
     doc.setDrawColor(...scoreCol);
     doc.roundedRect(m,y,cw,40,3,3,'S');
@@ -447,7 +447,7 @@ function generatePDF(email) {
     y += 55;
 
     // Risk assessment
-    txt('RISK ASSESSMENT BY AREA',14,'bold',[30,30,30]);
+    txt('RISK ASSESSMENT BY AREA',14,'bold',[48,48,52]);
     doc.text('RISK ASSESSMENT BY AREA',m,y);
     y += 10;
 
@@ -458,7 +458,7 @@ function generatePDF(email) {
         
         doc.setFillColor(...rColor);
         doc.roundedRect(m,y,5,5,1,1,'F');
-        txt(a.category.toUpperCase(),9,'bold',[50,50,50]);
+        txt(a.category.toUpperCase(),9,'bold',[58,58,62]);
         doc.text(a.category.toUpperCase(),m+10,y+4);
         txt(level,8,'bold',rColor);
         doc.text(level,pw-m,y+4,{align:'right'});
@@ -589,7 +589,7 @@ function generatePDF(email) {
 
         plan.steps.forEach(step => {
             cp(14);
-            txt(step,8,'normal',[60,60,60]);
+            txt(step,8,'normal',[65,65,68]);
             const lines = doc.splitTextToSize('  '+step,cw-10);
             doc.text(lines,m+5,y);
             y += lines.length*4+3;
@@ -647,7 +647,7 @@ function generatePDF(email) {
 
         phase.items.forEach(item => {
             cp(14);
-            txt(item,8,'normal',[60,60,60]);
+            txt(item,8,'normal',[65,65,68]);
             const lines = doc.splitTextToSize('  '+item,cw-10);
             doc.text(lines,m+5,y);
             y += lines.length*4+3;
@@ -662,12 +662,12 @@ function generatePDF(email) {
     doc.text('WHY THIS MATTERS: BUSINESS VALUE',pw/2,y,{align:'center'});
     y += 12;
 
-    doc.setFillColor(240,245,255);
+    doc.setFillColor(228,232,240);
     doc.roundedRect(m,y,cw,55,3,3,'F');
     doc.setDrawColor(59,130,246);
     doc.roundedRect(m,y,cw,55,3,3,'S');
 
-    txt('Owner dependency directly impacts what your business is worth.',9,'bold',[50,50,50]);
+    txt('Owner dependency directly impacts what your business is worth.',9,'bold',[58,58,62]);
     doc.text('Owner dependency directly impacts what your business is worth.',pw/2,y+10,{align:'center'});
 
     const valData = [
@@ -680,7 +680,7 @@ function generatePDF(email) {
 
     let valY = y + 18;
     valData.forEach(item => {
-        txt(item,8,'normal',[60,60,60]);
+        txt(item,8,'normal',[65,65,68]);
         const lines = doc.splitTextToSize('  '+item,cw-14);
         doc.text(lines,m+5,valY);
         valY += lines.length*4+2;
@@ -689,7 +689,7 @@ function generatePDF(email) {
 
     // Freedom Score Target
     cp(40);
-    doc.setFillColor(240,255,240);
+    doc.setFillColor(228,240,228);
     doc.roundedRect(m,y,cw,35,3,3,'F');
     doc.setDrawColor(34,197,94);
     doc.roundedRect(m,y,cw,35,3,3,'S');

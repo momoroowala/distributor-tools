@@ -392,9 +392,9 @@ function generatePDF(email) {
     const pw = doc.internal.pageSize.getWidth();
     const m = 18, cw = pw - 2*m;
     let y = 0;
-    const txt = (s,sz,st='normal',c=[40,40,40]) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
+    const txt = (s,sz,st='normal',c=[52,52,56]) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const cp = (n=25) => { if(y+n>268){doc.addPage();addPageBg();y=18;} };
-    const addPageBg = () => { doc.setFillColor(248,249,251); doc.rect(0,0,pw,297,'F'); };
+    const addPageBg = () => { doc.setFillColor(236,233,228); doc.rect(0,0,pw,297,'F'); };
 
     // ---- PAGE 1: COVER ----
     addPageBg();
@@ -410,7 +410,7 @@ function generatePDF(email) {
     y = 58;
 
     // ---- EXECUTIVE SUMMARY ----
-    doc.setFillColor(255,250,240);
+    doc.setFillColor(243,238,228);
     doc.setDrawColor(245,158,11);
     doc.roundedRect(m,y,cw,50,3,3,'FD');
     txt('EXECUTIVE SUMMARY',10,'bold',[245,158,11]);
@@ -420,13 +420,13 @@ function generatePDF(email) {
     const strategicHrs = d.breakdown.filter(t=>t.type==='strategic').reduce((s,t)=>s+t.hours,0);
     const strategicPct = totalHrs > 0 ? Math.round((strategicHrs/totalHrs)*100) : 0;
 
-    txt(`You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,9,'normal',[50,50,50]);
+    txt(`You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,9,'normal',[58,58,62]);
     doc.text(`You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,m+5,y+18);
 
-    txt(`${d.automatableHrs.toFixed(1)} hours/week (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,9,'bold',[40,40,40]);
+    txt(`${d.automatableHrs.toFixed(1)} hours/week (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,9,'bold',[52,52,56]);
     doc.text(`${d.automatableHrs.toFixed(1)} hours/week (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,m+5,y+26);
 
-    txt(`Only ${strategicPct}% of your time goes to strategic, growth-driving work.`,9,'normal',[50,50,50]);
+    txt(`Only ${strategicPct}% of your time goes to strategic, growth-driving work.`,9,'normal',[58,58,62]);
     doc.text(`Only ${strategicPct}% of your time goes to strategic, growth-driving work.`,m+5,y+34);
 
     txt(`Annual impact: ${d.yearlyDays} workdays, ${d.dinners} family dinners, ${d.vacWeeks} weeks of vacation.`,9,'bold',[245,158,11]);
@@ -450,7 +450,7 @@ function generatePDF(email) {
         const col = typeColors[t.type] || [100,100,100];
 
         // Task name and hours
-        txt(t.name,8,'bold',[50,50,50]);
+        txt(t.name,8,'bold',[58,58,62]);
         doc.text(t.name,m,y+4);
         txt(`${t.hours}h/wk`,8,'normal',[100,100,100]);
         doc.text(`${t.hours}h/wk`,m+68,y+4);
@@ -462,7 +462,7 @@ function generatePDF(email) {
         const afterW = ((t.hours - t.saved)/maxHrs) * barMaxW;
 
         // Full bar (current)
-        doc.setFillColor(230,230,230);
+        doc.setFillColor(220,218,214);
         doc.roundedRect(barStart,y,currentW,4,1,1,'F');
 
         // After-automation bar
@@ -510,7 +510,7 @@ function generatePDF(email) {
 
     // ---- BEFORE vs AFTER COMPARISON ----
     cp(35);
-    doc.setFillColor(240,245,255);
+    doc.setFillColor(228,232,240);
     doc.roundedRect(m,y,cw,30,3,3,'F');
     txt('YOUR WEEK: BEFORE vs AFTER AUTOMATION',10,'bold',[59,130,246]);
     doc.text('YOUR WEEK: BEFORE vs AFTER AUTOMATION',pw/2,y+9,{align:'center'});
@@ -712,18 +712,18 @@ function generatePDF(email) {
         y += 15;
 
         // Solution & Impact
-        txt(`Solution: ${g.solution}`,9,'bold',[50,50,50]);
+        txt(`Solution: ${g.solution}`,9,'bold',[58,58,62]);
         const solLines = doc.splitTextToSize(`Solution: ${g.solution}`,cw-5);
         doc.text(solLines,m,y);
         y += solLines.length*4.5+2;
 
-        txt(`Impact: ${g.impact}`,8,'normal',[80,80,80]);
+        txt(`Impact: ${g.impact}`,8,'normal',[82,82,85]);
         const impLines = doc.splitTextToSize(`Impact: ${g.impact}`,cw-5);
         doc.text(impLines,m,y);
         y += impLines.length*4+4;
 
         // Quick Win
-        doc.setFillColor(255,250,230);
+        doc.setFillColor(240,236,220);
         const qwLines = doc.splitTextToSize(`Quick Win: ${g.quickWin}`,cw-14);
         doc.roundedRect(m,y-2,cw,qwLines.length*4.5+8,2,2,'F');
         txt(`Quick Win: ${g.quickWin}`,8,'bold',[180,120,0]);
@@ -731,13 +731,13 @@ function generatePDF(email) {
         y += qwLines.length*4.5+10;
 
         // Action Steps
-        txt('ACTION STEPS:',9,'bold',[50,50,50]);
+        txt('ACTION STEPS:',9,'bold',[58,58,62]);
         doc.text('ACTION STEPS:',m,y);
         y += 6;
 
         g.steps.forEach(step => {
             cp(14);
-            txt(step,8,'normal',[60,60,60]);
+            txt(step,8,'normal',[65,65,68]);
             const lines = doc.splitTextToSize(step,cw-8);
             doc.text(lines,m+5,y);
             y += lines.length*4+3;
@@ -800,7 +800,7 @@ function generatePDF(email) {
 
         phase.items.forEach(item => {
             cp(12);
-            txt(item,8,'normal',[60,60,60]);
+            txt(item,8,'normal',[65,65,68]);
             const lines = doc.splitTextToSize('  '+item,cw-10);
             doc.text(lines,m+5,y);
             y += lines.length*4+3;
@@ -815,7 +815,7 @@ function generatePDF(email) {
     doc.text('RETURN ON INVESTMENT',pw/2,y,{align:'center'});
     y += 12;
 
-    doc.setFillColor(255,250,240);
+    doc.setFillColor(243,238,228);
     doc.roundedRect(m,y,cw,50,3,3,'F');
     doc.setDrawColor(245,158,11);
     doc.roundedRect(m,y,cw,50,3,3,'S');
@@ -824,24 +824,24 @@ function generatePDF(email) {
     const weeklyValue = d.automatableHrs * hourlyValue;
     const annualValue = weeklyValue * 50;
 
-    txt('VALUE OF RECOVERED TIME',10,'bold',[40,40,40]);
+    txt('VALUE OF RECOVERED TIME',10,'bold',[52,52,56]);
     doc.text('VALUE OF RECOVERED TIME',pw/2,y+10,{align:'center'});
 
-    txt(`At $${hourlyValue}/hr CEO value: $${weeklyValue.toLocaleString()}/week = $${annualValue.toLocaleString()}/year`,9,'normal',[70,70,70]);
+    txt(`At $${hourlyValue}/hr CEO value: $${weeklyValue.toLocaleString()}/week = $${annualValue.toLocaleString()}/year`,9,'normal',[75,75,78]);
     doc.text(`At $${hourlyValue}/hr CEO value: $${weeklyValue.toLocaleString()}/week = $${annualValue.toLocaleString()}/year`,pw/2,y+20,{align:'center'});
 
-    txt(`${d.yearlyDays} days/year returned to strategy, growth, and life outside work`,9,'normal',[70,70,70]);
+    txt(`${d.yearlyDays} days/year returned to strategy, growth, and life outside work`,9,'normal',[75,75,78]);
     doc.text(`${d.yearlyDays} days/year returned to strategy, growth, and life outside work`,pw/2,y+28,{align:'center'});
 
     txt('Industry benchmarks for distributors implementing automation:',8,'normal',[100,100,100]);
     doc.text('Industry benchmarks for distributors implementing automation:',pw/2,y+38,{align:'center'});
-    txt('30-50% less time on operations | 2-4x faster decision-making | 20-40% fewer errors',8,'bold',[80,80,80]);
+    txt('30-50% less time on operations | 2-4x faster decision-making | 20-40% fewer errors',8,'bold',[82,82,85]);
     doc.text('30-50% less time on operations | 2-4x faster decision-making | 20-40% fewer errors',pw/2,y+45,{align:'center'});
     y += 60;
 
     // ---- LIFE RECLAIMED ----
     cp(45);
-    doc.setFillColor(240,255,240);
+    doc.setFillColor(228,240,228);
     doc.roundedRect(m,y,cw,35,3,3,'F');
     doc.setDrawColor(34,197,94);
     doc.roundedRect(m,y,cw,35,3,3,'S');
