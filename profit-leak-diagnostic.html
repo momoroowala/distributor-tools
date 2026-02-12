@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profit Leak Diagnostic | Free Tool for Distributors</title>
@@ -89,6 +90,7 @@
 <body>
 <div class="container">
     <header>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
         <span class="badge">Free Diagnostic</span>
         <h1>The $100K You Don't Know You're Losing</h1>
         <p class="subtitle">Answer 8 questions about your operations. We'll calculate exactly how much profit is silently leaking from your distribution business.</p>
@@ -615,83 +617,62 @@ function generatePDF(email) {
 
 init();
 </script>
-<!-- Navigation Menu -->
-<div id="nav-menu" style="position:fixed; top:20px; right:20px; z-index:10000; font-family:sans-serif;">
-    <button id="nav-toggle" style="background:#12121a; border:1px solid #2a2a3a; color:#f1f5f9; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(0,0,0,0.5); font-size:14px;">
-        <span style="font-size:18px;">?</span> Tools
+<!-- Navigation Menu --><div id="nav-menu" style="position:fixed;top:16px;right:16px;z-index:10000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <button id="nav-toggle" style="background:#12121a;border:1px solid #2a2a3a;color:#f1f5f9;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-size:14px;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect y="3" width="18" height="2" rx="1" fill="#f1f5f9"/><rect y="8" width="18" height="2" rx="1" fill="#f1f5f9"/><rect y="13" width="18" height="2" rx="1" fill="#f1f5f9"/></svg>
+        Tools
     </button>
-    <div id="nav-content" style="display:none; position:absolute; top:45px; right:0; background:#12121a; border:1px solid #2a2a3a; border-radius:12px; width:260px; padding:8px; box-shadow:0 8px 24px rgba(0,0,0,0.7); overflow:hidden;">
-        <a href="index.html" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#f1f5f9; text-decoration:none; border-radius:6px; font-size:14px; transition:background 0.2s; margin-bottom:4px; border-left:3px solid #6366f1; background:rgba(99,102,241,0.05);">
-            <span style="font-size:16px;">??</span> <strong>Home (Tools Hub)</strong>
+    <div id="nav-content" style="display:none;position:absolute;top:48px;right:0;background:#12121a;border:1px solid #2a2a3a;border-radius:12px;width:270px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.7);">
+        <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:10px 12px;color:#f1f5f9;text-decoration:none;border-radius:6px;font-size:14px;border-left:3px solid #6366f1;background:rgba(99,102,241,0.08);margin-bottom:4px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 9l7-7 7 7" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/><path d="M4 8v7a1 1 0 001 1h3v-4h2v4h3a1 1 0 001-1V8" stroke="#6366f1" stroke-width="1.5"/></svg>
+            <strong>All Tools</strong>
         </a>
-        <div style="height:1px; background:#2a2a3a; margin:6px 4px;"></div>
-        <a href="ai-readiness-scorecard.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
-            <span style="font-size:16px;">??</span> AI Readiness Scorecard
+        <div style="height:1px;background:#2a2a3a;margin:6px 4px;"></div>
+        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
+            AI Readiness Scorecard
         </a>
-        <a href="profit-leak-diagnostic.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
-            <span style="font-size:16px;">??</span> Profit Leak Diagnostic
+        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Profit Leak Diagnostic
         </a>
-        <a href="ceo-time-audit.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
-            <span style="font-size:16px;">?</span> CEO Time Audit
+        <a href="ceo-time-audit.html" class="nav-link" data-color="#f59e0b" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5"/><path d="M2 7h14M6 3v-1M12 3v-1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><rect x="5" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/><rect x="8" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/></svg>
+            CEO Time Audit
         </a>
-        <a href="business-dependency.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
-            <span style="font-size:16px;">??</span> Business Dependency
+        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
+            Business Dependency
         </a>
-        <a href="rfq-parser.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
-            <span style="font-size:16px;">??</span> RFQ Parser (AI Demo)
+        <a href="rfq-parser.html" class="nav-link" data-color="#06b6d4" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="1" width="12" height="16" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M6 5h6M6 8h6M6 11h4" stroke="#06b6d4" stroke-width="1.2" stroke-linecap="round"/></svg>
+            RFQ Parser
         </a>
-        <a href="reorder-calculator.html" class="nav-link" style="display:flex; align-items:center; gap:10px; padding:10px 12px; color:#94a3b8; text-decoration:none; border-radius:6px; font-size:13.5px; transition:all 0.2s;">
-            <span style="font-size:16px;">??</span> Reorder Calculator
+        <a href="reorder-calculator.html" class="nav-link" data-color="#22c55e" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="6" width="14" height="10" rx="2" stroke="#22c55e" stroke-width="1.5"/><path d="M6 6V4a3 3 0 016 0v2" stroke="#22c55e" stroke-width="1.5"/><circle cx="9" cy="11" r="1.5" fill="#22c55e"/></svg>
+            Reorder Calculator
         </a>
     </div>
 </div>
 <script>
-    (function(){
-        const toggle = document.getElementById('nav-toggle');
-        const content = document.getElementById('nav-content');
-        if(!toggle || !content) return;
-        
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isVisible = content.style.display === 'block';
-            content.style.display = isVisible ? 'none' : 'block';
-            toggle.style.background = isVisible ? '#12121a' : '#1a1a25';
-        });
-        
-        document.addEventListener('click', () => {
-            content.style.display = 'none';
-            toggle.style.background = '#12121a';
-        });
-        
-        content.addEventListener('click', (e) => e.stopPropagation());
-        
-        // Hover effects
-        const links = document.querySelectorAll('.nav-link');
-        links.forEach(l => {
-            l.addEventListener('mouseenter', () => {
-                l.style.background = 'rgba(255,255,255,0.05)';
-                l.style.color = '#f1f5f9';
-            });
-            l.addEventListener('mouseleave', () => {
-                if(!l.classList.contains('active-page')) {
-                    l.style.background = 'transparent';
-                    l.style.color = '#94a3b8';
-                }
-            });
-        });
-        
-        // Highlight current page
-        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        document.querySelectorAll('#nav-content a').forEach(a => {
-            const href = a.getAttribute('href');
-            if(href === currentPath || (currentPath === '' && href === 'index.html')) {
-                a.classList.add('active-page');
-                a.style.background = 'rgba(255,255,255,0.1)';
-                a.style.color = '#fff';
-                a.style.fontWeight = '600';
-            }
-        });
-    })();
+(function(){
+    var tgl=document.getElementById('nav-toggle'),cnt=document.getElementById('nav-content');
+    if(!tgl||!cnt)return;
+    tgl.onclick=function(e){e.stopPropagation();var v=cnt.style.display==='block';cnt.style.display=v?'none':'block';tgl.style.background=v?'#12121a':'#1a1a25';};
+    document.addEventListener('click',function(){cnt.style.display='none';tgl.style.background='#12121a';});
+    cnt.onclick=function(e){e.stopPropagation();};
+    var links=document.querySelectorAll('.nav-link');
+    links.forEach(function(l){
+        l.onmouseenter=function(){l.style.background='rgba(255,255,255,0.06)';l.style.color='#f1f5f9';};
+        l.onmouseleave=function(){if(!l.classList.contains('nav-active')){l.style.background='';l.style.color='#94a3b8';}};
+    });
+    var cur=window.location.pathname.split('/').pop()||'index.html';
+    document.querySelectorAll('#nav-content a').forEach(function(a){
+        if(a.getAttribute('href')===cur||(cur===''&&a.getAttribute('href')==='index.html')){
+            a.classList.add('nav-active');a.style.background='rgba(255,255,255,0.1)';a.style.color='#fff';a.style.fontWeight='600';
+        }
+    });
+})();
 </script>
 </body>
 </html>
