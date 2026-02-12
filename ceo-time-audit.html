@@ -387,7 +387,7 @@ function handleDownload(e) {
     const lastName = document.getElementById('userLast').value.trim();
     const email = document.getElementById('userEmail').value.trim();
     if(!firstName||!lastName||!email) return;
-    fetch('https://formsubmit.co/ajax/m.roowala@rmidirectsupply.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name:firstName+' '+lastName,email:email,tool:'CEO Time Audit',_subject:'New Lead: '+firstName+' '+lastName+' - CEO Time Audit',message:firstName+' '+lastName+' ('+email+') completed the CEO Time Audit and downloaded their PDF report.'})}).catch(function(){});
+    fetch('https://script.google.com/macros/s/AKfycbxH-0F_yuJve8Bvzf1WWqYc5Z0ptXRRktVCmLEEa-7Dbs3ear7cNESr6-Bmm8mQIJaZ/exec',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name:firstName+' '+lastName,email:email,tool:'CEO Time Audit',_subject:'New Lead: '+firstName+' '+lastName+' - CEO Time Audit',message:firstName+' '+lastName+' ('+email+') completed the CEO Time Audit and downloaded their PDF report.'})}).catch(function(){});
     const leads = JSON.parse(localStorage.getItem('timeaudit_leads') || '[]');
     leads.push({ email, timestamp: new Date().toISOString(), data: window._data });
     localStorage.setItem('timeaudit_leads', JSON.stringify(leads));
