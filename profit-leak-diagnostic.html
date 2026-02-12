@@ -423,336 +423,191 @@ function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 16, cw = pw - 2*m;
+    const m = 20, cw = pw - 2*m;
     let y = 0;
 
+    // Design system - Material Design
     const C = {
-        bg: [218,215,210], card: [240,238,235], cardAlt: [232,230,226],
-        dark: [32,34,44], darkSoft: [48,50,58],
-        text: [45,45,50], textMid: [75,75,80], textLight: [100,100,105], textMuted: [130,130,135],
-        white: [255,255,255], shadow: [195,192,188],
-        red: [200,58,48], redLight: [230,90,75], redBg: [235,222,220],
-        green: [35,160,88], amber: [210,145,30], blue: [50,115,210], purple: [125,80,200]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
+    const stroke = (c) => doc.setDrawColor(...c);
+    
+    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
-        fill(C.red); doc.rect(0,0,pw,1.2,'F');
-        fill([225,222,218]); doc.rect(0,0,6,ph,'F');
-        fill(C.red); doc.rect(5,20,1,30,'F');
-        y = 16;
+        fill(C.red); doc.rect(0,0,pw,1.5,'F');
+        y = 20;
     };
-    const cp = (n=25) => { if(y+n>262){newPage(); return true;} return false; };
+
     const card = (x,yc,w,h,opts={}) => {
-        fill(C.shadow); doc.roundedRect(x+1,yc+1,w,h,2.5,2.5,'F');
-        fill(opts.bg||C.card); doc.roundedRect(x,yc,w,h,2.5,2.5,'F');
-        if(opts.accent){fill(opts.accent);doc.roundedRect(x,yc,3.5,h,2.5,0,'F');doc.rect(x+1.5,yc,2,h,'F');}
+        const r = opts.radius || 2;
+        fill(C.shadow); doc.roundedRect(x+0.5,yc+0.5,w,h,r,r,'F');
+        stroke(C.border); doc.setLineWidth(0.2);
+        fill(C.card); doc.roundedRect(x,yc,w,h,r,r,'FD');
+        if(opts.accent) { fill(opts.accent); doc.roundedRect(x,yc,3,h,r,0,'F'); doc.rect(x+1.5,yc,1.5,h,'F'); }
     };
+
     const secTitle = (title,yy,color=C.red) => {
-        fill(color); doc.roundedRect(m,yy,3,10,1,1,'F');
-        txt(title,11,'bold',C.text); doc.text(title,m+8,yy+7);
-        doc.setDrawColor(...C.shadow); doc.setLineWidth(0.3); doc.line(m+8,yy+10,pw-m,yy+10);
-        return yy+14;
+        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
+        fill(color); doc.rect(m,yy+10,25,1.5,'F');
+        return yy+18;
     };
 
-    // ================================================================
+    // =============================
     // PAGE 1: COVER
-    // ================================================================
+    // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.dark); doc.rect(0,0,pw,78,'F');
-    fill(C.red); doc.rect(0,76.5,pw,1.5,'F');
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
+    fill(C.red); doc.circle(pw/2,22,8,'F');
+    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
 
-    fill(C.red); doc.circle(pw/2,18,7,'F');
-    txt('A',10,'bold',C.dark); doc.text('A',pw/2,21,{align:'center'});
-    txt('PROFIT LEAK DIAGNOSTIC',20,'bold',C.white); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,40,{align:'center'});
-    txt('Your Personalized Recovery Plan',9,'normal',[170,170,185]); doc.text('Your Personalized Recovery Plan',pw/2,49,{align:'center'});
-    fill(C.darkSoft); doc.roundedRect(pw/2-45,56,90,9,4,4,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'normal',[155,155,170]);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,62,{align:'center'});
+    txt('PROFIT LEAK DIAGNOSTIC',22,'bold',C.text); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,48,{align:'center'});
+    txt('Your Personalized Recovery Plan',11,'normal',C.textMid); doc.text('Your Personalized Recovery Plan',pw/2,58,{align:'center'});
 
-    y = 88;
+    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
 
-    // Big number
-    card(m,y,cw,36,{accent:C.red});
-    txt('YOUR ESTIMATED ANNUAL PROFIT LEAKAGE',7,'bold',C.red); doc.text('YOUR ESTIMATED ANNUAL PROFIT LEAKAGE',m+cw/2,y+8,{align:'center'});
-    txt('$' + runningLeak.toLocaleString(),26,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+22,{align:'center'});
+    y = 105;
+
+    // Estimated leakage card
+    card(m,y,cw,48,{accent:C.red});
+    txt('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',9,'bold',C.red); doc.text('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',m+cw/2,y+15,{align:'center'});
+    txt('$' + runningLeak.toLocaleString(),32,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+32,{align:'center'});
     const rev = parseFloat(allValues.revenue) || 1;
-    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,8,'normal',C.textMid);
-    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,m+cw/2,y+30,{align:'center'});
-    y += 48;
+    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,10,'normal',C.textMid);
+    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,m+cw/2,y+42,{align:'center'});
+    y += 65;
 
-    // 3-column metrics
-    const metW = (cw-8)/3;
-    const perMonth = Math.round(runningLeak/12);
-    const perDay = Math.round(runningLeak/365);
+    // Breakdown metrics
+    const metW = (cw-10)/3;
     const mets = [
-        {val:'$'+perMonth.toLocaleString(),label:'PER MONTH',color:C.red},
-        {val:'$'+perDay.toLocaleString(),label:'PER DAY',color:C.amber},
-        {val:((runningLeak/rev)*100).toFixed(1)+'%',label:'OF REVENUE',color:C.purple}
+        { val:'$'+Math.round(runningLeak/12).toLocaleString(), label:'PER MONTH', color:C.red },
+        { val:'$'+Math.round(runningLeak/365).toLocaleString(), label:'PER DAY', color:C.amber },
+        { val:((runningLeak/rev)*100).toFixed(1)+'%', label:'OF REVENUE', color:C.purple }
     ];
     mets.forEach((mt,i) => {
-        const x = m+i*(metW+4);
-        card(x,y,metW,28,{accent:mt.color});
-        txt(mt.val,14,'bold',mt.color); doc.text(mt.val,x+metW/2+2,y+13,{align:'center'});
-        txt(mt.label,6.5,'bold',C.textMid); doc.text(mt.label,x+metW/2+2,y+21,{align:'center'});
+        const x = m + i*(metW+5);
+        card(x,y,metW,34,{accent:mt.color});
+        txt(mt.val,16,'bold',mt.color); doc.text(mt.val,x+metW/2,y+16,{align:'center'});
+        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metW/2,y+24,{align:'center'});
     });
-    y += 36;
+    y += 50;
 
-    // Leak breakdown chart
+    // Impact Cards breakdown
     y = secTitle('WHERE YOUR PROFIT IS LEAKING', y);
     const validLeaks = leaks.filter(l=>l&&l.leak>0).sort((a,b)=>b.leak-a.leak);
     const maxLeak = validLeaks[0]?.leak || 1;
 
-    // Use ranked colors: #1 darkest red, fading to amber/orange for lower items
-    const leakColors = [[180,40,35],[195,55,45],[210,80,50],[220,110,45],[215,140,35],[200,155,40],[185,160,50]];
-
-    card(m,y,cw,validLeaks.length*16+14);
-    let bY = y+10;
     validLeaks.forEach((l,li) => {
-        const barCol = leakColors[Math.min(li, leakColors.length-1)];
+        cp(30);
+        card(m,y,cw,22);
+        // Rank circle
+        fill(C.red); doc.circle(m+12,y+11,6,'F');
+        txt((li+1).toString(),10,'bold',C.white); doc.text((li+1).toString(),m+12,y+14.5,{align:'center'});
 
-        // Rank number instead of dot
-        fill(C.dark); doc.roundedRect(m+6,bY-2,10,8,2,2,'F');
-        txt((li+1).toString(),7,'bold',C.white); doc.text((li+1).toString(),m+11,bY+3.5,{align:'center'});
+        // Title and description
+        txt(l.label,10,'bold',C.text); doc.text(l.label,m+25,y+10);
+        txt(l.desc,8,'normal',C.textMid);
+        const descL = doc.splitTextToSize(l.desc, cw-80);
+        doc.text(descL,m+25,y+15);
 
-        // Label
-        txt(l.label,8,'bold',C.text); doc.text(l.label,m+20,bY+3);
-
-        // Dollar amount right-aligned
-        txt('$'+l.leak.toLocaleString(),8,'bold',barCol); doc.text('$'+l.leak.toLocaleString(),pw-m-8,bY+3,{align:'right'});
-
-        // Horizontal bar below label
-        const barX=m+20, barW=cw-54;
-        const w = Math.max((l.leak/maxLeak)*barW,3);
-        fill(C.cardAlt); doc.roundedRect(barX,bY+6,barW,4,1.5,1.5,'F');
-        fill(barCol); doc.roundedRect(barX,bY+6,w,4,1.5,1.5,'F');
-
-        // Percentage label on bar
-        const pct = Math.round((l.leak/runningLeak)*100);
-        if(w > 15) { txt(pct+'%',5.5,'bold',C.white); doc.text(pct+'%',barX+w-2,bY+9,{align:'right'}); }
-
-        bY += 16;
+        // Dollar pill
+        fill(C.red); doc.roundedRect(pw-m-45,y+6,35,10,5,5,'F');
+        txt('$'+l.leak.toLocaleString(),9,'bold',C.white); doc.text('$'+l.leak.toLocaleString(),pw-m-27.5,y+12.5,{align:'center'});
+        
+        y += 28;
     });
-    y = bY+6;
 
-    // ================================================================
-    // DETAILED RECOVERY PLANS
-    // ================================================================
+    // =============================
+    // PAGE 2+: RECOVERY PLANS
+    // =============================
     newPage();
-    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
-    fill(C.red); doc.rect(m,y+14,cw,2,'F');
-    txt('DETAILED RECOVERY PLAN',12,'bold',C.white); doc.text('DETAILED RECOVERY PLAN',pw/2,y+10,{align:'center'});
-    y += 24;
+    y = secTitle('DETAILED RECOVERY PLAN', y);
 
     const fixes = {
-        "Pricing Inconsistency": {
-            priority:"CRITICAL", impact:"Recovers 1-3% of revenue",
-            quickWin:"Audit top 50 SKUs. Set floor prices. One distributor recovered $101,700 on $32M revenue.",
-            steps:["Week 1-2: Pull every quote from last 90 days. Compare margins across same SKUs and customer tiers.",
-                "Week 3-4: Create pricing matrix by customer tier (A/B/C) and product category with floor prices.",
-                "Week 5-6: Implement approval workflow. Below-floor quotes require manager sign-off with documented reason.",
-                "Week 7-8: Configure ERP pricing module. Automate the matrix rules.",
-                "Month 3: Review pricing compliance weekly. Track override frequency and margin impact."]
-        },
-        "Order Processing Waste": {
-            priority:"HIGH", impact:"Reduces labor 30-50%, errors 70%+",
-            quickWin:"Add order validation screen with summary. Catches 40% of entry errors immediately.",
-            steps:["Week 1-2: Time-study your order entry. Document every step from email to system.",
-                "Week 3-4: Categorize orders by complexity. 60-80% follow standard patterns.",
-                "Week 5-6: Set up email parsing or automation for standard orders.",
-                "Week 7-8: Create customer self-service portal for top 20 accounts.",
-                "Month 3: Measure error rate weekly. Target 70% reduction in corrections."]
-        },
-        "Slow Quote Response": {
-            priority:"HIGH", impact:"Increases quote-to-close 15-25%",
-            quickWin:"Create templates for top 10 quote types with pre-populated pricing.",
-            steps:["Week 1-2: Measure current turnaround from request received to quote sent.",
-                "Week 3-4: Build quoting tool or configure ERP quote module with auto-pricing.",
-                "Week 5-6: Set targets: same-day for standard, 24hr for complex.",
-                "Week 7-8: Add automated 3-day follow-up on open quotes.",
-                "Month 3: Track win rate by response time. Correlation is immediate."]
-        },
-        "Inventory Mismanagement": {
-            priority:"HIGH", impact:"Reduces carrying costs 20-30%, stockouts 50%+",
-            quickWin:"Run ABC analysis today. Set reorder alerts for A items.",
-            steps:["Week 1-2: Classify inventory: A=top 80% revenue, B=next 15%, C=bottom 5%.",
-                "Week 3-4: Calculate reorder points for A items. Set up ERP auto-alerts.",
-                "Week 5-6: Identify and liquidate dead stock (no movement 12+ months).",
-                "Week 7-8: Implement cycle counting: A monthly, B quarterly, C annually.",
-                "Month 3: Track fill rate weekly. Target 95%+."]
-        },
-        "Preventable Customer Churn": {
-            priority:"MEDIUM", impact:"5% more retention = 25-95% more profit",
-            quickWin:"Call top 10 churned customers. Ask what happened. Document everything.",
-            steps:["Week 1-2: Pull customers who ordered last year but not this year (silent churn list).",
-                "Week 3-4: Identify top 3 churn reasons: price, service, stockouts, competition.",
-                "Week 5-6: Set automated 'at risk' alerts when A/B customer frequency drops 30%.",
-                "Week 7-8: Create customer health dashboard: frequency, order value, complaints.",
-                "Month 3: Quarterly business reviews with top 20 accounts."]
-        },
-        "Wasted Labor Hours": {
-            priority:"MEDIUM", impact:"Frees 20-40% of admin time",
-            quickWin:"Survey your team: 'What tasks feel like a waste of time?' You'll get gold.",
-            steps:["Week 1-2: Rank tasks by frequency and time consumed. Top 5 are automation targets.",
-                "Week 3-4: Implement quick wins: email templates, auto-reports, standard forms.",
-                "Week 5-6: Evaluate RPA for high-volume repetitive tasks like data entry.",
-                "Week 7-8: Redeploy freed time to customer-facing activities.",
-                "Month 3: Measure hours saved per employee per week."]
-        },
-        "Slow Price Pass-Through": {
-            priority:"MEDIUM", impact:"Protects margin during supplier increase cycles",
-            quickWin:"List all supplier changes in 12 months. Note lag between their change and yours.",
-            steps:["Week 1-2: Create price change playbook: who does what, in what order.",
-                "Week 3-4: Set up supplier price monitoring (shared spreadsheet with alerts).",
-                "Week 5-6: Pre-calculate customer adjustments with auto-pricing formulas.",
-                "Week 7-8: Implement automated customer price change notifications.",
-                "Month 3: Target same-week pass-through. Track days-to-update as KPI."]
-        }
+        "Pricing Inconsistency": { priority:"CRITICAL", impact:"1-3% revenue recovery", steps:["Audit last 90 days of quotes.","Set margin floors per category.","Automate matrix in ERP.","Establish approval workflows."] },
+        "Order Processing Waste": { priority:"HIGH", impact:"50% labor reduction", steps:["Time-study order entry.","Automate standard orders.","Launch customer portal.","Implement error validation."] },
+        "Slow Quote Response": { priority:"HIGH", impact:"20% higher win rate", steps:["Measure turnaround time.","Create quote templates.","Enable auto-pricing tools.","Set 24h response targets."] },
+        "Inventory Mismanagement": { priority:"HIGH", impact:"30% less dead stock", steps:["Run ABC analysis.","Set reorder alerts.","Liquidate slow movers.","Cycle count A-items."] },
+        "Preventable Customer Churn": { priority:"MEDIUM", impact:"25-95% more profit", steps:["Identify 'silent churn' list.","Call top 10 churned leads.","Set 'at risk' alerts.","Quarterly account reviews."] },
+        "Wasted Labor Hours": { priority:"MEDIUM", impact:"20% more efficiency", steps:["Survey team on time drains.","Automate repetitive data tasks.","Deploy RPA for data entry.","Free up sales capacity."] },
+        "Slow Price Pass-Through": { priority:"MEDIUM", impact:"Margin protection", steps:["Create price change playbook.","Monitor supplier updates.","Auto-calculate adjustments.","Automate notifications."] }
     };
 
-    let fixIdx = 0;
-    validLeaks.forEach(leak => {
+    validLeaks.forEach((leak, idx) => {
         const fix = fixes[leak.label];
         if(!fix) return;
-        fixIdx++;
-        cp(80);
+        cp(85);
+        const col = fix.priority==="CRITICAL"?C.red:fix.priority==="HIGH"?C.amber:C.blue;
+        card(m,y,cw,75,{accent:col});
+        txt(`${idx+1}. ${leak.label.toUpperCase()}`,10,'bold',col); doc.text(`${idx+1}. ${leak.label.toUpperCase()}`,m+12,y+12);
+        txt(`Impact: ${fix.impact}`,8,'bold',C.textMid); doc.text(`Impact: ${fix.impact}`,pw-m-12,y+12,{align:'right'});
+        
+        txt('PRIORITY:',8,'bold',C.text); doc.text('PRIORITY:',m+12,y+24);
+        txt(fix.priority,9,'bold',col); doc.text(fix.priority,m+35,y+24);
 
-        const pColors = {CRITICAL:C.red, HIGH:C.amber, MEDIUM:C.blue};
-        const col = pColors[fix.priority]||C.textLight;
-
-        // Header bar with number
-        fill(col); doc.roundedRect(m,y,cw,10,2,2,'F');
-        fill(C.dark); doc.circle(m+8,y+5,4.5,'F');
-        txt(fixIdx.toString(),8,'bold',C.white); doc.text(fixIdx.toString(),m+8,y+7.5,{align:'center'});
-        txt(leak.label.toUpperCase(),9,'bold',C.white); doc.text(leak.label.toUpperCase(),m+17,y+7);
-        txt('$'+leak.leak.toLocaleString()+'/yr',8,'bold',C.white); doc.text('$'+leak.leak.toLocaleString()+'/yr',pw-m-5,y+7,{align:'right'});
-        y += 14;
-
-        // Priority + Impact
-        card(m,y,cw,14);
-        txt(`Priority: ${fix.priority}`,7,'bold',col); doc.text(`Priority: ${fix.priority}`,m+8,y+6);
-        txt(`Expected Impact: ${fix.impact}`,7,'normal',C.textMid); doc.text(`Expected Impact: ${fix.impact}`,m+50,y+6);
-        y += 18;
-
-        // Quick Win
-        card(m,y,cw,12,{bg:[235,222,220],accent:C.red});
-        txt('QUICK WIN',6,'bold',C.red); doc.text('QUICK WIN',m+8,y+5);
-        txt(fix.quickWin,7,'normal',C.text);
-        const qwL = doc.splitTextToSize(fix.quickWin,cw-16);
-        doc.text(qwL,m+8,y+9.5);
-        y += Math.max(12, qwL.length*3.5+10);
-
-        // Steps
-        txt('ACTION STEPS',6.5,'bold',C.textMid); doc.text('ACTION STEPS',m+2,y+3); y+=7;
-        fix.steps.forEach((step,si) => {
-            cp(12);
-            fill(col); doc.circle(m+5,y+1,2.5,'F');
-            txt((si+1).toString(),6,'bold',C.white); doc.text((si+1).toString(),m+5,y+2.8,{align:'center'});
-            txt(step,7,'normal',C.text);
-            const sL = doc.splitTextToSize(step,cw-16);
-            doc.text(sL,m+12,y+2);
-            y += sL.length*3.5+2.5;
+        let sY = y+38;
+        fix.steps.forEach(s => {
+            fill(col); doc.circle(m+15,sY,1, 'F');
+            txt(s,9,'normal',C.text); doc.text(s,m+20,sY+2);
+            sY += 8;
         });
-        y += 8;
+        y += 90;
     });
 
-    // ================================================================
-    // 90-DAY ROADMAP
-    // ================================================================
+    // =============================
+    // FINAL PAGES: ROADMAP + CTA
+    // =============================
     newPage();
-    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
-    fill(C.red); doc.rect(m,y+14,cw,2,'F');
-    txt('90-DAY PROFIT RECOVERY ROADMAP',12,'bold',C.white); doc.text('90-DAY PROFIT RECOVERY ROADMAP',pw/2,y+10,{align:'center'});
-    y += 24;
-
+    y = secTitle('90-DAY PROFIT RECOVERY ROADMAP', y);
     const phases = [
-        {title:'DAYS 1-14: QUICK WINS',color:C.green,items:[
-            'Audit pricing on top 50 SKUs. Set floor prices immediately.',
-            'Call top 10 churned customers. Document why they left.',
-            'Survey employees on biggest time-wasters.',
-            'Measure current quote turnaround and order error rate.'
-        ]},
-        {title:'DAYS 15-30: FOUNDATIONS',color:C.amber,items:[
-            'Build pricing matrix by customer tier and volume.',
-            'Create quote templates for top 10 quote types.',
-            'Run ABC analysis. Set reorder points for A items.',
-            'Implement approval workflow for below-floor pricing.'
-        ]},
-        {title:'DAYS 31-60: AUTOMATION',color:C.blue,items:[
-            'Configure ERP pricing module with matrix and rules.',
-            'Set up order validation and automated alerts.',
-            'Deploy reorder point notifications.',
-            'Build customer health monitoring dashboard.'
-        ]},
-        {title:'DAYS 61-90: OPTIMIZATION',color:C.purple,items:[
-            'Review all KPIs: error rate, quote speed, margin, fill rate.',
-            'Fine-tune automation rules based on real results.',
-            'Expand automation to B-tier items and processes.',
-            'Calculate actual recovered profit. Celebrate with team.'
-        ]}
+        { t:'DAYS 1-14: QUICK WINS', c:C.green, items:['Set floor prices for top 50 SKUs.','Survey team on time-wasters.','Audit pricing consistency.'] },
+        { t:'DAYS 15-30: FOUNDATIONS', c:C.amber, items:['Build pricing matrix rules.','Set reorder points for A-items.','Create quote templates.'] },
+        { t:'DAYS 31-60: AUTOMATION', c:C.blue, items:['Configure ERP price module.','Deploy inventory alerts.','Launch order validation.'] },
+        { t:'DAYS 61-90: OPTIMIZATION', c:C.purple, items:['Review margin expansion.','Fine-tune auto-rules.','Calculate recovered profit.'] }
     ];
 
-    phases.forEach((phase,pi) => {
+    phases.forEach((p) => {
         cp(45);
-        const dotX = m+6;
-        fill(phase.color); doc.circle(dotX,y+5,3.5,'F');
-        txt((pi+1).toString(),7,'bold',C.white); doc.text((pi+1).toString(),dotX,y+7,{align:'center'});
-        if(pi<phases.length-1){doc.setDrawColor(...C.shadow);doc.setLineWidth(0.8);doc.line(dotX,y+9,dotX,y+40);}
-
-        fill(phase.color); doc.roundedRect(m+16,y,cw-16,8,2,2,'F');
-        txt(phase.title,8,'bold',C.white); doc.text(phase.title,m+22,y+6);
-        y+=12;
-
-        phase.items.forEach(item => {
-            fill(phase.color); doc.circle(m+20,y+1.5,1.2,'F');
-            txt(item,7.5,'normal',C.text);
-            const iL = doc.splitTextToSize(item,cw-30);
-            doc.text(iL,m+25,y+2.5);
-            y += iL.length*3.8+2;
+        fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
+        txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
+        y += 15;
+        p.items.forEach(it => {
+            fill(p.c); doc.circle(m+5,y+2,1,'F');
+            txt(it,9,'normal',C.text); doc.text(it,m+10,y+4);
+            y += 8;
         });
-        y+=8;
+        y += 5;
     });
 
-    // Recovery projection
-    y = secTitle('PROJECTED RECOVERY', y, C.green);
-    const conservative = Math.round(runningLeak*0.3);
-    const moderate = Math.round(runningLeak*0.5);
-    const aggressive = Math.round(runningLeak*0.7);
-
-    const projW = (cw-8)/3;
-    [{val:conservative,label:'CONSERVATIVE (30%)',color:C.blue},{val:moderate,label:'MODERATE (50%)',color:C.green},{val:aggressive,label:'AGGRESSIVE (70%)',color:C.amber}].forEach((p,i) => {
-        const x = m+i*(projW+4);
-        card(x,y,projW,28,{accent:p.color});
-        txt('$'+p.val.toLocaleString(),13,'bold',p.color); doc.text('$'+p.val.toLocaleString(),x+projW/2+2,y+13,{align:'center'});
-        txt(p.label,5.5,'bold',C.textMid); doc.text(p.label,x+projW/2+2,y+21,{align:'center'});
-    });
-    y += 36;
-
-    txt('Most distributors achieve moderate recovery within 6-12 months of starting.',7,'normal',C.textLight);
-    doc.text('Most distributors achieve moderate recovery within 6-12 months of starting.',pw/2,y,{align:'center'});
-    y += 12;
-
-    // CTA
-    cp(40);
-    fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
-    fill(C.red); doc.rect(m,y+34,cw,2,'F');
-    txt("LET'S RECOVER YOUR PROFIT",13,'bold',C.white); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+12,{align:'center'});
-    txt("You know where the money is going. Let's build a plan to get it back.",8,'normal',[210,210,220]);
-    doc.text("You know where the money is going. Let's build a plan to get it back.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.white); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    y += 20;
+    cp(65);
+    stroke(C.red); doc.setLineWidth(1);
+    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
+    txt(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,9,'normal',C.textMid);
+    doc.text(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,pw/2,y+24,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.dark); doc.rect(0,ph-8,pw,8,'F');
-        fill(C.red); doc.rect(0,ph-8,pw,0.5,'F');
-        txt('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',6,'normal',[140,140,155]);
-        doc.text('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',pw/2,ph-3,{align:'center'});
-        txt(`Page ${i} of ${pc}`,5.5,'normal',[120,120,135]); doc.text(`Page ${i} of ${pc}`,pw-m,ph-3,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
+        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
     }
     doc.save('Profit-Leak-Diagnostic-Report.pdf');
 }

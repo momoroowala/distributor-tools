@@ -1092,177 +1092,152 @@
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 16, cw = pw - 2*m;
+    const m = 20, cw = pw - 2*m;
     let y = 0;
 
+    // Design system - Material Design
     const C = {
-        bg: [218,215,210], card: [240,238,235], cardAlt: [232,230,226],
-        dark: [32,34,44], darkSoft: [48,50,58],
-        text: [45,45,50], textMid: [75,75,80], textLight: [100,100,105], textMuted: [130,130,135],
-        white: [255,255,255], shadow: [195,192,188],
-        purple: [125,80,200], purpleBg: [232,225,242],
-        red: [200,58,48], green: [35,160,88], amber: [210,145,30], blue: [50,115,210]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const catC = {Data:C.blue, Processes:C.green, People:C.amber, Technology:C.purple};
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
+    const stroke = (c) => doc.setDrawColor(...c);
+    
+    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
-        fill(C.purple); doc.rect(0,0,pw,1.2,'F');
-        fill([225,222,218]); doc.rect(0,0,6,ph,'F');
-        fill(C.purple); doc.rect(5,20,1,30,'F');
-        y = 16;
+        fill(C.purple); doc.rect(0,0,pw,1.5,'F');
+        y = 20;
     };
-    const cp = (n=25) => { if(y+n>262){newPage();return true;} return false; };
+
     const card = (x,yc,w,h,opts={}) => {
-        fill(C.shadow); doc.roundedRect(x+1,yc+1,w,h,2.5,2.5,'F');
-        fill(opts.bg||C.card); doc.roundedRect(x,yc,w,h,2.5,2.5,'F');
-        if(opts.accent){fill(opts.accent);doc.roundedRect(x,yc,3.5,h,2.5,0,'F');doc.rect(x+1.5,yc,2,h,'F');}
+        const r = opts.radius || 2;
+        fill(C.shadow); doc.roundedRect(x+0.5,yc+0.5,w,h,r,r,'F');
+        stroke(C.border); doc.setLineWidth(0.2);
+        fill(C.card); doc.roundedRect(x,yc,w,h,r,r,'FD');
+        if(opts.accent) { fill(opts.accent); doc.roundedRect(x,yc,3,h,r,0,'F'); doc.rect(x+1.5,yc,1.5,h,'F'); }
     };
+
     const secTitle = (title,yy,color=C.purple) => {
-        fill(color); doc.roundedRect(m,yy,3,10,1,1,'F');
-        txt(title,11,'bold',C.text); doc.text(title,m+8,yy+7);
-        doc.setDrawColor(...C.shadow); doc.setLineWidth(0.3); doc.line(m+8,yy+10,pw-m,yy+10);
-        return yy+14;
+        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
+        fill(color); doc.rect(m,yy+10,25,1.5,'F');
+        return yy+18;
     };
 
-    // ================================================================
+    // =============================
     // PAGE 1: COVER
-    // ================================================================
+    // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.dark); doc.rect(0,0,pw,78,'F');
-    fill(C.purple); doc.rect(0,76.5,pw,1.5,'F');
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
+    fill(C.purple); doc.circle(pw/2,22,8,'F');
+    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
 
-    fill(C.purple); doc.circle(pw/2,18,7,'F');
-    txt('A',10,'bold',C.dark); doc.text('A',pw/2,21,{align:'center'});
-    txt('AI READINESS REPORT',20,'bold',C.white); doc.text('AI READINESS REPORT',pw/2,40,{align:'center'});
-    txt('Personalized Assessment for Your Distribution Business',9,'normal',[170,170,185]);
-    doc.text('Personalized Assessment for Your Distribution Business',pw/2,49,{align:'center'});
-    fill(C.darkSoft); doc.roundedRect(pw/2-45,56,90,9,4,4,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'normal',[155,155,170]);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,62,{align:'center'});
+    txt('AI READINESS REPORT',20,'bold',C.text); doc.text('AI READINESS REPORT',pw/2,48,{align:'center'});
+    txt('Personalized Assessment for Your Distribution Business',10,'normal',C.textMid);
+    doc.text('Personalized Assessment for Your Distribution Business',pw/2,58,{align:'center'});
 
-    y = 88;
+    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
 
-    // Score gauge
+    y = 105;
+
+    // Overall Score Card
     const scoreColor = totalScore >= 75 ? C.green : totalScore >= 50 ? C.amber : C.red;
-    card(m,y,cw,40,{accent:scoreColor});
-    txt('YOUR OVERALL SCORE',7,'bold',scoreColor); doc.text('YOUR OVERALL SCORE',m+cw/2,y+8,{align:'center'});
+    card(m,y,cw,45,{accent:scoreColor});
+    txt('YOUR OVERALL READINESS SCORE',9,'bold',scoreColor); doc.text('YOUR OVERALL READINESS SCORE',m+cw/2,y+12,{align:'center'});
 
-    fill(scoreColor); doc.circle(m+cw/2,y+22,12,'F');
-    txt(totalScore.toString(),16,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+26,{align:'center'});
+    fill(scoreColor); doc.circle(m+cw/2,y+28,12,'F');
+    txt(totalScore.toString(),18,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+32,{align:'center'});
 
     const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
-    txt(title,10,'bold',scoreColor); doc.text(title,m+cw/2,y+37,{align:'center'});
-    y += 48;
+    txt(title,10,'bold',scoreColor); doc.text(title,m+cw/2,y+42,{align:'center'});
+    y += 60;
 
-    // Category breakdown with visual bars
+    // Category Grid
     y = secTitle('CATEGORY BREAKDOWN', y);
-    const halfW = (cw-6)/2;
-    let cardIdx = 0;
+    const hw = (cw-6)/2;
+    let ci = 0;
     Object.entries(categoryScores).forEach(([cat, data]) => {
-        const catScore = Math.round((data.total / (data.count * 3)) * 100);
+        const score = Math.round((data.total / (data.count * 3)) * 100);
         const col = catC[cat] || C.purple;
-        const cx = cardIdx%2===0 ? m : m+halfW+6;
-        const cy = y + Math.floor(cardIdx/2)*30;
-
-        card(cx,cy,halfW,26,{accent:col});
-        txt(cat.toUpperCase(),6.5,'bold',col); doc.text(cat.toUpperCase(),cx+9,cy+7);
-        txt(`${catScore}%`,14,'bold',col); doc.text(`${catScore}%`,cx+halfW-10,cy+14,{align:'right'});
-
-        // Progress bar
-        fill(C.cardAlt); doc.roundedRect(cx+9,cy+15,halfW-24,4,1.5,1.5,'F');
-        fill(col); doc.roundedRect(cx+9,cy+15,(catScore/100)*(halfW-24),4,1.5,1.5,'F');
-        cardIdx++;
+        const cx = ci % 2 === 0 ? m : m + hw + 6;
+        const cy = y + Math.floor(ci / 2) * 28;
+        
+        card(cx, cy, hw, 22, {accent:col});
+        txt(cat.toUpperCase(),8,'bold',col); doc.text(cat.toUpperCase(), cx+10, cy+12);
+        txt(`${score}%`,14,'bold',col); doc.text(`${score}%`, cx+hw-10, cy+14, {align:'right'});
+        
+        ci++;
     });
-    y += Math.ceil(cardIdx/2)*30 + 8;
+    y += 65;
 
-    // ================================================================
+    // =============================
     // RECOMMENDATIONS
-    // ================================================================
+    // =============================
     newPage();
-    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
-    fill(C.purple); doc.rect(m,y+14,cw,2,'F');
-    txt('DETAILED RECOMMENDATIONS',12,'bold',C.white); doc.text('DETAILED RECOMMENDATIONS',pw/2,y+10,{align:'center'});
-    y += 24;
+    y = secTitle('DETAILED RECOMMENDATIONS', y);
 
-    const quickWins = getQuickWins();
-    quickWins.forEach((rec,idx) => {
-        cp(75);
+    const wins = getQuickWins();
+    wins.forEach((rec, idx) => {
+        cp(85);
         const col = catC[rec.category] || C.purple;
+        card(m,y,cw,75,{accent:col});
+        txt(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,10,'bold',col); doc.text(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,m+12,y+12);
+        
+        txt('QUICK WIN:',8,'bold',C.text); doc.text('QUICK WIN:',m+12,y+24);
+        txt(rec.quickWin,9,'normal',C.text); doc.text(rec.quickWin,m+35,y+24);
 
-        // Header
-        fill(col); doc.roundedRect(m,y,cw,10,2,2,'F');
-        fill(C.dark); doc.circle(m+8,y+5,4.5,'F');
-        txt((idx+1).toString(),8,'bold',C.white); doc.text((idx+1).toString(),m+8,y+7.5,{align:'center'});
-        txt(`${rec.category.toUpperCase()}: ${rec.title}`,9,'bold',C.white); doc.text(`${rec.category.toUpperCase()}: ${rec.title}`,m+17,y+7);
-        y += 14;
+        txt('90-DAY ACTION PLAN:',8,'bold',C.textMid); doc.text('90-DAY ACTION PLAN:',m+12,y+32);
 
-        // Quick Win
-        card(m,y,cw,12,{bg:C.purpleBg,accent:col});
-        txt('QUICK WIN',6,'bold',col); doc.text('QUICK WIN',m+8,y+5);
-        txt(rec.quickWin,7,'normal',C.text);
-        const qwL = doc.splitTextToSize(rec.quickWin,cw-16);
-        doc.text(qwL,m+8,y+9.5);
-        y += Math.max(12,qwL.length*3.5+10);
-
-        // Action steps
-        txt('90-DAY ACTION PLAN',6.5,'bold',C.textMid); doc.text('90-DAY ACTION PLAN',m+2,y+3); y+=7;
-        rec.actions.forEach((action,i) => {
-            cp(12);
-            fill(col); doc.circle(m+5,y+1,2.5,'F');
-            txt((i+1).toString(),6,'bold',C.white); doc.text((i+1).toString(),m+5,y+2.8,{align:'center'});
-            txt(action,7,'normal',C.text);
-            const aL = doc.splitTextToSize(action,cw-16);
-            doc.text(aL,m+12,y+2);
-            y += aL.length*3.5+2.5;
+        let sY = y+42;
+        rec.actions.forEach(a => {
+            fill(col); doc.circle(m+15,sY,1, 'F');
+            txt(a,9,'normal',C.text); doc.text(a,m+20,sY+2);
+            sY += 8;
         });
-        y += 8;
+        y += 85;
     });
 
-    // ================================================================
-    // ROI + CTA
-    // ================================================================
-    cp(70);
+    // ROI
+    cp(60);
     y = secTitle('POTENTIAL ROI', y, C.green);
-
-    card(m,y,cw,28);
-    txt('INDUSTRY BENCHMARKS FOR DISTRIBUTORS IMPLEMENTING AI',7,'bold',C.blue); doc.text('INDUSTRY BENCHMARKS FOR DISTRIBUTORS IMPLEMENTING AI',m+cw/2,y+7,{align:'center'});
-    const benchmarks = [
-        '15-30% reduction in order processing time',
-        '20-40% fewer pricing errors',
-        '10-25% improvement in inventory accuracy',
-        '2-4 hours saved per employee per week'
-    ];
-    const bW = cw/2-8;
-    benchmarks.forEach((b,i) => {
-        const bx = m+8+(i%2)*bW + (i%2)*12;
-        const by = y+12+Math.floor(i/2)*8;
-        fill(C.green); doc.circle(bx,by+1,1.2,'F');
-        txt(b,7,'normal',C.text); doc.text(b,bx+4,by+2);
+    card(m,y,cw,30);
+    const benchmarks = ['15-30% reduction in processing time','20-40% fewer pricing errors','10-25% better inventory accuracy','2-4 hours saved per employee/week'];
+    let bY = y+10;
+    benchmarks.forEach(b => {
+        fill(C.green); doc.circle(m+10, bY, 1, 'F');
+        txt(b,9,'normal',C.text); doc.text(b, m+15, bY+2);
+        bY += 6;
     });
-    y += 34;
+    y += 45;
 
     // CTA
-    cp(40);
-    fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
-    fill(C.purple); doc.rect(m,y+34,cw,2,'F');
-    txt('READY TO TAKE THE NEXT STEP?',13,'bold',C.white); doc.text('READY TO TAKE THE NEXT STEP?',pw/2,y+12,{align:'center'});
-    txt("Let's discuss how to implement these recommendations for your business.",8,'normal',[210,210,220]);
-    doc.text("Let's discuss how to implement these recommendations for your business.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.white); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    cp(65);
+    stroke(C.purple); doc.setLineWidth(1);
+    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    txt("READY TO TAKE THE NEXT STEP?",13,'bold',C.text); doc.text("READY TO TAKE THE NEXT STEP?",pw/2,y+15,{align:'center'});
+    txt("Let's discuss how to implement these AI foundations in your business.",9,'normal',C.textMid);
+    doc.text("Let's discuss how to implement these AI foundations in your business.",pw/2,y+24,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.purple); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.dark); doc.rect(0,ph-8,pw,8,'F');
-        fill(C.purple); doc.rect(0,ph-8,pw,0.5,'F');
-        txt('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',6,'normal',[140,140,155]);
-        doc.text('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',pw/2,ph-3,{align:'center'});
-        txt(`Page ${i} of ${pc}`,5.5,'normal',[120,120,135]); doc.text(`Page ${i} of ${pc}`,pw-m,ph-3,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
+        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
     }
     doc.save('AI-Readiness-Report.pdf');
 }

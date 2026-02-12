@@ -413,253 +413,166 @@ function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 16, cw = pw - 2*m;
+    const m = 20, cw = pw - 2*m;
     let y = 0;
 
+    // Design system - Material Design
     const C = {
-        bg: [218,215,210], card: [240,238,235], cardAlt: [232,230,226],
-        dark: [32,34,44], darkSoft: [48,50,58],
-        text: [45,45,50], textMid: [75,75,80], textLight: [100,100,105], textMuted: [130,130,135],
-        white: [255,255,255], shadow: [195,192,188],
-        blue: [50,115,210], blueBg: [225,232,242],
-        red: [200,58,48], green: [35,160,88], amber: [210,145,30], purple: [125,80,200]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
+    const stroke = (c) => doc.setDrawColor(...c);
+    
+    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
-        fill(C.blue); doc.rect(0,0,pw,1.2,'F');
-        fill([225,222,218]); doc.rect(0,0,6,ph,'F');
-        fill(C.blue); doc.rect(5,20,1,30,'F');
-        y = 16;
+        fill(C.blue); doc.rect(0,0,pw,1.5,'F');
+        y = 20;
     };
-    const cp = (n=25) => { if(y+n>262){newPage();return true;} return false; };
+
     const card = (x,yc,w,h,opts={}) => {
-        fill(C.shadow); doc.roundedRect(x+1,yc+1,w,h,2.5,2.5,'F');
-        fill(opts.bg||C.card); doc.roundedRect(x,yc,w,h,2.5,2.5,'F');
-        if(opts.accent){fill(opts.accent);doc.roundedRect(x,yc,3.5,h,2.5,0,'F');doc.rect(x+1.5,yc,2,h,'F');}
+        const r = opts.radius || 2;
+        fill(C.shadow); doc.roundedRect(x+0.5,yc+0.5,w,h,r,r,'F');
+        stroke(C.border); doc.setLineWidth(0.2);
+        fill(C.card); doc.roundedRect(x,yc,w,h,r,r,'FD');
+        if(opts.accent) { fill(opts.accent); doc.roundedRect(x,yc,3,h,r,0,'F'); doc.rect(x+1.5,yc,1.5,h,'F'); }
     };
+
     const secTitle = (title,yy,color=C.blue) => {
-        fill(color); doc.roundedRect(m,yy,3,10,1,1,'F');
-        txt(title,11,'bold',C.text); doc.text(title,m+8,yy+7);
-        doc.setDrawColor(...C.shadow); doc.setLineWidth(0.3); doc.line(m+8,yy+10,pw-m,yy+10);
-        return yy+14;
+        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
+        fill(color); doc.rect(m,yy+10,25,1.5,'F');
+        return yy+18;
     };
 
-    // ================================================================
+    // =============================
     // PAGE 1: COVER
-    // ================================================================
+    // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.dark); doc.rect(0,0,pw,78,'F');
-    fill(C.blue); doc.rect(0,76.5,pw,1.5,'F');
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
+    fill(C.blue); doc.circle(pw/2,22,8,'F');
+    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
 
-    fill(C.blue); doc.circle(pw/2,18,7,'F');
-    txt('A',10,'bold',C.dark); doc.text('A',pw/2,21,{align:'center'});
-    txt('BUSINESS DEPENDENCY REPORT',18,'bold',C.white); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,40,{align:'center'});
-    txt('What If You Left Tomorrow?',9,'normal',[170,170,185]); doc.text('What If You Left Tomorrow?',pw/2,49,{align:'center'});
-    fill(C.darkSoft); doc.roundedRect(pw/2-45,56,90,9,4,4,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'normal',[155,155,170]);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,62,{align:'center'});
+    txt('BUSINESS DEPENDENCY REPORT',20,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,48,{align:'center'});
+    txt('What If You Left Tomorrow?',11,'normal',C.textMid); doc.text('What If You Left Tomorrow?',pw/2,58,{align:'center'});
 
-    y = 88;
+    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
 
-    // Score visualization
-    const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : d.totalScore >= 30 ? C.blue : C.green;
-    card(m,y,cw,44,{accent:scoreCol});
-    txt('OWNER DEPENDENCY INDEX',7,'bold',scoreCol); doc.text('OWNER DEPENDENCY INDEX',m+cw/2,y+8,{align:'center'});
+    y = 105;
 
-    // Score gauge circle
-    fill(scoreCol); doc.circle(m+cw/2,y+24,13,'F');
-    txt(d.totalScore.toString(),18,'bold',C.white); doc.text(d.totalScore.toString(),m+cw/2,y+28,{align:'center'});
-    txt('/100',7,'normal',C.white); doc.text('/100',m+cw/2+12,y+28);
-    txt(d.verdict,8,'normal',C.textMid); doc.text(d.verdict,m+cw/2,y+40,{align:'center'});
-    y += 52;
+    // Score visualization card
+    const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : C.green;
+    card(m,y,cw,52,{accent:scoreCol});
+    txt('OWNER DEPENDENCY INDEX',9,'bold',scoreCol); doc.text('OWNER DEPENDENCY INDEX',m+cw/2,y+15,{align:'center'});
 
-    // Risk summary metrics
+    fill(scoreCol); doc.circle(m+cw/2,y+30,12,'F');
+    txt(d.totalScore.toString(),18,'bold',C.white); doc.text(d.totalScore.toString(),m+cw/2,y+34,{align:'center'});
+    
+    txt(d.verdict,9,'normal',C.textMid); doc.text(d.verdict,m+cw/2,y+46,{align:'center'});
+    y += 70;
+
+    // Risk summary
     const critical = d.answers.filter(a=>a.score>=8).length;
     const atRisk = d.answers.filter(a=>a.score>=4&&a.score<8).length;
     const healthy = d.answers.filter(a=>a.score<4).length;
-    const metW = (cw-8)/3;
+    const metW = (cw-10)/3;
     [{val:critical,label:'CRITICAL',color:C.red},{val:atRisk,label:'AT RISK',color:C.amber},{val:healthy,label:'HEALTHY',color:C.green}].forEach((mt,i) => {
-        const x = m+i*(metW+4);
-        card(x,y,metW,26,{accent:mt.color});
-        txt(mt.val.toString(),16,'bold',mt.color); doc.text(mt.val.toString(),x+metW/2+2,y+13,{align:'center'});
-        txt(mt.label+' AREAS',6,'bold',C.textMid); doc.text(mt.label+' AREAS',x+metW/2+2,y+20,{align:'center'});
+        const x = m + i*(metW+5);
+        card(x,y,metW,34,{accent:mt.color});
+        txt(mt.val.toString(),18,'bold',mt.color); doc.text(mt.val.toString(),x+metW/2,y+16,{align:'center'});
+        txt(mt.label+' AREAS',7,'bold',C.text); doc.text(mt.label+' AREAS',x+metW/2,y+25,{align:'center'});
     });
-    y += 34;
+    y += 55;
 
-    // Risk assessment by area
+    // Risk assessment breakdown
     y = secTitle('RISK ASSESSMENT BY AREA', y);
-    card(m,y,cw,d.answers.length*11+8);
-    let rY = y+7;
     d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
+        cp(28);
         const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
+        card(m,y,cw,18);
+        fill(rColor); doc.circle(m+12,y+9,2,'F');
+        txt(a.category.toUpperCase(),9,'bold',C.text); doc.text(a.category.toUpperCase(),m+18,y+8);
+        
+        const barX = m+70, barW = cw-100;
+        fill(C.bg); doc.roundedRect(barX,y+6,barW,4,1,1,'F');
+        fill(rColor); doc.roundedRect(barX,y+6,(a.score/10)*barW,4,1,1,'F');
+        
         const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
-        fill(rColor); doc.circle(m+8,rY+1,2,'F');
-        txt(a.category.toUpperCase(),7,'bold',C.text); doc.text(a.category.toUpperCase(),m+14,rY+2.5);
-        txt(level,6.5,'bold',rColor); doc.text(level,pw-m-8,rY+2.5,{align:'right'});
-
-        // Mini bar
-        const barX = m+60, barW = 60;
-        fill(C.cardAlt); doc.roundedRect(barX,rY-1,barW,4,1.5,1.5,'F');
-        fill(rColor); doc.roundedRect(barX,rY-1,(a.score/10)*barW,4,1.5,1.5,'F');
-        rY += 11;
+        txt(level,8,'bold',rColor); doc.text(level,pw-m-12,y+10,{align:'right'});
+        y += 24;
     });
-    y = rY+6;
 
-    // ================================================================
+    // =============================
     // INDEPENDENCE ROADMAP
-    // ================================================================
+    // =============================
     newPage();
-    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
-    fill(C.blue); doc.rect(m,y+14,cw,2,'F');
-    txt('INDEPENDENCE ROADMAP',12,'bold',C.white); doc.text('INDEPENDENCE ROADMAP',pw/2,y+10,{align:'center'});
-    y += 24;
-
+    y = secTitle('INDEPENDENCE ROADMAP', y);
     const roadmap = {
-        Operations: {title:"Systematize Operations",steps:["Document order handling step by step, including every exception and workaround.","Create tiered approvals: <$X auto, $X-$Y manager, >$Y you only.","Train two team members on key account handling. Shadow you for 2 weeks.","Implement tracking dashboards so team self-monitors without asking you."]},
-        Pricing: {title:"Codify Pricing Knowledge",steps:["Document every special arrangement in a single system. No exceptions.","Create pricing matrix by tier, category, volume. Rules, not gut calls.","Train sales team on the matrix. Role-play real scenarios.","Implement system-based pricing with approval workflows."]},
-        Knowledge: {title:"Transfer Institutional Knowledge",steps:["Record yourself explaining key processes (5-min videos per workflow).","Create 'If I'm Not Here' doc: suppliers, passwords, customer quirks, contacts.","Build company wiki with all SOPs, contact lists, process documents.","Monthly knowledge transfer sessions: teach one person one thing only you know."]},
-        Decisions: {title:"Distribute Decision Authority",steps:["List every decision type per week. Categorize: must be you, delegatable, automatable.","Write clear decision frameworks with criteria and limits for each.","Formally authorize team members. Put it in writing so they feel empowered.","Start low-risk. Expand authority over 60-90 days as trust builds."]},
-        Relationships: {title:"Multi-Thread Relationships",steps:["Introduce a second team member to every top-10 customer within 30 days.","Have them attend your next call with each key account. Warm handoff.","Transition routine communication to team. Keep strategic conversations.","Create processes that don't depend on personal relationships for retention."]},
-        Financial: {title:"Document for Transferability",steps:["Create a business operations manual. Start with 10 most critical processes.","Standardize financial reporting. Monthly P&L and KPI reviews run without you.","Document vendor agreements, lease terms, legal obligations in one location.","Get a business valuation. Makes transferability gaps real and urgent."]},
-        Suppliers: {title:"Systematize Supplier Management",steps:["Document all contacts, terms, negotiation history in shared system.","Create a supplier scorecard and review process your team can run.","Develop backup suppliers for critical products. Reduce single-source risk.","Build price change response playbook: step-by-step when suppliers raise prices."]},
-        Technology: {title:"Reduce Tech Dependency",steps:["Document all system integrations. Draw a simple connection diagram.","Establish IT support relationship (MSP) for emergencies.","Cross-train at least one team member on basic system administration.","Create runbooks for common issues: 'If X breaks, do Y.'"]},
-        Team: {title:"Develop Your #2",steps:["Identify strongest leader. Include in strategic discussions immediately.","Delegate one area of full responsibility. Let them own it for 90 days.","Give visibility into financials and metrics. They can't lead what they can't see.","Create a formal succession plan. Even one page changes the dynamic."]},
-        Growth: {title:"Build Growth Systems",steps:["Document your sales process: how leads come, qualify, close.","Train team on business development you currently do alone.","Create marketing that generates leads beyond your personal network.","Set growth targets with clear accountability. Team owns numbers, not just tasks."]}
+        Operations: {title:"Systematize Operations",steps:["Document order handling step by step.","Create tiered approvals: <$X auto.","Train team leads on key accounts.","Implement tracking dashboards."]},
+        Pricing: {title:"Codify Pricing Knowledge",steps:["Centralize special arrangements.","Create logic-based pricing matrix.","Train team on margin rules.","Implement ERP approval workflows."]},
+        Knowledge: {title:"Transfer Knowledge",steps:["Record key process screencasts.","Create emergency handbook.","Build company wiki (SOPs).","Host weekly knowledge sessions."]},
+        Decisions: {title:"Delegate Authority",steps:["List recurring decisions.","Write clear decision frameworks.","Formally authorize team leads.","Monitor outcomes, provide feedback."]},
+        Relationships: {title:"Multi-Thread Relationships",steps:["Introduce leads to top clients.","Conduct joint business reviews.","Transition routine comms to team.","Systematize relationship management."]}
     };
 
-    let roadIdx = 0;
-    d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
-        const plan = roadmap[a.category];
-        if(!plan) return;
-        roadIdx++;
-        cp(60);
-
-        const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
-        const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
-
-        fill(rColor); doc.roundedRect(m,y,cw,10,2,2,'F');
-        fill(C.dark); doc.circle(m+8,y+5,4.5,'F');
-        txt(roadIdx.toString(),8,'bold',C.white); doc.text(roadIdx.toString(),m+8,y+7.5,{align:'center'});
-        txt(plan.title.toUpperCase(),9,'bold',C.white); doc.text(plan.title.toUpperCase(),m+17,y+7);
-        txt(level,7,'bold',C.white); doc.text(level,pw-m-5,y+7,{align:'right'});
-        y += 14;
-
-        plan.steps.forEach((step,si) => {
-            cp(12);
-            fill(rColor); doc.circle(m+5,y+1,2.5,'F');
-            txt((si+1).toString(),6,'bold',C.white); doc.text((si+1).toString(),m+5,y+2.8,{align:'center'});
-            txt(step,7,'normal',C.text);
-            const sL = doc.splitTextToSize(step,cw-16);
-            doc.text(sL,m+12,y+2);
-            y += sL.length*3.5+2.5;
+    d.answers.filter(a=>a.score>=4).slice(0,4).forEach((a,idx) => {
+        const plan = roadmap[a.category] || {title:a.category, steps:["Document current process.","Delegate small tasks.","Monitor performance.","Review outcomes." ]};
+        cp(85);
+        const rColor = a.score>=8 ? C.red : C.amber;
+        card(m,y,cw,75,{accent:C.blue});
+        txt(`${idx+1}. ${plan.title.toUpperCase()}`,10,'bold',C.blue); doc.text(`${idx+1}. ${plan.title.toUpperCase()}`,m+12,y+12);
+        
+        let sY = y+25;
+        plan.steps.forEach(s => {
+            fill(C.blue); doc.circle(m+15,sY,1, 'F');
+            txt(s,9,'normal',C.text); doc.text(s,m+20,sY+2);
+            sY += 8;
         });
-        y += 8;
-    });
-
-    // ================================================================
-    // 90-DAY ROADMAP + VALUATION
-    // ================================================================
-    newPage();
-    fill(C.dark); doc.roundedRect(m,y,cw,16,3,3,'F');
-    fill(C.blue); doc.rect(m,y+14,cw,2,'F');
-    txt('90-DAY INDEPENDENCE ROADMAP',12,'bold',C.white); doc.text('90-DAY INDEPENDENCE ROADMAP',pw/2,y+10,{align:'center'});
-    y += 24;
-
-    const critAreas = d.answers.filter(a=>a.score>=8).map(a=>a.category);
-    const riskAreas = d.answers.filter(a=>a.score>=4&&a.score<8).map(a=>a.category);
-
-    const timePhases = [
-        {title:'DAYS 1-14: DOCUMENT',color:C.red,items:[
-            'Record every process only you know (video + written).',
-            "Create emergency 'If I'm Not Here' document.",
-            critAreas[0]?`Priority: Address ${critAreas[0]} (highest risk).`:'Address your highest-risk dependency.',
-            'Introduce second team member to top 10 customers.'
-        ]},
-        {title:'DAYS 15-30: DELEGATE',color:C.amber,items:[
-            'Assign ownership of 3-5 processes to specific people.',
-            'Create step-by-step playbooks for critical handoffs.',
-            'Start weekly knowledge transfer sessions.',
-            'Test: take one full day offline. Note what breaks.'
-        ]},
-        {title:'DAYS 31-60: SYSTEMATIZE',color:C.blue,items:[
-            'Implement system controls: pricing rules, approval workflows, alerts.',
-            'Build customer success processes independent of personal relationships.',
-            'Standardize financial reporting to run without you.',
-            'Test: take a 3-day weekend. Measure impact.'
-        ]},
-        {title:'DAYS 61-90: VERIFY',color:C.purple,items:[
-            'Re-take this assessment. Compare scores area by area.',
-            'Test: simulate a full week off. Only respond to true emergencies.',
-            'Identify and develop your #2 for strategic discussions.',
-            `Target: reduce index from ${d.totalScore} to below ${Math.max(20,d.totalScore-30)}.`
-        ]}
-    ];
-
-    timePhases.forEach((phase,pi) => {
-        cp(40);
-        const dotX = m+6;
-        fill(phase.color); doc.circle(dotX,y+5,3.5,'F');
-        txt((pi+1).toString(),7,'bold',C.white); doc.text((pi+1).toString(),dotX,y+7,{align:'center'});
-        if(pi<timePhases.length-1){doc.setDrawColor(...C.shadow);doc.setLineWidth(0.8);doc.line(dotX,y+9,dotX,y+38);}
-
-        fill(phase.color); doc.roundedRect(m+16,y,cw-16,8,2,2,'F');
-        txt(phase.title,8,'bold',C.white); doc.text(phase.title,m+22,y+6);
-        y += 12;
-
-        phase.items.forEach(item => {
-            fill(phase.color); doc.circle(m+20,y+1.5,1.2,'F');
-            txt(item,7.5,'normal',C.text);
-            const iL = doc.splitTextToSize(item,cw-30);
-            doc.text(iL,m+25,y+2.5);
-            y += iL.length*3.8+2;
-        });
-        y += 8;
+        y += 85;
     });
 
     // Valuation impact
-    y = secTitle('BUSINESS VALUATION IMPACT', y, C.blue);
-    const halfW = (cw-6)/2;
-    card(m,y,halfW,32,{accent:C.red});
-    txt('OWNER-DEPENDENT',6.5,'bold',C.red); doc.text('OWNER-DEPENDENT',m+9,y+8);
-    txt('2-3x',16,'bold',C.red); doc.text('2-3x',m+9,y+18);
-    txt('earnings multiple (if it sells)',6.5,'normal',C.textMid); doc.text('earnings multiple (if it sells)',m+9,y+24);
+    cp(70);
+    y = secTitle('VALUATION IMPACT', y);
+    const hw = (cw-6)/2;
+    card(m,y,hw,35,{accent:C.red});
+    txt('OWNER-DEPENDENT',7,'bold',C.red); doc.text('OWNER-DEPENDENT',m+10,y+10);
+    txt('2-3x',18,'bold',C.red); doc.text('2-3x',m+10,y+22);
+    txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+10,y+28);
 
-    card(m+halfW+6,y,halfW,32,{accent:C.green});
-    txt('SYSTEMATIZED',6.5,'bold',C.green); doc.text('SYSTEMATIZED',m+halfW+15,y+8);
-    txt('4-6x',16,'bold',C.green); doc.text('4-6x',m+halfW+15,y+18);
-    txt('earnings multiple or higher',6.5,'normal',C.textMid); doc.text('earnings multiple or higher',m+halfW+15,y+24);
-    y += 40;
-
-    // Target
-    card(m,y,cw,22,{bg:[225,240,225],accent:C.green});
-    txt('YOUR TARGET: DEPENDENCY INDEX OF 20 OR BELOW',8,'bold',C.green);
-    doc.text('YOUR TARGET: DEPENDENCY INDEX OF 20 OR BELOW',m+cw/2,y+8,{align:'center'});
-    txt('Take a month off and your business thrives. You choose to be there, not because you have to.',7,'normal',C.textMid);
-    doc.text('Take a month off and your business thrives. You choose to be there, not because you have to.',m+cw/2,y+16,{align:'center'});
-    y += 30;
+    card(m+hw+6,y,hw,35,{accent:C.green});
+    txt('SYSTEMATIZED',7,'bold',C.green); doc.text('SYSTEMATIZED',m+hw+16,y+10);
+    txt('4-6x',18,'bold',C.green); doc.text('4-6x',m+hw+16,y+22);
+    txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+hw+16,y+28);
+    y += 55;
 
     // CTA
-    cp(40);
-    fill(C.dark); doc.roundedRect(m,y,cw,36,3,3,'F');
-    fill(C.blue); doc.rect(m,y+34,cw,2,'F');
-    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",12,'bold',C.white); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+12,{align:'center'});
-    txt("Let's create the systems and automation that set you free.",8,'normal',[210,210,220]);
-    doc.text("Let's create the systems and automation that set you free.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.white); doc.text('mo@deeplineop.ai',pw/2,y+30,{align:'center'});
+    cp(65);
+    stroke(C.blue); doc.setLineWidth(1);
+    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",12,'bold',C.text); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+15,{align:'center'});
+    txt("Let's create the systems and automation that set you free.",9,'normal',C.textMid);
+    doc.text("Let's create the systems and automation that set you free.",pw/2,y+24,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.blue); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.dark); doc.rect(0,ph-8,pw,8,'F');
-        fill(C.blue); doc.rect(0,ph-8,pw,0.5,'F');
-        txt('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',6,'normal',[140,140,155]);
-        doc.text('Mo Roowala  |  Deep Line Operations  |  AI Automation for Distributors',pw/2,ph-3,{align:'center'});
-        txt(`Page ${i} of ${pc}`,5.5,'normal',[120,120,135]); doc.text(`Page ${i} of ${pc}`,pw-m,ph-3,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
+        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
     }
     doc.save('Business-Dependency-Report.pdf');
 }
