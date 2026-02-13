@@ -129,7 +129,7 @@
 
         <div class="impact-card" style="border-color:#22c55e">
             <div class="impact-number" style="color:#22c55e" id="reclaimedDays">0</div>
-            <div class="impact-label">days per year you could reclaim</div>
+            <div class="impact-label">work days per year you could reclaim</div>
             <div class="reclaim-grid" id="reclaimGrid"></div>
         </div>
 
@@ -355,14 +355,15 @@ function analyze() {
     const pctAutomate = ((automatableHrs / totalHrs) * 100).toFixed(0);
     document.getElementById('impactContext').innerHTML = `<strong>${pctAutomate}%</strong> of your ${totalHrs}-hour work week is spent on tasks that don't need you. That's <strong>${yearlyHrs.toLocaleString()} hours per year</strong>.`;
 
-    const dinners = Math.round(yearlyHrs / 2.5);
+    const dinners = Math.min(Math.round((automatableHrs / 3) * 52), 104);
     const vacWeeks = (yearlyDays / 5).toFixed(1);
-    const events = Math.round(yearlyHrs / 2);
+    const events = Math.min(Math.round((automatableHrs / 5) * 40), 40);
+    const dollarImpact = Math.round((automatableHrs / totalHrs) * 250000);
     document.getElementById('reclaimGrid').innerHTML = `
         <div class="reclaim-item"><div class="number">${dinners}</div><div class="desc">Family dinners</div></div>
-        <div class="reclaim-item"><div class="number">${vacWeeks}</div><div class="desc">Weeks of vacation</div></div>
+        <div class="reclaim-item"><div class="number">${vacWeeks}</div><div class="desc">Weeks reclaimed</div></div>
         <div class="reclaim-item"><div class="number">${events}</div><div class="desc">Kids' events</div></div>
-        <div class="reclaim-item"><div class="number">${yearlyHrs.toLocaleString()}</div><div class="desc">Hours for growth</div></div>
+        <div class="reclaim-item"><div class="number">$${dollarImpact.toLocaleString()}</div><div class="desc">CEO time cost</div></div>
     `;
 
     // Before/After
@@ -378,7 +379,7 @@ function analyze() {
     bCol.innerHTML += `<div class="ba-stat" style="border-top:2px solid var(--border);margin-top:0.4rem;padding-top:0.4rem"><span><strong>Total</strong></span><span class="val">${totalHrs}h</span></div>`;
     aCol.innerHTML += `<div class="ba-stat" style="border-top:2px solid var(--border);margin-top:0.4rem;padding-top:0.4rem"><span><strong>Total</strong></span><span class="val" style="color:#22c55e">${(totalHrs - automatableHrs).toFixed(1)}h</span></div>`;
 
-    window._data = { totalHrs, automatableHrs, yearlyHrs, yearlyDays, breakdown, dinners, vacWeeks, events };
+    window._data = { totalHrs, automatableHrs, yearlyHrs, yearlyDays, breakdown, dinners, vacWeeks, events, dollarImpact };
 }
 
 function handleDownload(e) {
@@ -454,6 +455,7 @@ function generatePDF(email) {
     const afterTotal = totalHrs - d.automatableHrs;
     const sorted = [...d.breakdown].filter(t=>t.hours>0).sort((a,b)=>b.saved-a.saved);
     const maxHrs = Math.max(...sorted.map(t=>t.hours));
+    const dollarImpact = d.dollarImpact || 0;
 
     // =============================
     // PAGE 1: COVER
@@ -479,15 +481,15 @@ function generatePDF(email) {
     const metricW = (cw-10)/3;
     const mets = [
         { val: d.automatableHrs.toFixed(1)+'h', label:'RECOVERABLE', sub:'per week', color:C.red },
-        { val: d.yearlyDays.toString(), label:'DAYS/YEAR', sub:'returned', color:C.amber },
+        { val: d.yearlyDays.toString(), label:'WORK DAYS/YEAR', sub:'returned', color:C.amber },
         { val: d.dinners.toString(), label:'DINNERS', sub:'reclaimed', color:C.green }
     ];
     mets.forEach((mt,i) => {
         const x = m + i*(metricW+5);
-        card(x,y,metricW,30,{accent:mt.color});
+        card(x,y,metricW,32,{accent:mt.color});
         txt(mt.val,18,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+13,{align:'center'});
-        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metricW/2,y+21,{align:'center'});
-        txt(mt.sub,6,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+27,{align:'center'});
+        txt(mt.label,8,'bold',C.text); doc.text(mt.label,x+metricW/2,y+22,{align:'center'});
+        txt(mt.sub,7,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+28,{align:'center'});
     });
     y += 38;
 
@@ -496,21 +498,21 @@ function generatePDF(email) {
     txt('EXECUTIVE SUMMARY',9,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+10);
     
     const sumLines = [
-        `You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,
-        `${d.automatableHrs.toFixed(1)} hours (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,
-        `Current state: only ${strategicPct}% of your time is spent on high-leverage strategic work.`
+        'You reported ' + totalHrs + ' hours/week across ' + d.breakdown.filter(function(t){return t.hours>0;}).length + ' task categories.',
+        d.automatableHrs.toFixed(1) + ' hours (' + Math.round(d.automatableHrs/totalHrs*100) + '%) can be automated or delegated.',
+        'Current state: only ' + strategicPct + '% of your time is spent on high-leverage strategic work.'
     ];
     let sY = y + 18;
-    sumLines.forEach(l => {
+    sumLines.forEach(function(l) {
         txt(l,10,'normal',C.text);
-        doc.text(l,m+10,sY);
-        sY += 5.5;
+        var wrapped = doc.splitTextToSize(l, cw - 20);
+        wrapped.forEach(function(line) { doc.text(line,m+10,sY); sY += 5.5; });
     });
     y = sY + 8;
 
     // What's In This Report
-    card(m,y,cw,34);
-    txt('WHAT\'S IN THIS REPORT',8,'bold',C.amber); doc.text('WHAT\'S IN THIS REPORT',m+10,y+10);
+    card(m,y,cw,32);
+    txt("WHAT'S IN THIS REPORT",8,'bold',C.amber); doc.text("WHAT'S IN THIS REPORT",m+10,y+10);
     const reportItems = [
         ['Time Allocation Analysis','Where your hours go'],
         ['Automation Playbook','Specific fixes for your top time drains'],
@@ -518,14 +520,25 @@ function generatePDF(email) {
         ['Next Steps','How to start reclaiming time immediately']
     ];
     let rY = y + 17;
-    reportItems.forEach(item => {
+    reportItems.forEach(function(item) {
         fill(C.blue); doc.circle(m+12,rY-1,1.2,'F');
         txt(item[0],8,'bold',C.text); doc.text(item[0],m+16,rY);
-        const labelW = doc.getTextWidth(item[0]);
+        var labelW = doc.getTextWidth(item[0]);
         txt(' - '+item[1],8,'normal',C.textMid); doc.text(' - '+item[1],m+16+labelW,rY);
-        rY += 5.5;
+        rY += 4.5;
     });
-    y = rY + 6;
+    y = rY + 4;
+
+    // Dollar Impact callout
+    if(dollarImpact > 0) {
+        card(m,y,cw,22,{accent:C.red});
+        txt('DOLLAR IMPACT',8,'bold',C.red); doc.text('DOLLAR IMPACT',m+10,y+9);
+        var dollarLine = 'Your wasted time costs an estimated $' + dollarImpact.toLocaleString() + ' per year in CEO opportunity cost.';
+        txt(dollarLine,10,'bold',C.text);
+        var dollarWrapped = doc.splitTextToSize(dollarLine, cw - 20);
+        dollarWrapped.forEach(function(line) { doc.text(line, m+10, y+17); });
+        y += 28;
+    }
 
     // =============================
     // PAGE 2: ANALYSIS
@@ -535,14 +548,14 @@ function generatePDF(email) {
 
     card(m,y,cw, sorted.length*14 + 15);
     let bY = y + 12;
-    sorted.forEach(t => {
-        const typeCol = t.type==='strategic'?C.green:t.type==='delegatable'?C.amber:C.red;
+    sorted.forEach(function(t) {
+        var typeCol = t.type==='strategic'?C.green:t.type==='delegatable'?C.amber:C.red;
         fill(typeCol); doc.circle(m+8,bY+2,2,'F');
         txt(t.name,9,'bold',C.text); doc.text(t.name,m+14,bY+4.5);
         
-        const barX = m+70, barW = cw-90;
-        const curW = (t.hours/maxHrs)*barW;
-        const aftW = ((t.hours-t.saved)/maxHrs)*barW;
+        var barX = m+70, barW = cw-90;
+        var curW = (t.hours/maxHrs)*barW;
+        var aftW = ((t.hours-t.saved)/maxHrs)*barW;
         
         fill(C.bg); doc.roundedRect(barX,bY,barW,5,1.5,1.5,'F');
         fill(typeCol); doc.roundedRect(barX,bY,Math.max(aftW,1),5,1.5,1.5,'F');
@@ -562,16 +575,16 @@ function generatePDF(email) {
     card(m,y,hw,50);
     txt('TIME BY CATEGORY',8,'bold',C.textMid); doc.text('TIME BY CATEGORY',m+10,y+12);
     const cats = [
-        { label:'Strategic', color:C.green, hrs: d.breakdown.filter(t=>t.type==='strategic').reduce((s,t)=>s+t.hours,0) },
-        { label:'Delegatable', color:C.amber, hrs: d.breakdown.filter(t=>t.type==='delegatable').reduce((s,t)=>s+t.hours,0) },
-        { label:'Automatable', color:C.red, hrs: d.breakdown.filter(t=>t.type==='automatable').reduce((s,t)=>s+t.hours,0) }
+        { label:'Strategic', color:C.green, hrs: d.breakdown.filter(function(t){return t.type==='strategic';}).reduce(function(s,t){return s+t.hours;},0) },
+        { label:'Delegatable', color:C.amber, hrs: d.breakdown.filter(function(t){return t.type==='delegatable';}).reduce(function(s,t){return s+t.hours;},0) },
+        { label:'Automatable', color:C.red, hrs: d.breakdown.filter(function(t){return t.type==='automatable';}).reduce(function(s,t){return s+t.hours;},0) }
     ];
     let cY = y+22;
-    cats.forEach(c => {
+    cats.forEach(function(c) {
         if(c.hrs<=0) return;
-        const p = Math.round(c.hrs/totalHrs*100);
+        var p = Math.round(c.hrs/totalHrs*100);
         fill(c.color); doc.circle(m+12,cY,2,'F');
-        txt(`${c.label}: ${c.hrs}h (${p}%)`,9,'normal',C.text); doc.text(`${c.label}: ${c.hrs}h (${p}%)`,m+18,cY+2.5);
+        txt(c.label+': '+c.hrs+'h ('+p+'%)',9,'normal',C.text); doc.text(c.label+': '+c.hrs+'h ('+p+'%)',m+18,cY+2.5);
         cY += 9;
     });
 
@@ -597,36 +610,48 @@ function generatePDF(email) {
     y = secTitle('AUTOMATION PLAYBOOK', y);
 
     const guides = {
-        'Pricing & Quotes': { solution:'Rule-based pricing engine', impact:'Reduces quoting time by 70%.', steps:['Audit last 90 days of quotes.','Create pricing matrix by tier/category.','Automate approval workflows in ERP.','Train team on rules.'] },
-        'Order Issues': { solution:'Order validation system', impact:'Reduces errors by 80%.', steps:['Identify top 3 error patterns.','Build automated validation rules.','Create customer self-service portal.','Automate confirmation emails.'] },
-        'Inventory/Purchasing': { solution:'Demand forecasting tools', impact:'Cuts excess stock 20-30%.', steps:['Run ABC inventory analysis.','Set automated reorder points.','Liquidate dead stock.','Implement cycle counting.'] },
-        'Reports & Data': { solution:'Automated dashboards', impact:'Eliminates manual compiling.', steps:['List all weekly reports.','Build automated BI dashboards.','Schedule auto-email delivery.','Stop manual copy-pasting.'] },
-        'Admin & Paperwork': { solution:'Digital workflows', impact:'Cuts overhead by 50%.', steps:['Map all approval chains.','Set tiered authority levels.','Implement e-signatures.','Automate AP/AR flows.'] },
-        'Putting Out Fires': { solution:'Early warning system', impact:'Reduces reactive stress.', steps:['Log fires for 5 days.','Write response playbooks.','Set proactive data alerts.','Empower team leads.'] },
-        'Email & Comms': { solution:'Inbox management system', impact:'Saves 2 hours daily.', steps:['Turn off notifications.','Create canned templates.','Set 3x daily batch check.','Delegate routine replies.'] },
-        'Internal Meetings': { solution:'Async-first communication', impact:'Recovers 40% of time.', steps:['Audit all recurring meetings.','Convert status to dashboards.','Enforce 25-min defaults.','Require agendas 24h prior.'] }
+        'Pricing & Quotes': { solution:'Rule-based pricing engine', impact:'78% of competitive quotes go to the fastest responder.', steps:['Export last 90 days of quotes to CSV. Tag Standard vs Custom to find the 80% that can be automated.','Build a pricing matrix by tier and category. Lock margin floors so reps stop guessing.','Set up automated approval workflows: standard quotes auto-send, custom routes to you.','Measure quote response time weekly. Target under 1 hour for standard quotes.'] },
+        'Order Issues': { solution:'Order validation and self-service', impact:'Manual entry of 60 orders/day burns 5+ hours. Errors cost 10x the entry time.', steps:['Pull your top 10 order error types from the last quarter. Find the pattern.','Build validation rules: SKU check, credit limit, address verify. Catch errors before they ship.','Launch a customer self-service portal for order tracking. Cut "where is my order?" calls by 60%.','Automate order confirmations and shipping notifications. Zero manual follow-up.'] },
+        'Inventory/Purchasing': { solution:'Demand forecasting and auto-reorder', impact:'Poor forecasting is the #1 operational challenge for distributors.', steps:['Run ABC analysis on all SKUs. Focus A-items first for maximum cash flow impact.','Set automated reorder points based on 2+ years of sales history with seasonal adjustments.','Liquidate dead stock: anything with zero movement in 12 months gets a clearance plan.','Implement cycle counting to replace annual physical inventory. Less disruption, better accuracy.'] },
+        'Reports & Data': { solution:'Automated dashboards replacing manual reports', impact:'Eliminates copy-paste from ERP to Excel entirely.', steps:['List every recurring report you produce. If it involves copy-paste from ERP to Excel, that is automatable.','Build a single executive dashboard with your top 5 KPIs. Auto-refresh daily.','Schedule automated email delivery of reports. No one should be "pulling" data manually.','Kill any report no one has acted on in 30 days. Less noise, better signal.'] },
+        'Admin & Paperwork': { solution:'Digital approval workflows', impact:'Sales reps spend more time on admin than selling. Fix the workflow, not the people.', steps:['Map all approval chains end to end. Any approval under $500 should auto-approve with notification.','Implement e-signatures for all contracts and POs. No more printing, signing, scanning.','Set tiered authority levels: branch managers handle routine, you handle exceptions only.','Automate AP/AR flows. Invoice matching and payment reminders should never be manual.'] },
+        'Putting Out Fires': { solution:'Early warning system with playbooks', impact:'Most fires are patterns, not surprises. Find the pattern, fix the system.', steps:['Log every fire for 5 business days. Categorize each one. Pattern = system fix. One-off = playbook.','Write a one-page response playbook for your top 3 recurring fire types.','Set up proactive alerts: inventory thresholds, late shipments, credit holds. Catch it before it burns.','Empower team leads to resolve without escalating. Define what needs you vs what does not.'] },
+        'Email & Comms': { solution:'Batch processing and canned responses', impact:'Every inbox check costs 23 minutes of refocus time (UC Irvine research).', steps:['Implement batch processing: check email 3x daily at set times. Morning, midday, end of day.','Create canned responses for your top 10 recurring questions. One click, not 10 minutes.','Route system notifications to a separate folder. Review once daily, not in real-time.','Delegate routine replies to your assistant or ops manager. You handle strategy-level only.'] },
+        'Internal Meetings': { solution:'Async-first with dashboards replacing status updates', impact:'Any meeting that is just a status update can become a dashboard.', steps:['Audit all recurring meetings. Cancel any where the outcome is just "awareness."','Replace status update meetings with a shared dashboard everyone checks on their own time.','Enforce 25-minute defaults. Require an agenda 24 hours prior or the meeting is canceled.','Record key decisions in a shared doc. No meeting should end without written next steps and owners.'] }
     };
 
-    sorted.filter(t=>t.saved>=0.5).slice(0,5).forEach((t,idx) => {
-        const g = guides[t.name] || { solution:'Process automation', impact:'Efficiency gain', steps:['Audit current steps.','Document the SOP.','Apply automation tools.','Train the team.'] };
+    sorted.filter(function(t){return t.saved>=0.5;}).slice(0,5).forEach(function(t,idx) {
+        var g = guides[t.name] || { solution:'Process automation', impact:'Efficiency gain', steps:['Audit current process end to end.','Document the SOP with clear ownership.','Apply targeted automation tools.','Measure results weekly for 30 days.'] };
         cp(85);
-        card(m,y,cw,75,{accent:C.blue});
-        txt(`${idx+1}. ${t.name.toUpperCase()}`,10,'bold',C.blue); doc.text(`${idx+1}. ${t.name.toUpperCase()}`,m+10,y+12);
-        txt(`Recovery Potential: ${t.saved.toFixed(1)}h/week`,8,'bold',C.textMid); doc.text(`Recovery Potential: ${t.saved.toFixed(1)}h/week`,pw-m-10,y+12,{align:'right'});
+        var stepLines = [];
+        g.steps.forEach(function(s) {
+            var wrapped = doc.splitTextToSize(s, cw - 26);
+            wrapped.forEach(function(line) { stepLines.push(line); });
+        });
+        var cardH = 42 + stepLines.length * 6;
+        card(m,y,cw,cardH,{accent:C.blue});
+        txt((idx+1)+'. '+t.name.toUpperCase(),10,'bold',C.blue); doc.text((idx+1)+'. '+t.name.toUpperCase(),m+10,y+12);
+        txt('Recovery Potential: '+t.saved.toFixed(1)+'h/week',8,'bold',C.textMid); doc.text('Recovery Potential: '+t.saved.toFixed(1)+'h/week',pw-m-10,y+12,{align:'right'});
         
         txt('SOLUTION:',8,'bold',C.text); doc.text('SOLUTION:',m+10,y+24);
         txt(g.solution,9,'normal',C.text); doc.text(g.solution,m+32,y+24);
         
         txt('IMPACT:',8,'bold',C.text); doc.text('IMPACT:',m+10,y+31);
-        txt(g.impact,9,'normal',C.textMid); doc.text(g.impact,m+32,y+31);
+        var impactWrapped = doc.splitTextToSize(g.impact, cw - 42);
+        var impY = y+31;
+        impactWrapped.forEach(function(line) { txt(line,9,'normal',C.textMid); doc.text(line,m+32,impY); impY += 5; });
 
-        let sY = y+42;
-        g.steps.forEach((s,si) => {
-            fill(C.blue); doc.circle(m+12,sY,1, 'F');
-            txt(s,8.5,'normal',C.text); doc.text(s,m+16,sY+2);
-            sY += 7;
+        var stepY = impY + 7;
+        var bulletIdx = 0;
+        g.steps.forEach(function(s) {
+            var wrapped = doc.splitTextToSize(s, cw - 26);
+            wrapped.forEach(function(line, li) {
+                if(li === 0) { fill(C.blue); doc.circle(m+12,stepY-1,1,'F'); }
+                txt(line,8.5,'normal',C.text); doc.text(line,m+16,stepY+1);
+                stepY += 6;
+            });
         });
-        y += 90;
+        y += cardH + 8;
     });
 
     // =============================
@@ -636,46 +661,66 @@ function generatePDF(email) {
     y = secTitle('90-DAY IMPLEMENTATION ROADMAP', y);
     
     const phases = [
-        { t:'DAYS 1-14: QUICK WINS', c:C.green, items:['Turn off notifications.','Batch email 3x daily.','Delegate all approvals <$500.'] },
-        { t:'DAYS 15-30: FOUNDATIONS', c:C.amber, items:['Build system for top time drain.','Create escalation matrix.','Set up KPI dashboards.'] },
-        { t:'DAYS 31-60: AUTOMATION', c:C.blue, items:['Configure ERP automation.','Launch customer portal.','Deploy proactive alerts.'] },
-        { t:'DAYS 61-90: OPTIMIZATION', c:C.purple, items:['Review all time KPIs.','Reallocate time to growth.','Schedule next audit.'] }
+        { t:'DAYS 1-14: QUICK WINS', c:C.green, items:['Implement batch email: 3x daily at set times. No more reactive inbox checking.','Delegate all approvals under $500 with automated notification to you.','Create canned responses for your top 10 recurring email questions.'] },
+        { t:'DAYS 15-30: FOUNDATIONS', c:C.amber, items:['Build the automation system for your #1 time drain from the playbook above.','Draft a "who to ask" escalation guide so the team stops defaulting to you.','Set up a single KPI dashboard replacing your top 3 manual reports.'] },
+        { t:'DAYS 31-60: AUTOMATION', c:C.blue, items:['Deploy self-service order tracking to cut "where is my order?" calls by 60%.','Configure automated reorder points for your top 50 A-items.','Set up proactive alerts for inventory, credit holds, and late shipments.'] },
+        { t:'DAYS 61-90: OPTIMIZATION', c:C.purple, items:['Review all time KPIs. Compare your week now vs your audit baseline.','Reallocate recovered hours to strategic growth: customers, markets, partnerships.','Schedule your next audit in 90 days to measure sustained improvement.'] }
     ];
 
-    phases.forEach((p,pi) => {
+    phases.forEach(function(p,pi) {
         cp(45);
         fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
         txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
         y += 15;
-        p.items.forEach(it => {
-            fill(p.c); doc.circle(m+5,y+2,1,'F');
-            txt(it,9,'normal',C.text); doc.text(it,m+10,y+4);
-            y += 8;
+        p.items.forEach(function(it) {
+            var wrapped = doc.splitTextToSize(it, cw - 15);
+            wrapped.forEach(function(line, li) {
+                if(li === 0) { fill(p.c); doc.circle(m+5,y+2,1,'F'); }
+                txt(line,9,'normal',C.text); doc.text(line,m+10,y+4);
+                y += 7;
+            });
         });
         y += 5;
     });
 
-    // CTA - GOOGLE STYLE (White bg, colored border)
-    y += 20;
+    // NOT AN ERP PITCH disclaimer
+    cp(35);
+    card(m,y,cw,28,{accent:C.green});
+    txt('THIS IS NOT AN ERP PITCH',9,'bold',C.green); doc.text('THIS IS NOT AN ERP PITCH',m+10,y+10);
+    var disclaimerText = 'We build lightweight automation ON TOP of your existing systems. No rip-and-replace. No 14-month projects. Your ERP stays. We just make it work harder for you.';
+    txt(disclaimerText,8.5,'normal',C.text);
+    var disclaimerWrapped = doc.splitTextToSize(disclaimerText, cw - 20);
+    var dY = y + 17;
+    disclaimerWrapped.forEach(function(line) { doc.text(line, m+10, dY); dY += 5; });
+    y = dY + 6;
+
+    // CTA
+    y += 10;
     cp(60);
     stroke(C.amber); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    fill(C.white); doc.roundedRect(m,y,cw,55,3,3,'FD');
     
     txt("LET'S RECLAIM YOUR TIME",14,'bold',C.text); doc.text("LET'S RECLAIM YOUR TIME",pw/2,y+15,{align:'center'});
-    txt(`You are losing ${d.automatableHrs.toFixed(0)} hours every single week. That ends now.`,9,'normal',C.textMid);
-    doc.text(`You are losing ${d.automatableHrs.toFixed(0)} hours every single week. That ends now.`,pw/2,y+24,{align:'center'});
-    
-    txt('mo@deeplineop.ai',12,'bold',C.amber); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+
+    var ctaLine1 = 'You are losing ' + d.automatableHrs.toFixed(0) + ' hours every single week.';
+    txt(ctaLine1,9,'normal',C.textMid); doc.text(ctaLine1,pw/2,y+24,{align:'center'});
+
+    if(dollarImpact > 0) {
+        var ctaDollar = "That is $" + dollarImpact.toLocaleString() + " per year in CEO time alone.";
+        txt(ctaDollar,10,'bold',C.red); doc.text(ctaDollar,pw/2,y+32,{align:'center'});
+    }
+
+    txt('mo@deeplineop.ai',12,'bold',C.amber); doc.text('mo@deeplineop.ai',pw/2,y+44,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
-    for(let i=1;i<=pc;i++){
+    for(var i=1;i<=pc;i++){
         doc.setPage(i);
         fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
+        txt('Page '+i+' of '+pc,7,'normal',C.textMid);
+        doc.text('Page '+i+' of '+pc,pw-m,ph-5,{align:'right'});
     }
 
     doc.save('CEO-Time-Audit-Report.pdf');
