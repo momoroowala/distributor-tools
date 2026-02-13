@@ -762,130 +762,130 @@
         const detailedRecs = {
             Data: {
                 low: {
-                    title: "Escape Data Chaos",
+                    title: "Build Your Data Foundation",
                     actions: [
-                        "Week 1-2: Export last 90 days of orders from your ERP. Count how many SKUs have zero description, wrong categories, or missing vendor data. This is your data debt.",
-                        "Week 3-4: Pick ONE master system for inventory truth. If your ERP says 50 units but warehouse counts 47, the ERP wins. Train staff to update immediately.",
-                        "Week 5-8: Clean your top 100 SKUs completely: descriptions, pricing matrices, supplier lead times, reorder points. Manual order entry burns 5+ hours daily when data is wrong.",
-                        "Week 9-12: Build a 'clean data' checklist for new SKU setup. Bad data in = bad decisions out. Garbage in, garbage out isn't just a saying."
+                        "Week 1-2: Audit all data sources. List every spreadsheet, system, and manual process that holds critical business data.",
+                        "Week 3-4: Identify your 'single source of truth' for inventory, customers, and pricing. If none exists, choose one system to be the master.",
+                        "Week 5-8: Migrate top 100 SKUs and top 50 customers into your chosen system with complete, accurate data.",
+                        "Week 9-12: Establish data entry standards. Create simple checklists for staff to ensure consistent data quality going forward."
                     ],
-                    quickWin: "Run a cycle count on your top 20 fast-movers. Compare physical to system. Each 5% variance costs you 1-3% margin on those SKUs."
+                    quickWin: "Start with a physical inventory count of your top 20 SKUs. Compare to system. This 2-hour exercise reveals your data accuracy baseline."
                 },
                 medium: {
-                    title: "Fix the Foundation",
+                    title: "Strengthen Data Quality",
                     actions: [
-                        "Week 1-2: Run duplicate customer reports in your ERP. Search for variations like 'ABC Corp', 'ABC Corporation', 'A.B.C. Corp'. Pricing inconsistency costs 1-3% of revenue.",
-                        "Week 3-4: Standardize all customer contact data. Sales reps waste 20+ minutes daily hunting for the right contact when orders have issues.",
-                        "Week 5-8: Set up data validation rules in your ERP. If someone enters a 50% discount, system should flag for approval. Pricing errors kill margins fast.",
-                        "Week 9-12: Create weekly data quality reports. Track incomplete records, duplicate entries, and pricing exceptions. What gets measured gets managed."
+                        "Week 1-2: Run data quality reports. Identify records with missing fields, duplicates, or obvious errors.",
+                        "Week 3-4: Clean your customer master data. Standardize company names, addresses, and contact info.",
+                        "Week 5-8: Implement automated data validation rules in your ERP to catch errors at entry.",
+                        "Week 9-12: Set up weekly data quality dashboards to monitor accuracy trends."
                     ],
-                    quickWin: "Export customer list to Excel. Use 'Remove Duplicates' feature. Most distributors find 5-15% duplicates causing pricing confusion."
+                    quickWin: "Export your customer list and remove duplicates. Most distributors find 5-15% duplicate records eating up their CRM."
                 },
                 high: {
-                    title: "Turn Data Into Dollars",
+                    title: "Leverage Data for Intelligence",
                     actions: [
-                        "Week 1-2: Build a customer health dashboard. Track order frequency, average order size, days since last order. 78% of quotes go to fastest responder.",
-                        "Week 3-4: Set up automated alerts for buying pattern changes. Customer who orders monthly suddenly stops? You need to know in week 1, not month 2.",
-                        "Week 5-8: Implement demand forecasting for top 50 SKUs. Poor forecasting is the #1 operational challenge. Overstock ties up cash; understock loses sales.",
-                        "Week 9-12: Create margin analysis by customer and product line. Identify which customers and SKUs actually make money vs. which just make noise."
+                        "Week 1-2: Identify 3 business questions you wish you could answer instantly (e.g., 'Which customers are at risk of churning?').",
+                        "Week 3-4: Build or request dashboards that answer these questions using your existing data.",
+                        "Week 5-8: Implement predictive analytics for demand forecasting on your top 50 SKUs.",
+                        "Week 9-12: Create automated alerts for anomalies (sudden demand spikes, pricing outliers, inventory discrepancies)."
                     ],
-                    quickWin: "Pull report of customers who ordered last year but not this year. Call the top 5 this week. Takes 30 minutes; often recovers $10,000+ in lost revenue."
+                    quickWin: "Pull a report of customers who ordered last year but not this year. Call the top 5. This takes 30 minutes and often recovers thousands in revenue."
                 }
             },
             Processes: {
                 low: {
-                    title: "Stop the Manual Madness",
+                    title: "Document and Standardize",
                     actions: [
-                        "Week 1-2: Time your order entry process. From email receipt to ERP entry. Multiply by daily orders. Manual entry of 60 orders/day burns 5+ hours of labor costs.",
-                        "Week 3-4: Map every step: email arrives, clerk reads it, looks up customer, enters line items, calculates pricing, sends confirmation. Count handoffs and delays.",
-                        "Week 5-8: Create order entry templates by customer type. Standard orders follow same pattern. Templates cut entry time by 40-60%.",
-                        "Week 9-12: Document your quoting process. Sales reps spend more time on admin than selling. Streamlined quotes = faster response = more wins."
+                        "Week 1-2: Pick your most painful process (usually order entry or quoting). Shadow the person who does it and write down every step.",
+                        "Week 3-4: Identify bottlenecks and redundant steps. Mark which steps could be automated vs. need human judgment.",
+                        "Week 5-8: Create a simple process map (even a Word doc with steps). Share with team for feedback.",
+                        "Week 9-12: Standardize the process. Everyone follows the same steps. Track time savings."
                     ],
-                    quickWin: "Count how many times you re-enter the same data between systems today. Each re-entry costs 2-5 minutes and creates error opportunities."
+                    quickWin: "Time how long it takes to enter one order from email. Multiply by daily orders. This is your 'automation opportunity' in hours per week."
                 },
                 medium: {
-                    title: "Connect the Workflow",
+                    title: "Eliminate Manual Handoffs",
                     actions: [
-                        "Week 1-2: List every time data moves between systems: ERP to accounting, ERP to shipping, warehouse to ERP. Each transfer point can break.",
-                        "Week 3-4: Prioritize integrations by pain level. Order processing errors cost more than accounting sync delays. Fix the bleeding first.",
-                        "Week 5-8: Connect ERP to your shipping software. Automatic label generation and tracking updates save 30 minutes per day per warehouse worker.",
-                        "Week 9-12: Build exception handling. Auto-process standard orders; flag unusual ones for review. Handle the 80% automatically, review the 20% manually."
+                        "Week 1-2: Map where data gets re-entered or copied between systems. Each handoff is an error opportunity.",
+                        "Week 3-4: Prioritize integrations by volume and error rate. High volume + high errors = fix first.",
+                        "Week 5-8: Implement your first integration (often ERP to accounting or ERP to shipping).",
+                        "Week 9-12: Build exception handling. Automate the 80% that's standard; flag the 20% that needs review."
                     ],
-                    quickWin: "Create email templates for order confirmations, shipping notices, and payment reminders. Saves 15 minutes daily of typing same messages."
+                    quickWin: "Implement email templates for common customer communications. Reduces typing and ensures consistent messaging."
                 },
                 high: {
-                    title: "Build Smart Operations",
+                    title: "Intelligent Automation",
                     actions: [
-                        "Week 1-2: Document decision rules for pricing, credit approvals, and special handling. If criteria is clear, it can be automated.",
-                        "Week 3-4: Set up automated credit checks. Orders over limit get flagged immediately vs. discovering problems at ship time.",
-                        "Week 5-8: Implement rule-based pricing automation. Standard customers get standard pricing automatically. Exceptions get human review.",
-                        "Week 9-12: Add intelligence layers. Flag orders that seem unusual based on customer history: wrong shipping address, unusual quantities, off-brand requests."
+                        "Week 1-2: Identify decisions that follow clear rules (pricing, credit approval, reorder points). These are automation candidates.",
+                        "Week 3-4: Document the decision logic. If X, then Y. Build decision trees.",
+                        "Week 5-8: Implement rule-based automation for one decision type. Start with low-risk (e.g., auto-approve orders under $500 for established customers).",
+                        "Week 9-12: Add AI layer for pattern recognition (e.g., flag orders that look unusual based on customer history)."
                     ],
-                    quickWin: "Set automatic reorder point alerts for your top 20 SKUs. Takes 30 minutes in most ERPs; prevents stockouts and expediting costs forever."
+                    quickWin: "Set up automatic reorder point alerts for your top 20 SKUs. Takes 30 minutes in most ERPs; prevents stockouts forever."
                 }
             },
             People: {
                 low: {
-                    title: "Win Hearts and Minds",
+                    title: "Build Internal Champions",
                     actions: [
-                        "Week 1-2: Find your most tech-friendly employee. They'll be your pilot user and internal advocate. Peer recommendations beat management mandates.",
-                        "Week 3-4: Show them free AI tools like ChatGPT for email writing or Microsoft Copilot for data analysis. Let them discover benefits firsthand.",
-                        "Week 5-8: Have them share one concrete win with the team. 'I saved 2 hours this week' is more powerful than theoretical presentations.",
-                        "Week 9-12: Address job security fears directly. Automation handles busywork; humans handle relationships. 36% of distributors report severe workforce shortage; nobody is losing jobs."
+                        "Week 1-2: Identify your most tech-curious team member. This person will be your pilot user.",
+                        "Week 3-4: Have them experiment with free AI tools (ChatGPT for email drafting, etc.). Let them discover the value.",
+                        "Week 5-8: Ask them to share one win with the team. Peer endorsement beats top-down mandates.",
+                        "Week 9-12: Address concerns directly. Have honest conversations about what AI will and won't replace. Focus on 'work smarter' not 'fewer jobs'."
                     ],
-                    quickWin: "Show one real example of AI helping distributors. Search online for case studies. Make it concrete: 'This company in Ohio cut order processing time by 40%.'"
+                    quickWin: "Share one concrete example of AI saving time in distribution (plenty of case studies online). Make it real, not theoretical."
                 },
                 medium: {
-                    title: "Scale the Buy-In",
+                    title: "Expand Capabilities",
                     actions: [
-                        "Week 1-2: Survey team about daily frustrations. What takes too long? What gets repeated constantly? Match problems to automation solutions.",
-                        "Week 3-4: Create a 'future state' vision. Show how automation eliminates busywork while preserving relationship building and problem-solving roles.",
-                        "Week 5-8: Run pilot project with 2-3 volunteers. Measure time saved and stress reduced. Success stories spread faster than mandates.",
-                        "Week 9-12: Document new processes in plain English. Team should be able to use tools without calling IT every time something goes wrong."
+                        "Week 1-2: Survey the team on biggest time-wasters. What tasks do they wish were automated?",
+                        "Week 3-4: Match complaints to available solutions. Create a 'what if' roadmap.",
+                        "Week 5-8: Run a small pilot with 2-3 team members. Measure time saved and satisfaction.",
+                        "Week 9-12: Create internal documentation. The team should be able to use new tools without constant IT help."
                     ],
-                    quickWin: "Let your biggest skeptic choose the first process to automate. Ownership creates buy-in better than any presentation."
+                    quickWin: "Let your most skeptical team member choose the first process to automate. Buy-in comes from ownership."
                 },
                 high: {
-                    title: "Build Innovation Culture",
+                    title: "Scale the Culture",
                     actions: [
-                        "Week 1-2: Create formal process for improvement suggestions. Anyone can propose automation ideas. Best ideas get implemented and recognized.",
-                        "Week 3-4: Track automation ROI: hours saved, errors reduced, customer satisfaction improved. Share wins in team meetings and performance reviews.",
-                        "Week 5-8: Tie automation adoption to advancement opportunities. Future leaders understand technology; past leaders resist change.",
-                        "Week 9-12: Make AI/automation literacy part of training program. New hires should expect to work with intelligent tools, not fight them."
+                        "Week 1-2: Formalize an 'automation suggestion' process. Anyone can propose improvements.",
+                        "Week 3-4: Create success metrics for automation projects. Track hours saved, errors reduced, revenue impact.",
+                        "Week 5-8: Recognize and reward team members who drive improvements. Tie it to performance reviews.",
+                        "Week 9-12: Build internal training program. Make AI/automation literacy part of onboarding."
                     ],
-                    quickWin: "Start monthly 'automation wins' sharing in team meetings. 15 minutes to share time savings and process improvements."
+                    quickWin: "Start a monthly 'automation wins' share. 15 minutes in team meeting. Builds momentum and surfaces ideas."
                 }
             },
             Technology: {
                 low: {
-                    title: "Escape Legacy Prison",
+                    title: "Modernize Foundation",
                     actions: [
-                        "Week 1-2: Audit every system: ERP age, database type, integration capability, mobile access. Labor costs are 60% of warehouse budgets; old systems waste labor.",
-                        "Week 3-4: Calculate true cost of current system: license fees, maintenance, workarounds, manual processes. Include opportunity cost of features you can't use.",
-                        "Week 5-8: Research modern alternatives with open APIs and mobile capability. Cloud-based systems cost less to maintain and integrate better.",
-                        "Week 9-12: Build business case for modernization. Include efficiency gains, reduced errors, and competitive advantage from faster response times."
+                        "Week 1-2: Inventory all systems currently in use. Note age, vendor, and integration capabilities.",
+                        "Week 3-4: Identify the biggest pain point. Usually it's either the ERP or the gap between ERP and everything else.",
+                        "Week 5-8: Research modern alternatives. Focus on cloud-native systems with open APIs.",
+                        "Week 9-12: Build a business case for upgrade. Calculate cost of current inefficiencies vs. cost of new system."
                     ],
-                    quickWin: "Check if your ERP vendor offers newer modules or cloud versions. Sometimes the upgrade path is simpler and cheaper than you think."
+                    quickWin: "Check if your current ERP vendor has newer modules you're not using. Sometimes the upgrade is already paid for."
                 },
                 medium: {
-                    title: "Connect the Islands",
+                    title: "Connect Your Stack",
                     actions: [
-                        "Week 1-2: Map all manual data transfers between systems. ERP to accounting, warehouse to ERP, CRM to quoting system. Each transfer costs time and accuracy.",
-                        "Week 3-4: Evaluate integration options: native connectors, middleware platforms like Zapier, or custom APIs. Start with highest-volume data flows.",
-                        "Week 5-8: Implement first integration: usually ERP to accounting or ERP to shipping. Prove the concept works before tackling complex integrations.",
-                        "Week 9-12: Set up monitoring and error handling. Integrations break; you need to know immediately when data stops flowing correctly."
+                        "Week 1-2: List all manual data transfers between systems. Each one is an integration opportunity.",
+                        "Week 3-4: Evaluate integration platforms (Zapier, Make, or ERP-specific connectors). Often cheaper than custom code.",
+                        "Week 5-8: Build your first integration. Start with highest-volume data flow.",
+                        "Week 9-12: Document integration and create monitoring. You need to know when data stops flowing."
                     ],
-                    quickWin: "Connect ERP to email system for automated order confirmations and shipping notices. Customers love updates; staff hates typing them."
+                    quickWin: "Connect your ERP to your email/calendar. Automatic reminders for follow-ups based on order status."
                 },
                 high: {
-                    title: "Enable Intelligence",
+                    title: "Enable AI Readiness",
                     actions: [
-                        "Week 1-2: Audit API capabilities in current systems. What data can be accessed programmatically? APIs are the foundation for AI integration.",
-                        "Week 3-4: Identify AI-ready use cases: document processing (POs, invoices), demand forecasting, price optimization, or customer risk scoring.",
-                        "Week 5-8: Run proof-of-concept on one use case. Measure accuracy vs. current manual process. Document time and cost savings.",
-                        "Week 9-12: Scale successful pilots. Build internal expertise or partner with automation specialists. Focus on ROI, not technology for technology's sake."
+                        "Week 1-2: Audit your API capabilities. What data can be accessed programmatically?",
+                        "Week 3-4: Identify AI-ready use cases. Start with classification (categorizing), prediction (forecasting), or extraction (parsing documents).",
+                        "Week 5-8: Run a proof-of-concept with one AI use case. Measure accuracy and business impact.",
+                        "Week 9-12: Scale what works. Build internal capability or partner with experts for complex implementations."
                     ],
-                    quickWin: "Enable API access in your ERP if not already active. This is the prerequisite for modern integrations and AI tools."
+                    quickWin: "Enable API access on your ERP if not already active. This is the prerequisite for most modern integrations."
                 }
             }
         };
@@ -1100,16 +1100,16 @@
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 20, cw = pw - 2*m;
+    const m = 15, cw = pw - 2*m; // Reduced margin from 20 to 15
     let y = 0;
 
-    // Dark mode color palette
+    // Design system - Material Design
     const C = {
-        bg: [10, 10, 15], card: [18, 18, 26], cell: [26, 26, 37],
-        border: [42, 42, 58], text: [241, 245, 249], textMid: [148, 163, 184],
-        textLight: [100, 116, 139], white: [255, 255, 255], shadow: [6, 6, 10],
-        blue: [59, 130, 246], red: [239, 68, 68], yellow: [250, 204, 21],
-        green: [34, 197, 94], purple: [168, 85, 247], amber: [245, 158, 11]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const catC = {Data:C.blue, Processes:C.green, People:C.amber, Technology:C.purple};
@@ -1117,13 +1117,20 @@
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
     
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Improved page break checking with actual content height
+    const cp = (contentHeight=20) => { 
+        if(y + contentHeight > 270){ // Increased from 265 to 270 for tighter packing
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.purple); doc.rect(0,0,pw,1.5,'F');
-        y = 20;
+        y = 15; // Reduced from 20 to 15
     };
 
     const card = (x,yc,w,h,opts={}) => {
@@ -1134,51 +1141,64 @@
         if(opts.accent) { fill(opts.accent); doc.roundedRect(x,yc,3,h,r,0,'F'); doc.rect(x+1.5,yc,1.5,h,'F'); }
     };
 
-    const dynamicCard = (x,yc,w,textLines,opts={}) => {
-        const lineHeight = opts.lineHeight || 6;
-        const padding = opts.padding || 10;
-        const h = textLines.length * lineHeight + padding * 2;
-        card(x,yc,w,h,opts);
-        return h;
-    };
-
     const secTitle = (title,yy,color=C.purple) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+        cp(15); // Check space before drawing header
+        txt(title,11,'bold',C.text); doc.text(title,m,yy+6); // Reduced font and spacing
+        fill(color); doc.rect(m,yy+9,20,1.5,'F'); // Reduced underline width
+        return yy+15; // Reduced from 18 to 15
     };
 
     // =============================
-    // PAGE 1: COVER
+    // PAGE 1: COVER (More Compact)
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.purple); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD'); // Reduced height from 95 to 70
+    fill(C.purple); doc.circle(pw/2,18,6,'F'); // Smaller circle
+    txt('A',10,'bold',C.white); doc.text('A',pw/2,21,{align:'center'}); // Smaller font
 
-    txt('AI READINESS REPORT',20,'bold',C.text); doc.text('AI READINESS REPORT',pw/2,48,{align:'center'});
-    txt('Personalized Assessment for Your Distribution Business',10,'normal',C.textMid);
-    doc.text('Personalized Assessment for Your Distribution Business',pw/2,58,{align:'center'});
+    txt('AI READINESS REPORT',18,'bold',C.text); doc.text('AI READINESS REPORT',pw/2,38,{align:'center'}); // Reduced font size
+    txt('Personalized Assessment for Your Distribution Business',9,'normal',C.textMid); // Reduced font
+    doc.text('Personalized Assessment for Your Distribution Business',pw/2,46,{align:'center'});
 
-    fill(C.cell); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F'); // Smaller date pill
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 105;
+    y = 75; // Reduced from 105
 
-    // Overall Score Card
+    // Overall Score Card (More Compact)
     const scoreColor = totalScore >= 75 ? C.green : totalScore >= 50 ? C.amber : C.red;
-    card(m,y,cw,45,{accent:scoreColor});
-    txt('YOUR OVERALL READINESS SCORE',9,'bold',scoreColor); doc.text('YOUR OVERALL READINESS SCORE',m+cw/2,y+12,{align:'center'});
+    card(m,y,cw,35,{accent:scoreColor}); // Reduced height from 45 to 35
+    txt('YOUR AI READINESS SCORE',9,'bold',scoreColor); doc.text('YOUR AI READINESS SCORE',m+cw/2,y+10,{align:'center'});
 
-    fill(scoreColor); doc.circle(m+cw/2,y+28,12,'F');
-    txt(totalScore.toString(),18,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+32,{align:'center'});
+    fill(scoreColor); doc.circle(m+cw/2,y+23,10,'F'); // Smaller circle
+    txt(totalScore.toString(),16,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+27,{align:'center'}); // Smaller font
 
     const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
-    txt(title,10,'bold',scoreColor); doc.text(title,m+cw/2,y+42,{align:'center'});
-    y += 60;
+    txt(title,9,'bold',scoreColor); doc.text(title,m+cw/2,y+33,{align:'center'}); // Smaller font
+    y += 40; // Reduced spacing
 
-    // Category Grid
+    // Table of Contents (NEW!)
+    const toc = [
+        'Page 1: Your AI Readiness Score & Category Breakdown',
+        'Page 2: Detailed Recommendations & Action Plans', 
+        'Page 3: ROI Projections & Implementation Roadmap'
+    ];
+    const tocH = 16 + toc.length * 6 + 4;
+    cp(tocH + 5);
+    card(m,y,cw,tocH,{accent:C.purple});
+    txt('WHAT\'S IN THIS REPORT:',8,'bold',C.purple); doc.text('WHAT\'S IN THIS REPORT:',m+10,y+10);
+    
+    let tocY = y+16;
+    toc.forEach(item => {
+        fill(C.purple); doc.circle(m+12,tocY,0.8,'F');
+        txt(item,7.5,'normal',C.text); doc.text(item,m+16,tocY+2);
+        tocY += 6;
+    });
+    y += tocH + 5;
+
+    // Category Grid (More Compact)
+    cp(45);
     y = secTitle('CATEGORY BREAKDOWN', y);
     const hw = (cw-6)/2;
     let ci = 0;
@@ -1186,107 +1206,87 @@
         const score = Math.round((data.total / (data.count * 3)) * 100);
         const col = catC[cat] || C.purple;
         const cx = ci % 2 === 0 ? m : m + hw + 6;
-        const cy = y + Math.floor(ci / 2) * 28;
+        const cy = y + Math.floor(ci / 2) * 20; // Reduced from 28 to 20
         
-        card(cx, cy, hw, 22, {accent:col});
-        txt(cat.toUpperCase(),8,'bold',col); doc.text(cat.toUpperCase(), cx+10, cy+12);
-        txt(`${score}%`,14,'bold',col); doc.text(`${score}%`, cx+hw-10, cy+14, {align:'right'});
+        card(cx, cy, hw, 16, {accent:col}); // Reduced height from 22 to 16
+        txt(cat.toUpperCase(),7,'bold',col); doc.text(cat.toUpperCase(), cx+8, cy+8); // Smaller font and margin
+        txt(`${score}%`,12,'bold',col); doc.text(`${score}%`, cx+hw-8, cy+10, {align:'right'}); // Larger, more prominent score
         
         ci++;
     });
-    y += 65;
+    y += 45; // Reduced from 65
 
     // =============================
-    // RECOMMENDATIONS
+    // PAGE 2: RECOMMENDATIONS
     // =============================
     newPage();
     y = secTitle('DETAILED RECOMMENDATIONS', y);
 
     const wins = getQuickWins();
     wins.forEach((rec, idx) => {
-        // Calculate dynamic height based on content
-        const quickWinLines = doc.splitTextToSize(rec.quickWin, cw-50);
-        const actionLines = [];
-        rec.actions.forEach(a => {
-            actionLines.push(...doc.splitTextToSize(a, cw-25));
-        });
-        const totalLines = 3 + quickWinLines.length + actionLines.length; // headers + content
-        const cardHeight = Math.max(75, totalLines * 6 + 20); // minimum 75, dynamic based on content
-        
-        cp(cardHeight + 10);
         const col = catC[rec.category] || C.purple;
-        card(m,y,cw,cardHeight,{accent:col});
-        txt(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,10,'bold',col); 
-        doc.text(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,m+12,y+12);
-        
-        txt('QUICK WIN:',8,'bold',C.text); doc.text('QUICK WIN:',m+12,y+24);
-        let currentY = y+32;
-        quickWinLines.forEach(line => {
-            txt(line,9,'normal',C.text); doc.text(line,m+15,currentY);
-            currentY += 6;
+        // Pre-calculate card height
+        const quickWinLines = doc.splitTextToSize(rec.quickWin, cw-25);
+        let calcH = 10 + 10 + quickWinLines.length * 5 + 4 + 7; // header + QUICK WIN label + text + gap + ACTION PLAN label
+        const actionSlice = rec.actions.slice(0,3);
+        actionSlice.forEach(a => {
+            const aLines = doc.splitTextToSize(a, cw-30);
+            calcH += aLines.length * 5 + 3;
         });
-
-        currentY += 4;
-        txt('90-DAY ACTION PLAN:',8,'bold',C.textMid); doc.text('90-DAY ACTION PLAN:',m+12,currentY);
-        currentY += 8;
-
-        rec.actions.forEach(a => {
-            fill(col); doc.circle(m+15,currentY-2,1, 'F');
-            const lines = doc.splitTextToSize(a, cw-25);
-            lines.forEach(line => {
-                txt(line,9,'normal',C.text); doc.text(line,m+20,currentY);
-                currentY += 6;
-            });
-            currentY += 2;
-        });
+        calcH += 6; // bottom padding
+        cp(calcH + 5);
+        card(m,y,cw,calcH,{accent:col});
+        txt(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,9,'bold',col); doc.text(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,m+10,y+10);
         
-        y += cardHeight + 10;
+        txt('QUICK WIN:',7,'bold',C.text); doc.text('QUICK WIN:',m+10,y+20);
+        txt(quickWinLines,8,'normal',C.text); doc.text(quickWinLines,m+10,y+27);
+
+        const actionPlanY = y + 27 + quickWinLines.length * 5 + 4;
+        txt('90-DAY ACTION PLAN:',7,'bold',C.textMid); doc.text('90-DAY ACTION PLAN:',m+10,actionPlanY);
+
+        let sY = actionPlanY + 7;
+        actionSlice.forEach(a => {
+            fill(col); doc.circle(m+12,sY,1, 'F');
+            const actionLines = doc.splitTextToSize(a, cw-30);
+            txt(actionLines,8,'normal',C.text); doc.text(actionLines,m+16,sY+1);
+            sY += actionLines.length * 5 + 3;
+        });
+        y += calcH + 5;
     });
 
-    // NOT AN ERP PITCH disclaimer
-    cp(45);
-    card(m,y,cw,40,{accent:C.yellow});
-    txt('"THIS IS NOT AN ERP PITCH"',11,'bold',C.yellow); doc.text('"THIS IS NOT AN ERP PITCH"',m+cw/2,y+12,{align:'center'});
-    const disclaimerText = "We build lightweight automation on top of your existing systems. No rip-and-replace. No 14-month projects. Your ERP stays. We just make it work harder for you.";
-    const disclaimerLines = doc.splitTextToSize(disclaimerText, cw-20);
-    let disclaimerY = y+22;
-    disclaimerLines.forEach(line => {
-        txt(line,9,'normal',C.text); doc.text(line,m+cw/2,disclaimerY,{align:'center'});
-        disclaimerY += 6;
-    });
-    y += 50;
-
-    // ROI
-    cp(60);
+    // ROI (More Compact)
+    cp(35);
     y = secTitle('POTENTIAL ROI', y, C.green);
-    card(m,y,cw,30);
     const benchmarks = ['15-30% reduction in processing time','20-40% fewer pricing errors','10-25% better inventory accuracy','2-4 hours saved per employee/week'];
-    let bY = y+10;
+    const roiH = 8 + benchmarks.length * 5 + 4;
+    cp(roiH + 5);
+    card(m,y,cw,roiH);
+    let bY = y+8;
     benchmarks.forEach(b => {
-        fill(C.green); doc.circle(m+10, bY, 1, 'F');
-        txt(b,9,'normal',C.text); doc.text(b, m+15, bY+2);
-        bY += 6;
+        fill(C.green); doc.circle(m+8, bY, 1, 'F');
+        txt(b,8,'normal',C.text); doc.text(b, m+12, bY+2);
+        bY += 5;
     });
-    y += 45;
+    y += roiH + 5;
 
-    // CTA
-    cp(65);
+    // CTA (More Compact)
+    cp(40);
     stroke(C.purple); doc.setLineWidth(1);
-    fill(C.card); doc.roundedRect(m,y,cw,45,3,3,'FD');
-    txt("READY TO TAKE THE NEXT STEP?",13,'bold',C.text); doc.text("READY TO TAKE THE NEXT STEP?",pw/2,y+15,{align:'center'});
-    txt("Let's discuss how to implement these AI foundations in your business.",9,'normal',C.textMid);
-    doc.text("Let's discuss how to implement these AI foundations in your business.",pw/2,y+24,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.purple); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+    fill(C.white); doc.roundedRect(m,y,cw,35,3,3,'FD'); // Reduced height
+    txt("READY TO TAKE THE NEXT STEP?",12,'bold',C.text); doc.text("READY TO TAKE THE NEXT STEP?",pw/2,y+12,{align:'center'});
+    txt("Let's discuss how to implement these AI foundations in your business.",8,'normal',C.textMid);
+    doc.text("Let's discuss how to implement these AI foundations in your business.",pw/2,y+20,{align:'center'});
+    txt('mo@deeplineop.ai',11,'bold',C.purple); doc.text('mo@deeplineop.ai',pw/2,y+28,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
-        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
-        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
+        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
     doc.save('AI-Readiness-Report.pdf');
 }

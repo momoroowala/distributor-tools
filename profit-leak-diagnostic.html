@@ -445,13 +445,13 @@ function generatePDF(email) {
     const margin = rev * 0.05;
     const leakVsMargin = runningLeak > margin;
 
-    // Design system - Dark Mode
+    // Design system - Material Design
     const C = {
-        bg: [10, 10, 15], card: [18, 18, 26], cell: [26, 26, 37],
-        border: [42, 42, 58], text: [241, 245, 249], textMid: [148, 163, 184],
-        textLight: [100, 116, 139], white: [255, 255, 255], shadow: [6, 6, 10],
-        blue: [59, 130, 246], red: [239, 68, 68], yellow: [250, 204, 21],
-        green: [34, 197, 94], purple: [168, 85, 247], amber: [245, 158, 11]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0],
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
@@ -534,9 +534,11 @@ function generatePDF(email) {
     }
 
     // Report outline card
-    card(m,y,cw,42);
-    txt("WHAT'S IN THIS REPORT",10,'bold',C.text); doc.text("WHAT'S IN THIS REPORT",m+10,y+12);
     const outlineItems = ['Leak Breakdown - where your profit is going','Recovery Plans - step-by-step fixes for each leak','90-Day Roadmap - phased implementation plan','Next Steps - how to start recovering profit'];
+    const outlineH = 20 + outlineItems.length * 7 + 4;
+    cp(outlineH + 5);
+    card(m,y,cw,outlineH);
+    txt("WHAT'S IN THIS REPORT",10,'bold',C.text); doc.text("WHAT'S IN THIS REPORT",m+10,y+12);
     let oY = y + 20;
     outlineItems.forEach((item,i) => {
         fill(C.red); doc.circle(m+14,oY,1.5,'F');
@@ -544,7 +546,7 @@ function generatePDF(email) {
         txt(item,8,'normal',C.textMid); doc.text(item,m+20,oY+1.5);
         oY += 7;
     });
-    y += 48;
+    y += outlineH + 5;
 
     // Impact Cards breakdown
     y = secTitle('WHERE YOUR PROFIT IS LEAKING', y);
@@ -647,11 +649,16 @@ function generatePDF(email) {
     validLeaks.forEach((leak, idx) => {
         const fix = fixes[leak.label];
         if(!fix) return;
-        const stepCount = fix.steps.length;
-        const neededH = 38 + stepCount * 10;
-        cp(neededH + 5);
         const col = fix.priority==="CRITICAL"?C.red:fix.priority==="HIGH"?C.amber:C.blue;
-        card(m,y,cw,neededH,{accent:col});
+        // Pre-calculate actual height needed
+        let calcH = 34; // header space
+        fix.steps.forEach(s => {
+            const sLines = doc.splitTextToSize(s, cw - 30);
+            calcH += sLines.length * 5 + 5;
+        });
+        calcH += 4; // bottom padding
+        cp(calcH + 5);
+        card(m,y,cw,calcH,{accent:col});
         txt(`${idx+1}. ${leak.label.toUpperCase()}`,10,'bold',col); doc.text(`${idx+1}. ${leak.label.toUpperCase()}`,m+12,y+12);
         txt(`Impact: ${fix.impact}`,8,'bold',C.textMid); doc.text(`Impact: ${fix.impact}`,pw-m-12,y+12,{align:'right'});
 
@@ -666,7 +673,7 @@ function generatePDF(email) {
             doc.text(sLines,m+20,sY+1.5);
             sY += sLines.length * 5 + 5;
         });
-        y += neededH + 8;
+        y += calcH + 8;
     });
 
     // =============================
@@ -682,7 +689,14 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p) => {
-        cp(45);
+        // Pre-calculate phase height
+        let phaseH = 15; // header bar + gap
+        p.items.forEach(it => {
+            const itLines = doc.splitTextToSize(it, cw - 15);
+            phaseH += itLines.length * 5 + 3;
+        });
+        phaseH += 5; // bottom spacing
+        cp(phaseH);
         fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
         txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
         y += 15;
@@ -698,31 +712,35 @@ function generatePDF(email) {
 
     // NOT AN ERP card
     y += 10;
-    cp(45);
-    card(m,y,cw,38,{accent:C.green});
-    txt('THIS IS NOT AN ERP IMPLEMENTATION',10,'bold',C.green); doc.text('THIS IS NOT AN ERP IMPLEMENTATION',m+cw/2,y+12,{align:'center'});
     const notErpMsg = 'We build targeted automation on top of your existing systems. No 14-month projects. No rip-and-replace. Start seeing results in weeks, not years.';
-    txt(notErpMsg,9,'normal',C.text);
     const notErpLines = doc.splitTextToSize(notErpMsg, cw - 20);
+    const notErpH = 22 + notErpLines.length * 5 + 6;
+    cp(notErpH + 5);
+    card(m,y,cw,notErpH,{accent:C.green});
+    txt('THIS IS NOT AN ERP IMPLEMENTATION',10,'bold',C.green); doc.text('THIS IS NOT AN ERP IMPLEMENTATION',m+cw/2,y+12,{align:'center'});
+    txt(notErpMsg,9,'normal',C.text);
     doc.text(notErpLines, m+10, y+22);
-    y += 45;
+    y += notErpH + 5;
 
     // CTA
     y += 10;
-    cp(65);
-    stroke(C.red); doc.setLineWidth(1);
-    fill(C.card); doc.roundedRect(m,y,cw,45,3,3,'FD');
-    txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
     const ctaMsg = 'You have identified $' + runningLeak.toLocaleString() + ' in annual profit leakage. Let us get it back.';
+    const ctaMsgLines = doc.splitTextToSize(ctaMsg, cw - 20);
+    const ctaH = 15 + ctaMsgLines.length * 5 + 4 + 12 + 6;
+    cp(ctaH + 5);
+    stroke(C.red); doc.setLineWidth(1);
+    fill(C.white); doc.roundedRect(m,y,cw,ctaH,3,3,'FD');
+    txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
     txt(ctaMsg,9,'normal',C.textMid);
-    doc.text(ctaMsg,pw/2,y+24,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+    doc.text(ctaMsgLines,pw/2,y+24,{align:'center'});
+    const ctaEmailY = y + 24 + ctaMsgLines.length * 5 + 4;
+    txt('mo@deeplineop.ai',12,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,ctaEmailY,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
         txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
