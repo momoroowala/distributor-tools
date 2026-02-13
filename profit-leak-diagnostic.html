@@ -445,13 +445,13 @@ function generatePDF(email) {
     const margin = rev * 0.05;
     const leakVsMargin = runningLeak > margin;
 
-    // Design system - Material Design
+    // Design system - Dark Mode
     const C = {
-        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
-        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
-        white: [255, 255, 255], shadow: [232, 234, 237],
-        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0],
-        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
+        bg: [10, 10, 15], card: [18, 18, 26], cell: [26, 26, 37],
+        border: [42, 42, 58], text: [241, 245, 249], textMid: [148, 163, 184],
+        textLight: [100, 116, 139], white: [255, 255, 255], shadow: [6, 6, 10],
+        blue: [59, 130, 246], red: [239, 68, 68], yellow: [250, 204, 21],
+        green: [34, 197, 94], purple: [168, 85, 247], amber: [245, 158, 11]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
@@ -711,7 +711,7 @@ function generatePDF(email) {
     y += 10;
     cp(65);
     stroke(C.red); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    fill(C.card); doc.roundedRect(m,y,cw,45,3,3,'FD');
     txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
     const ctaMsg = 'You have identified $' + runningLeak.toLocaleString() + ' in annual profit leakage. Let us get it back.';
     txt(ctaMsg,9,'normal',C.textMid);
@@ -722,7 +722,7 @@ function generatePDF(email) {
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
         txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
