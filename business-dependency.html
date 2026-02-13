@@ -423,7 +423,7 @@ function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 15, cw = pw - 2*m; // Reduced margin from 20 to 15
+    const m = 20, cw = pw - 2*m;
     let y = 0;
 
     // Design system - Material Design
@@ -439,20 +439,13 @@ function generatePDF(email) {
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
     
-    // Improved page break checking with actual content height
-    const cp = (contentHeight=20) => { 
-        if(y + contentHeight > 270){ // Increased from 265 to 270 for tighter packing
-            newPage(); 
-            return true;
-        } 
-        return false; 
-    };
+    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
 
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.blue); doc.rect(0,0,pw,1.5,'F');
-        y = 15; // Reduced from 20 to 15
+        y = 20;
     };
 
     const card = (x,yc,w,h,opts={}) => {
@@ -464,92 +457,68 @@ function generatePDF(email) {
     };
 
     const secTitle = (title,yy,color=C.blue) => {
-        cp(15); // Check space before drawing header
-        txt(title,11,'bold',C.text); doc.text(title,m,yy+6); // Reduced font and spacing
-        fill(color); doc.rect(m,yy+9,20,1.5,'F'); // Reduced underline width
-        return yy+15; // Reduced from 18 to 15
+        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
+        fill(color); doc.rect(m,yy+10,25,1.5,'F');
+        return yy+18;
     };
 
     // =============================
-    // PAGE 1: COVER (More Compact)
+    // PAGE 1: COVER
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD'); // Reduced height from 95 to 70
-    fill(C.blue); doc.circle(pw/2,18,6,'F'); // Smaller circle
-    txt('🏢',10,'bold',C.white); doc.text('🏢',pw/2,21,{align:'center'}); // Business emoji instead of 'A'
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
+    fill(C.blue); doc.circle(pw/2,22,8,'F');
+    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
 
-    txt('BUSINESS DEPENDENCY REPORT',17,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,38,{align:'center'}); // Reduced font size
-    txt('What If You Left Tomorrow?',9,'normal',C.textMid); // Reduced font
-    doc.text('What If You Left Tomorrow?',pw/2,46,{align:'center'});
+    txt('BUSINESS DEPENDENCY REPORT',20,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,48,{align:'center'});
+    txt('What If You Left Tomorrow?',11,'normal',C.textMid); doc.text('What If You Left Tomorrow?',pw/2,58,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F'); // Smaller date pill
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
 
-    y = 75; // Reduced from 105
+    y = 105;
 
-    // Table of Contents (NEW!)
-    cp(30);
-    card(m,y,cw,25,{accent:C.blue});
-    txt('WHAT\'S IN THIS REPORT:',8,'bold',C.blue); doc.text('WHAT\'S IN THIS REPORT:',m+8,y+8);
-    
-    const toc = [
-        'Page 1: Owner Dependency Index & Risk Assessment',
-        'Page 2: Independence Roadmap & Valuation Impact', 
-        'Page 3: Implementation Framework'
-    ];
-    let tocY = y+14;
-    toc.forEach(item => {
-        fill(C.blue); doc.circle(m+10,tocY,0.8,'F');
-        txt(item,7.5,'normal',C.text); doc.text(item,m+14,tocY+2);
-        tocY += 5;
-    });
-    y += 30;
-
-    // Score visualization card (More Compact)
-    cp(42);
+    // Score visualization card
     const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : C.green;
-    card(m,y,cw,38,{accent:scoreCol}); // Reduced height from 52 to 38
-    txt('OWNER DEPENDENCY INDEX',9,'bold',scoreCol); doc.text('OWNER DEPENDENCY INDEX',m+cw/2,y+12,{align:'center'});
+    card(m,y,cw,52,{accent:scoreCol});
+    txt('OWNER DEPENDENCY INDEX',9,'bold',scoreCol); doc.text('OWNER DEPENDENCY INDEX',m+cw/2,y+15,{align:'center'});
 
-    fill(scoreCol); doc.circle(m+cw/2,y+24,10,'F'); // Smaller circle
-    txt(d.totalScore.toString(),16,'bold',C.white); doc.text(d.totalScore.toString(),m+cw/2,y+28,{align:'center'}); // Larger, more prominent
+    fill(scoreCol); doc.circle(m+cw/2,y+30,12,'F');
+    txt(d.totalScore.toString(),18,'bold',C.white); doc.text(d.totalScore.toString(),m+cw/2,y+34,{align:'center'});
     
-    txt(d.verdict,8,'normal',C.textMid); doc.text(d.verdict,m+cw/2,y+35,{align:'center'}); // Smaller font
-    y += 45; // Reduced spacing
+    txt(d.verdict,9,'normal',C.textMid); doc.text(d.verdict,m+cw/2,y+46,{align:'center'});
+    y += 70;
 
-    // Risk summary (More Compact)
-    cp(30);
+    // Risk summary
     const critical = d.answers.filter(a=>a.score>=8).length;
     const atRisk = d.answers.filter(a=>a.score>=4&&a.score<8).length;
     const healthy = d.answers.filter(a=>a.score<4).length;
     const metW = (cw-10)/3;
     [{val:critical,label:'CRITICAL',color:C.red},{val:atRisk,label:'AT RISK',color:C.amber},{val:healthy,label:'HEALTHY',color:C.green}].forEach((mt,i) => {
         const x = m + i*(metW+5);
-        card(x,y,metW,28,{accent:mt.color}); // Reduced height from 34 to 28
-        txt(mt.val.toString(),16,'bold',mt.color); doc.text(mt.val.toString(),x+metW/2,y+12,{align:'center'}); // Larger, more prominent
-        txt(mt.label+' AREAS',6,'bold',C.text); doc.text(mt.label+' AREAS',x+metW/2,y+20,{align:'center'}); // Smaller font
+        card(x,y,metW,34,{accent:mt.color});
+        txt(mt.val.toString(),18,'bold',mt.color); doc.text(mt.val.toString(),x+metW/2,y+16,{align:'center'});
+        txt(mt.label+' AREAS',7,'bold',C.text); doc.text(mt.label+' AREAS',x+metW/2,y+25,{align:'center'});
     });
-    y += 35; // Reduced spacing
+    y += 55;
 
-    // Risk assessment breakdown (More Compact)
-    cp(10);
+    // Risk assessment breakdown
     y = secTitle('RISK ASSESSMENT BY AREA', y);
     d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
-        const requiredHeight = 18; // Calculate actual content height
-        cp(requiredHeight);
+        cp(28);
         const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
-        card(m,y,cw,15); // Reduced height from 18 to 15
-        fill(rColor); doc.circle(m+10,y+7.5,1.5,'F'); // Smaller circle
-        txt(a.category.toUpperCase(),8,'bold',C.text); doc.text(a.category.toUpperCase(),m+16,y+6); // Smaller font
+        card(m,y,cw,18);
+        fill(rColor); doc.circle(m+12,y+9,2,'F');
+        txt(a.category.toUpperCase(),9,'bold',C.text); doc.text(a.category.toUpperCase(),m+18,y+8);
         
-        const barX = m+60, barW = cw-90; // Adjusted for smaller layout
-        fill(C.bg); doc.roundedRect(barX,y+5,barW,3,1,1,'F'); // Smaller bar
-        fill(rColor); doc.roundedRect(barX,y+5,(a.score/10)*barW,3,1,1,'F');
+        const barX = m+70, barW = cw-100;
+        fill(C.bg); doc.roundedRect(barX,y+6,barW,4,1,1,'F');
+        fill(rColor); doc.roundedRect(barX,y+6,(a.score/10)*barW,4,1,1,'F');
         
         const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
-        txt(level,7,'bold',rColor); doc.text(level,pw-m-10,y+8,{align:'right'}); // Smaller font, more prominent
-        y += 18; // Reduced spacing
+        txt(level,8,'bold',rColor); doc.text(level,pw-m-12,y+10,{align:'right'});
+        y += 24;
     });
 
     // =============================
@@ -567,55 +536,53 @@ function generatePDF(email) {
 
     d.answers.filter(a=>a.score>=4).slice(0,4).forEach((a,idx) => {
         const plan = roadmap[a.category] || {title:a.category, steps:["Document current process.","Delegate small tasks.","Monitor performance.","Review outcomes." ]};
-        const requiredHeight = 65; // Calculate actual content height
-        cp(requiredHeight);
+        cp(85);
         const rColor = a.score>=8 ? C.red : C.amber;
-        card(m,y,cw,60,{accent:C.blue}); // Reduced height from 75 to 60
-        txt(`${idx+1}. ${plan.title.toUpperCase()}`,9,'bold',C.blue); doc.text(`${idx+1}. ${plan.title.toUpperCase()}`,m+10,y+10); // Smaller font
+        card(m,y,cw,75,{accent:C.blue});
+        txt(`${idx+1}. ${plan.title.toUpperCase()}`,10,'bold',C.blue); doc.text(`${idx+1}. ${plan.title.toUpperCase()}`,m+12,y+12);
         
-        let sY = y+20;
-        plan.steps.slice(0,3).forEach(s => { // Limit to 3 steps for space
-            fill(C.blue); doc.circle(m+12,sY,1, 'F');
-            const stepLines = doc.splitTextToSize(s, cw-25);
-            txt(stepLines,8,'normal',C.text); doc.text(stepLines,m+16,sY+1);
-            sY += 7; // Tighter spacing
+        let sY = y+25;
+        plan.steps.forEach(s => {
+            fill(C.blue); doc.circle(m+15,sY,1, 'F');
+            txt(s,9,'normal',C.text); doc.text(s,m+20,sY+2);
+            sY += 8;
         });
-        y += 65; // Reduced spacing
+        y += 85;
     });
 
-    // Valuation impact (More Compact)
-    cp(40);
+    // Valuation impact
+    cp(70);
     y = secTitle('VALUATION IMPACT', y);
     const hw = (cw-6)/2;
-    card(m,y,hw,30,{accent:C.red}); // Reduced height
-    txt('OWNER-DEPENDENT',6,'bold',C.red); doc.text('OWNER-DEPENDENT',m+8,y+8);
-    txt('2-3x',16,'bold',C.red); doc.text('2-3x',m+8,y+18); // Larger, more prominent
-    txt('earnings multiple',7,'normal',C.textMid); doc.text('earnings multiple',m+8,y+24);
+    card(m,y,hw,35,{accent:C.red});
+    txt('OWNER-DEPENDENT',7,'bold',C.red); doc.text('OWNER-DEPENDENT',m+10,y+10);
+    txt('2-3x',18,'bold',C.red); doc.text('2-3x',m+10,y+22);
+    txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+10,y+28);
 
-    card(m+hw+6,y,hw,30,{accent:C.green});
-    txt('SYSTEMATIZED',6,'bold',C.green); doc.text('SYSTEMATIZED',m+hw+12,y+8);
-    txt('4-6x',16,'bold',C.green); doc.text('4-6x',m+hw+12,y+18); // Larger, more prominent
-    txt('earnings multiple',7,'normal',C.textMid); doc.text('earnings multiple',m+hw+12,y+24);
-    y += 40; // Reduced spacing
+    card(m+hw+6,y,hw,35,{accent:C.green});
+    txt('SYSTEMATIZED',7,'bold',C.green); doc.text('SYSTEMATIZED',m+hw+16,y+10);
+    txt('4-6x',18,'bold',C.green); doc.text('4-6x',m+hw+16,y+22);
+    txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+hw+16,y+28);
+    y += 55;
 
-    // CTA (More Compact)
-    cp(40);
+    // CTA
+    cp(65);
     stroke(C.blue); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,35,3,3,'FD'); // Reduced height
-    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",11,'bold',C.text); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+12,{align:'center'});
-    txt("Let's create the systems and automation that set you free.",8,'normal',C.textMid);
-    doc.text("Let's create the systems and automation that set you free.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',11,'bold',C.blue); doc.text('mo@deeplineop.ai',pw/2,y+28,{align:'center'});
+    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",12,'bold',C.text); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+15,{align:'center'});
+    txt("Let's create the systems and automation that set you free.",9,'normal',C.textMid);
+    doc.text("Let's create the systems and automation that set you free.",pw/2,y+24,{align:'center'});
+    txt('mo@deeplineop.ai',12,'bold',C.blue); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD'); // Reduced footer height
-        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
-        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
-        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
+        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
     }
     doc.save('Business-Dependency-Report.pdf');
 }
