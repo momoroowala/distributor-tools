@@ -591,6 +591,18 @@ function generatePDF(email) {
     txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+hw+16,y+28);
     y += 55;
 
+    // Disclaimer
+    cp(70);
+    card(m,y,cw,55,{accent:C.purple});
+    txt('THIS IS NOT AN ERP PITCH',12,'bold',C.purple); doc.text('THIS IS NOT AN ERP PITCH',pw/2,y+18,{align:'center'});
+    txt('We build lightweight automation on top of your existing systems.',9,'bold',C.text);
+    doc.text('We build lightweight automation on top of your existing systems.',pw/2,y+30,{align:'center'});
+    txt('No rip-and-replace. No 14-month projects.',9,'normal',C.textMid);
+    doc.text('No rip-and-replace. No 14-month projects.',pw/2,y+38,{align:'center'});
+    txt('Your ERP stays. We just make it work harder for you.',9,'normal',C.textMid);
+    doc.text('Your ERP stays. We just make it work harder for you.',pw/2,y+46,{align:'center'});
+    y += 70;
+
     // CTA
     cp(65);
     stroke(C.blue); doc.setLineWidth(1);
