@@ -461,19 +461,19 @@ function generatePDF(email) {
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
 
     // Hero Section
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.amber); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,72,0,0,'FD');
+    fill(C.amber); doc.circle(pw/2,16,7,'F');
+    txt('A',11,'bold',C.white); doc.text('A',pw/2,19,{align:'center'});
 
-    txt('CEO TIME AUDIT',24,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,48,{align:'center'});
-    txt('Your Personalized Time Recovery Analysis',11,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,58,{align:'center'});
+    txt('CEO TIME AUDIT',20,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,36,{align:'center'});
+    txt('Your Personalized Time Recovery Analysis',10,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,46,{align:'center'});
 
     // Info Pill
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
+    fill(C.bg); doc.roundedRect(pw/2-50,54,100,8,4,4,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59.5,{align:'center'});
 
-    y = 105;
+    y = 80;
 
     // Key metrics row
     const metricW = (cw-10)/3;
@@ -484,29 +484,48 @@ function generatePDF(email) {
     ];
     mets.forEach((mt,i) => {
         const x = m + i*(metricW+5);
-        card(x,y,metricW,38,{accent:mt.color});
-        txt(mt.val,22,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+18,{align:'center'});
-        txt(mt.label,8,'bold',C.text); doc.text(mt.label,x+metricW/2,y+27,{align:'center'});
-        txt(mt.sub,7,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+33,{align:'center'});
+        card(x,y,metricW,30,{accent:mt.color});
+        txt(mt.val,18,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+13,{align:'center'});
+        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metricW/2,y+21,{align:'center'});
+        txt(mt.sub,6,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+27,{align:'center'});
     });
-    y += 55;
+    y += 38;
 
     // Summary Card
-    card(m,y,cw,45);
-    txt('EXECUTIVE SUMMARY',9,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+12);
+    card(m,y,cw,36);
+    txt('EXECUTIVE SUMMARY',9,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+10);
     
     const sumLines = [
         `You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,
         `${d.automatableHrs.toFixed(1)} hours (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,
         `Current state: only ${strategicPct}% of your time is spent on high-leverage strategic work.`
     ];
-    let sY = y + 22;
+    let sY = y + 18;
     sumLines.forEach(l => {
         txt(l,10,'normal',C.text);
         doc.text(l,m+10,sY);
-        sY += 7;
+        sY += 5.5;
     });
-    y = sY + 15;
+    y = sY + 8;
+
+    // What's In This Report
+    card(m,y,cw,34);
+    txt('WHAT\'S IN THIS REPORT',8,'bold',C.amber); doc.text('WHAT\'S IN THIS REPORT',m+10,y+10);
+    const reportItems = [
+        ['Time Allocation Analysis','Where your hours go'],
+        ['Automation Playbook','Specific fixes for your top time drains'],
+        ['90-Day Roadmap','Week-by-week implementation plan'],
+        ['Next Steps','How to start reclaiming time immediately']
+    ];
+    let rY = y + 17;
+    reportItems.forEach(item => {
+        fill(C.blue); doc.circle(m+12,rY-1,1.2,'F');
+        txt(item[0],8,'bold',C.text); doc.text(item[0],m+16,rY);
+        const labelW = doc.getTextWidth(item[0]);
+        txt(' - '+item[1],8,'normal',C.textMid); doc.text(' - '+item[1],m+16+labelW,rY);
+        rY += 5.5;
+    });
+    y = rY + 6;
 
     // =============================
     // PAGE 2: ANALYSIS
