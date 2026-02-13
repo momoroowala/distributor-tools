@@ -169,7 +169,7 @@ const steps = [
             const method = vals.pricingMethod;
             const overrides = parseFloat(vals.overridesPerWeek) || 0;
             let leakPct = method === 'gut' ? 0.01 : method === 'lists' ? 0.006 : 0.002;
-            leakPct += (overrides * 0.0003);
+            leakPct += (overrides * 0.0001); // 0.01% per override
             const leak = Math.round(rev * leakPct);
             return { leak, label: "Pricing Inconsistency", desc: `${overrides} overrides/week at ~${(leakPct*100).toFixed(2)}% revenue impact` };
         }
@@ -188,7 +188,7 @@ const steps = [
             const manual = (parseFloat(vals.manualPct) || 0) / 100;
             const errorRate = (parseFloat(vals.errorRate) || 0) / 100;
             const manualCostPerOrder = 5;
-            const errorCostPerOrder = 85;
+            const errorCostPerOrder = 120; // includes freight, restock, customer goodwill
             const yearlyOrders = orders * 260;
             const manualCost = Math.round(yearlyOrders * manual * manualCostPerOrder);
             const errorCost = Math.round(yearlyOrders * errorRate * errorCostPerOrder);
@@ -211,7 +211,7 @@ const steps = [
             const value = parseFloat(vals.avgQuoteValue) || 0;
             const lostPct = Math.min(hours * 0.02, 0.15);
             const yearlyQuotes = quotes * 52;
-            const leak = Math.round(yearlyQuotes * value * lostPct * 0.15);
+            const leak = Math.round(yearlyQuotes * value * lostPct * 0.20); // 20% gross margin proxy - lost deals = lost gross profit
             return { leak, label: "Slow Quote Response", desc: `${hours}hr avg turnaround losing ~${(lostPct*100).toFixed(0)}% of winnable deals` };
         }
     },
@@ -248,7 +248,7 @@ const steps = [
             const customers = parseFloat(vals.totalCustomers) || 0;
             const churn = (parseFloat(vals.churnPct) || 0) / 100;
             const acv = parseFloat(vals.avgCustomerValue) || 0;
-            const preventable = 0.2;
+            const preventable = 0.3;
             const leak = Math.round(customers * churn * acv * preventable);
             return { leak, label: "Preventable Customer Churn", desc: `${Math.round(customers*churn)} customers lost/year, ~30% preventable with automation` };
         }
@@ -284,7 +284,7 @@ const steps = [
             const changes = parseFloat(vals.priceChangesYear) || 0;
             const days = parseFloat(vals.daysToUpdate) || 0;
             const impact = parseFloat(vals.avgChangeImpact) || 0;
-            const dailyMarginLoss = 0.0003;
+            const dailyMarginLoss = 0.0005; // 0.05% per day
             const leak = Math.round(changes * days * impact * dailyMarginLoss);
             return { leak, label: "Slow Price Pass-Through", desc: `${days} day avg delay across ${changes} changes/year` };
         }
@@ -399,8 +399,13 @@ function showResults() {
     const pctOfRev = ((total / rev) * 100).toFixed(1);
     const perMonth = Math.round(total / 12).toLocaleString();
     const perDay = Math.round(total / 365).toLocaleString();
+
+    const margin = rev * 0.05; // assume 5% net margin for distributors
+    const leakVsMargin = total > margin;
+
     document.getElementById('totalContext').innerHTML =
-        `That's <strong>${pctOfRev}% of your revenue</strong>. $${perMonth} per month. $${perDay} every single day. Most of it is recoverable.`;
+        `That's <strong>${pctOfRev}% of your revenue</strong>. $${perMonth} per month. $${perDay} every single day. Most of it is recoverable.`
+        + (leakVsMargin ? `<div style="margin-top:1rem;padding:1rem;background:rgba(239,68,68,0.15);border:2px solid var(--accent);border-radius:0.75rem;font-weight:700;color:var(--accent);">Your estimated leakage ($${total.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you're keeping.</div>` : '');
 
     // Breakdown
     const validLeaks = leaks.filter(l => l && l.leak > 0).sort((a, b) => b.leak - a.leak);
@@ -436,19 +441,23 @@ function generatePDF(email) {
     const m = 20, cw = pw - 2*m;
     let y = 0;
 
+    const rev = parseFloat(allValues.revenue) || 1;
+    const margin = rev * 0.05;
+    const leakVsMargin = runningLeak > margin;
+
     // Design system - Material Design
     const C = {
         bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
         text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
         white: [255, 255, 255], shadow: [232, 234, 237],
-        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0],
         green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
-    
+
     const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
 
     const newPage = () => {
@@ -476,27 +485,26 @@ function generatePDF(email) {
     // PAGE 1: COVER
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.red); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,72,0,0,'FD');
+    fill(C.red); doc.circle(pw/2,16,7,'F');
+    txt('A',10,'bold',C.white); doc.text('A',pw/2,19,{align:'center'});
 
-    txt('PROFIT LEAK DIAGNOSTIC',22,'bold',C.text); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,48,{align:'center'});
-    txt('Your Personalized Recovery Plan',11,'normal',C.textMid); doc.text('Your Personalized Recovery Plan',pw/2,58,{align:'center'});
+    txt('PROFIT LEAK DIAGNOSTIC',20,'bold',C.text); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,36,{align:'center'});
+    txt('Your Personalized Recovery Plan',11,'normal',C.textMid); doc.text('Your Personalized Recovery Plan',pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
+    fill(C.bg); doc.roundedRect(pw/2-50,50,100,10,5,5,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,56.5,{align:'center'});
 
-    y = 105;
+    y = 80;
 
     // Estimated leakage card
     card(m,y,cw,48,{accent:C.red});
     txt('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',9,'bold',C.red); doc.text('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',m+cw/2,y+15,{align:'center'});
     txt('$' + runningLeak.toLocaleString(),32,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+32,{align:'center'});
-    const rev = parseFloat(allValues.revenue) || 1;
     txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,10,'normal',C.textMid);
     doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,m+cw/2,y+42,{align:'center'});
-    y += 65;
+    y += 55;
 
     // Breakdown metrics
     const metW = (cw-10)/3;
@@ -511,7 +519,32 @@ function generatePDF(email) {
         txt(mt.val,16,'bold',mt.color); doc.text(mt.val,x+metW/2,y+16,{align:'center'});
         txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metW/2,y+24,{align:'center'});
     });
-    y += 50;
+    y += 42;
+
+    // Nuclear insight card
+    if (leakVsMargin) {
+        card(m,y,cw,30,{accent:C.red});
+        stroke(C.red); doc.setLineWidth(0.8); doc.roundedRect(m,y,cw,30,2,2,'D');
+        txt('WARNING: LEAKAGE EXCEEDS PROFIT',10,'bold',C.red); doc.text('WARNING: LEAKAGE EXCEEDS PROFIT',m+cw/2,y+11,{align:'center'});
+        const warnMsg = `Your estimated leakage ($${runningLeak.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you are keeping.`;
+        txt(warnMsg,8,'normal',C.text);
+        const warnLines = doc.splitTextToSize(warnMsg, cw - 20);
+        doc.text(warnLines, m+10, y+19);
+        y += 36;
+    }
+
+    // Report outline card
+    card(m,y,cw,42);
+    txt("WHAT'S IN THIS REPORT",10,'bold',C.text); doc.text("WHAT'S IN THIS REPORT",m+10,y+12);
+    const outlineItems = ['Leak Breakdown - where your profit is going','Recovery Plans - step-by-step fixes for each leak','90-Day Roadmap - phased implementation plan','Next Steps - how to start recovering profit'];
+    let oY = y + 20;
+    outlineItems.forEach((item,i) => {
+        fill(C.red); doc.circle(m+14,oY,1.5,'F');
+        txt((i+1).toString(),6,'bold',C.white); doc.text((i+1).toString(),m+14,oY+1.5,{align:'center'});
+        txt(item,8,'normal',C.textMid); doc.text(item,m+20,oY+1.5);
+        oY += 7;
+    });
+    y += 48;
 
     // Impact Cards breakdown
     y = secTitle('WHERE YOUR PROFIT IS LEAKING', y);
@@ -521,20 +554,14 @@ function generatePDF(email) {
     validLeaks.forEach((l,li) => {
         cp(30);
         card(m,y,cw,22);
-        // Rank circle
         fill(C.red); doc.circle(m+12,y+11,6,'F');
         txt((li+1).toString(),10,'bold',C.white); doc.text((li+1).toString(),m+12,y+14.5,{align:'center'});
-
-        // Title and description
         txt(l.label,10,'bold',C.text); doc.text(l.label,m+25,y+10);
         txt(l.desc,8,'normal',C.textMid);
         const descL = doc.splitTextToSize(l.desc, cw-80);
         doc.text(descL,m+25,y+15);
-
-        // Dollar pill
         fill(C.red); doc.roundedRect(pw-m-45,y+6,35,10,5,5,'F');
         txt('$'+l.leak.toLocaleString(),9,'bold',C.white); doc.text('$'+l.leak.toLocaleString(),pw-m-27.5,y+12.5,{align:'center'});
-        
         y += 28;
     });
 
@@ -545,34 +572,101 @@ function generatePDF(email) {
     y = secTitle('DETAILED RECOVERY PLAN', y);
 
     const fixes = {
-        "Pricing Inconsistency": { priority:"CRITICAL", impact:"1-3% revenue recovery", steps:["Audit last 90 days of quotes.","Set margin floors per category.","Automate matrix in ERP.","Establish approval workflows."] },
-        "Order Processing Waste": { priority:"HIGH", impact:"50% labor reduction", steps:["Time-study order entry.","Automate standard orders.","Launch customer portal.","Implement error validation."] },
-        "Slow Quote Response": { priority:"HIGH", impact:"20% higher win rate", steps:["Measure turnaround time.","Create quote templates.","Enable auto-pricing tools.","Set 24h response targets."] },
-        "Inventory Mismanagement": { priority:"HIGH", impact:"30% less dead stock", steps:["Run ABC analysis.","Set reorder alerts.","Liquidate slow movers.","Cycle count A-items."] },
-        "Preventable Customer Churn": { priority:"MEDIUM", impact:"25-95% more profit", steps:["Identify 'silent churn' list.","Call top 10 churned leads.","Set 'at risk' alerts.","Quarterly account reviews."] },
-        "Wasted Labor Hours": { priority:"MEDIUM", impact:"20% more efficiency", steps:["Survey team on time drains.","Automate repetitive data tasks.","Deploy RPA for data entry.","Free up sales capacity."] },
-        "Slow Price Pass-Through": { priority:"MEDIUM", impact:"Margin protection", steps:["Create price change playbook.","Monitor supplier updates.","Auto-calculate adjustments.","Automate notifications."] }
+        "Pricing Inconsistency": {
+            priority:"CRITICAL", impact:"1-3% revenue recovery",
+            steps:[
+                "Pull ERP price override logs for last 90 days.",
+                "Identify top 10 SKUs with most overrides, these need matrix rules first.",
+                "Set margin floors by category: pipes 18%, fittings 22%, equipment 12%.",
+                "Implement approval workflow: overrides above $X require manager sign-off with reason code.",
+                "Deploy automated price update from vendor feeds within 48 hours of change."
+            ]
+        },
+        "Order Processing Waste": {
+            priority:"HIGH", impact:"50% labor reduction",
+            steps:[
+                "Time-study 20 orders end-to-end: email receipt to ERP entry to confirmation.",
+                "Identify top 3 error patterns (wrong SKU, wrong quantity, wrong ship-to).",
+                "Deploy order validation rules: flag orders that deviate >20% from customer history.",
+                "Launch customer self-service portal for repeat orders (60-70% of orders are reorders).",
+                "Implement email-to-order parsing for standard PO formats."
+            ]
+        },
+        "Slow Quote Response": {
+            priority:"HIGH", impact:"20% higher win rate",
+            steps:[
+                "Measure current turnaround: timestamp every quote request and response.",
+                "Create templates for top 20 quote scenarios (covers 80% of requests).",
+                "Enable auto-pricing for standard items: rep selects customer + SKUs, price populates.",
+                "Set 4-hour response target for standard quotes, 24-hour for custom.",
+                "Track quote-to-win ratio weekly, the fastest shop wins 78% of the time."
+            ]
+        },
+        "Inventory Mismanagement": {
+            priority:"HIGH", impact:"30% less dead stock",
+            steps:[
+                "Run ABC analysis: A-items (top 20% of revenue) get daily monitoring.",
+                "Set automated reorder points for A-items based on 90-day velocity + lead time.",
+                "Identify and liquidate dead stock: anything with zero movement in 12 months.",
+                "Implement cycle counting: A-items monthly, B quarterly, C annually.",
+                "Deploy demand sensing for seasonal items using 3-year historical patterns."
+            ]
+        },
+        "Preventable Customer Churn": {
+            priority:"MEDIUM", impact:"25-95% more profit",
+            steps:[
+                "Generate declining customer report: accounts with >20% volume drop in 6 months.",
+                "Call top 10 declining accounts this week. Ask one question: what changed?",
+                "Set automated alerts for accounts with no orders in 30/60/90 days.",
+                "Quarterly business reviews for top 20% of accounts by revenue.",
+                "Track NPS or CSAT score, even a simple 1-question email survey works."
+            ]
+        },
+        "Wasted Labor Hours": {
+            priority:"MEDIUM", impact:"20% more efficiency",
+            steps:[
+                "Survey team: what do you do every day that feels like a waste of time?",
+                "Map the top 5 time-wasting processes end to end.",
+                "Deploy RPA or scripts for data re-entry between systems.",
+                "Automate report generation: if someone copy-pastes from ERP to Excel weekly, automate it.",
+                "Reallocate saved hours to customer-facing or revenue-generating work."
+            ]
+        },
+        "Slow Price Pass-Through": {
+            priority:"MEDIUM", impact:"Margin protection",
+            steps:[
+                "Create vendor price change tracking spreadsheet with date received and date updated.",
+                "Set 48-hour SLA for price updates on A-items, 5 business days for B/C.",
+                "Automate price feed integration where vendors provide electronic updates.",
+                "Send proactive customer notification when prices change (builds trust).",
+                "Calculate monthly margin erosion from delayed pass-throughs."
+            ]
+        }
     };
 
     validLeaks.forEach((leak, idx) => {
         const fix = fixes[leak.label];
         if(!fix) return;
-        cp(85);
+        const stepCount = fix.steps.length;
+        const neededH = 38 + stepCount * 10;
+        cp(neededH + 5);
         const col = fix.priority==="CRITICAL"?C.red:fix.priority==="HIGH"?C.amber:C.blue;
-        card(m,y,cw,75,{accent:col});
+        card(m,y,cw,neededH,{accent:col});
         txt(`${idx+1}. ${leak.label.toUpperCase()}`,10,'bold',col); doc.text(`${idx+1}. ${leak.label.toUpperCase()}`,m+12,y+12);
         txt(`Impact: ${fix.impact}`,8,'bold',C.textMid); doc.text(`Impact: ${fix.impact}`,pw-m-12,y+12,{align:'right'});
-        
+
         txt('PRIORITY:',8,'bold',C.text); doc.text('PRIORITY:',m+12,y+24);
         txt(fix.priority,9,'bold',col); doc.text(fix.priority,m+35,y+24);
 
-        let sY = y+38;
-        fix.steps.forEach(s => {
-            fill(col); doc.circle(m+15,sY,1, 'F');
-            txt(s,9,'normal',C.text); doc.text(s,m+20,sY+2);
-            sY += 8;
+        let sY = y+34;
+        fix.steps.forEach((s,si) => {
+            fill(col); doc.circle(m+15,sY,1,'F');
+            txt(s,8,'normal',C.text);
+            const sLines = doc.splitTextToSize(s, cw - 30);
+            doc.text(sLines,m+20,sY+1.5);
+            sY += sLines.length * 5 + 5;
         });
-        y += 90;
+        y += neededH + 8;
     });
 
     // =============================
@@ -581,10 +675,10 @@ function generatePDF(email) {
     newPage();
     y = secTitle('90-DAY PROFIT RECOVERY ROADMAP', y);
     const phases = [
-        { t:'DAYS 1-14: QUICK WINS', c:C.green, items:['Set floor prices for top 50 SKUs.','Survey team on time-wasters.','Audit pricing consistency.'] },
-        { t:'DAYS 15-30: FOUNDATIONS', c:C.amber, items:['Build pricing matrix rules.','Set reorder points for A-items.','Create quote templates.'] },
-        { t:'DAYS 31-60: AUTOMATION', c:C.blue, items:['Configure ERP price module.','Deploy inventory alerts.','Launch order validation.'] },
-        { t:'DAYS 61-90: OPTIMIZATION', c:C.purple, items:['Review margin expansion.','Fine-tune auto-rules.','Calculate recovered profit.'] }
+        { t:'DAYS 1-14: AUDIT AND DISCOVER', c:C.green, items:['Audit ERP price override logs.','Pull declining customer report.','Time-study 20 orders.'] },
+        { t:'DAYS 15-30: SET THE FLOOR', c:C.amber, items:['Set margin floors for top 50 SKUs.','Run ABC inventory analysis.','Create top 20 quote templates.'] },
+        { t:'DAYS 31-60: DEPLOY AUTOMATION', c:C.blue, items:['Deploy order validation rules.','Set automated reorder points for A-items.','Implement price change SLA.'] },
+        { t:'DAYS 61-90: MEASURE AND EXPAND', c:C.purple, items:['Launch customer self-service portal.','Calculate recovered profit vs baseline.','Plan phase 2 automation.'] }
     ];
 
     phases.forEach((p) => {
@@ -594,19 +688,34 @@ function generatePDF(email) {
         y += 15;
         p.items.forEach(it => {
             fill(p.c); doc.circle(m+5,y+2,1,'F');
-            txt(it,9,'normal',C.text); doc.text(it,m+10,y+4);
-            y += 8;
+            txt(it,9,'normal',C.text);
+            const itLines = doc.splitTextToSize(it, cw - 15);
+            doc.text(itLines,m+10,y+4);
+            y += itLines.length * 5 + 3;
         });
         y += 5;
     });
 
-    y += 20;
+    // NOT AN ERP card
+    y += 10;
+    cp(45);
+    card(m,y,cw,38,{accent:C.green});
+    txt('THIS IS NOT AN ERP IMPLEMENTATION',10,'bold',C.green); doc.text('THIS IS NOT AN ERP IMPLEMENTATION',m+cw/2,y+12,{align:'center'});
+    const notErpMsg = 'We build targeted automation on top of your existing systems. No 14-month projects. No rip-and-replace. Start seeing results in weeks, not years.';
+    txt(notErpMsg,9,'normal',C.text);
+    const notErpLines = doc.splitTextToSize(notErpMsg, cw - 20);
+    doc.text(notErpLines, m+10, y+22);
+    y += 45;
+
+    // CTA
+    y += 10;
     cp(65);
     stroke(C.red); doc.setLineWidth(1);
     fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
     txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
-    txt(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,9,'normal',C.textMid);
-    doc.text(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,pw/2,y+24,{align:'center'});
+    const ctaMsg = 'You have identified $' + runningLeak.toLocaleString() + ' in annual profit leakage. Let us get it back.';
+    txt(ctaMsg,9,'normal',C.textMid);
+    doc.text(ctaMsg,pw/2,y+24,{align:'center'});
     txt('mo@deeplineop.ai',12,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
 
     // Footer
