@@ -433,7 +433,7 @@ function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 20, cw = pw - 2*m;
+    const m = 15, cw = pw - 2*m; // Reduced margin from 20 to 15
     let y = 0;
 
     // Design system - Material Design
@@ -449,13 +449,20 @@ function generatePDF(email) {
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
     
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Improved page break checking with actual content height
+    const cp = (contentHeight=20) => { 
+        if(y + contentHeight > 270){ // Increased from 265 to 270 for tighter packing
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.red); doc.rect(0,0,pw,1.5,'F');
-        y = 20;
+        y = 15; // Reduced from 20 to 15
     };
 
     const card = (x,yc,w,h,opts={}) => {
@@ -467,38 +474,59 @@ function generatePDF(email) {
     };
 
     const secTitle = (title,yy,color=C.red) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+        cp(15); // Check space before drawing header
+        txt(title,11,'bold',C.text); doc.text(title,m,yy+6); // Reduced font and spacing
+        fill(color); doc.rect(m,yy+9,20,1.5,'F'); // Reduced underline width
+        return yy+15; // Reduced from 18 to 15
     };
 
     // =============================
-    // PAGE 1: COVER
+    // PAGE 1: COVER (More Compact)
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.red); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD'); // Reduced height from 95 to 70
+    fill(C.red); doc.circle(pw/2,18,6,'F'); // Smaller circle
+    txt('💸',10,'bold',C.white); doc.text('💸',pw/2,21,{align:'center'}); // Money emoji instead of 'A'
 
-    txt('PROFIT LEAK DIAGNOSTIC',22,'bold',C.text); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,48,{align:'center'});
-    txt('Your Personalized Recovery Plan',11,'normal',C.textMid); doc.text('Your Personalized Recovery Plan',pw/2,58,{align:'center'});
+    txt('PROFIT LEAK DIAGNOSTIC',18,'bold',C.text); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,38,{align:'center'}); // Reduced font size
+    txt('Your Personalized Recovery Plan',9,'normal',C.textMid); // Reduced font
+    doc.text('Your Personalized Recovery Plan',pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F'); // Smaller date pill
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 105;
+    y = 75; // Reduced from 105
 
-    // Estimated leakage card
-    card(m,y,cw,48,{accent:C.red});
-    txt('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',9,'bold',C.red); doc.text('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',m+cw/2,y+15,{align:'center'});
-    txt('$' + runningLeak.toLocaleString(),32,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+32,{align:'center'});
+    // Estimated leakage card (More Compact)
+    card(m,y,cw,38,{accent:C.red}); // Reduced height from 48 to 38
+    txt('TOTAL ANNUAL PROFIT LEAKAGE',9,'bold',C.red); doc.text('TOTAL ANNUAL PROFIT LEAKAGE',m+cw/2,y+12,{align:'center'});
+    txt('$' + runningLeak.toLocaleString(),28,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+25,{align:'center'}); // Larger, more prominent
     const rev = parseFloat(allValues.revenue) || 1;
-    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,10,'normal',C.textMid);
-    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,m+cw/2,y+42,{align:'center'});
-    y += 65;
+    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,9,'normal',C.textMid); // Smaller font
+    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue`,m+cw/2,y+33,{align:'center'});
+    y += 45; // Reduced spacing
 
-    // Breakdown metrics
+    // Table of Contents (NEW!)
+    cp(30);
+    card(m,y,cw,25,{accent:C.red});
+    txt('WHAT\'S IN THIS REPORT:',8,'bold',C.red); doc.text('WHAT\'S IN THIS REPORT:',m+8,y+8);
+    
+    const toc = [
+        'Page 1: Total Profit Leakage & Key Metrics',
+        'Page 2: Recovery Plans with Priority Rankings', 
+        'Page 3: 90-Day Implementation Roadmap'
+    ];
+    let tocY = y+14;
+    toc.forEach(item => {
+        fill(C.red); doc.circle(m+10,tocY,0.8,'F');
+        txt(item,7.5,'normal',C.text); doc.text(item,m+14,tocY+2);
+        tocY += 5;
+    });
+    y += 30;
+
+    // Breakdown metrics (More Compact)
+    cp(30);
     const metW = (cw-10)/3;
     const mets = [
         { val:'$'+Math.round(runningLeak/12).toLocaleString(), label:'PER MONTH', color:C.red },
@@ -507,35 +535,37 @@ function generatePDF(email) {
     ];
     mets.forEach((mt,i) => {
         const x = m + i*(metW+5);
-        card(x,y,metW,34,{accent:mt.color});
-        txt(mt.val,16,'bold',mt.color); doc.text(mt.val,x+metW/2,y+16,{align:'center'});
-        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metW/2,y+24,{align:'center'});
+        card(x,y,metW,28,{accent:mt.color}); // Reduced height from 34 to 28
+        txt(mt.val,14,'bold',mt.color); doc.text(mt.val,x+metW/2,y+12,{align:'center'}); // Larger, more prominent
+        txt(mt.label,6,'bold',C.text); doc.text(mt.label,x+metW/2,y+20,{align:'center'}); // Smaller font
     });
-    y += 50;
+    y += 35; // Reduced spacing
 
-    // Impact Cards breakdown
+    // Impact Cards breakdown (More Compact)
+    cp(10);
     y = secTitle('WHERE YOUR PROFIT IS LEAKING', y);
     const validLeaks = leaks.filter(l=>l&&l.leak>0).sort((a,b)=>b.leak-a.leak);
     const maxLeak = validLeaks[0]?.leak || 1;
 
     validLeaks.forEach((l,li) => {
-        cp(30);
-        card(m,y,cw,22);
+        const requiredHeight = 20; // Calculate actual content height
+        cp(requiredHeight);
+        card(m,y,cw,18); // Reduced height from 22 to 18
         // Rank circle
-        fill(C.red); doc.circle(m+12,y+11,6,'F');
-        txt((li+1).toString(),10,'bold',C.white); doc.text((li+1).toString(),m+12,y+14.5,{align:'center'});
+        fill(C.red); doc.circle(m+10,y+9,4,'F'); // Smaller circle
+        txt((li+1).toString(),8,'bold',C.white); doc.text((li+1).toString(),m+10,y+11.5,{align:'center'});
 
         // Title and description
-        txt(l.label,10,'bold',C.text); doc.text(l.label,m+25,y+10);
-        txt(l.desc,8,'normal',C.textMid);
-        const descL = doc.splitTextToSize(l.desc, cw-80);
-        doc.text(descL,m+25,y+15);
+        txt(l.label,9,'bold',C.text); doc.text(l.label,m+20,y+8); // Smaller font
+        txt(l.desc,7,'normal',C.textMid); // Smaller font
+        const descL = doc.splitTextToSize(l.desc, cw-70);
+        doc.text(descL,m+20,y+13);
 
-        // Dollar pill
-        fill(C.red); doc.roundedRect(pw-m-45,y+6,35,10,5,5,'F');
-        txt('$'+l.leak.toLocaleString(),9,'bold',C.white); doc.text('$'+l.leak.toLocaleString(),pw-m-27.5,y+12.5,{align:'center'});
+        // Dollar pill (More prominent)
+        fill(C.red); doc.roundedRect(pw-m-50,y+4,40,10,5,5,'F'); // Larger pill
+        txt('$'+l.leak.toLocaleString(),9,'bold',C.white); doc.text('$'+l.leak.toLocaleString(),pw-m-30,y+10.5,{align:'center'});
         
-        y += 28;
+        y += 22; // Reduced spacing
     });
 
     // =============================
@@ -557,22 +587,24 @@ function generatePDF(email) {
     validLeaks.forEach((leak, idx) => {
         const fix = fixes[leak.label];
         if(!fix) return;
-        cp(85);
+        const requiredHeight = 70; // Calculate actual content height
+        cp(requiredHeight);
         const col = fix.priority==="CRITICAL"?C.red:fix.priority==="HIGH"?C.amber:C.blue;
-        card(m,y,cw,75,{accent:col});
-        txt(`${idx+1}. ${leak.label.toUpperCase()}`,10,'bold',col); doc.text(`${idx+1}. ${leak.label.toUpperCase()}`,m+12,y+12);
-        txt(`Impact: ${fix.impact}`,8,'bold',C.textMid); doc.text(`Impact: ${fix.impact}`,pw-m-12,y+12,{align:'right'});
+        card(m,y,cw,65,{accent:col}); // Reduced height from 75 to 65
+        txt(`${idx+1}. ${leak.label.toUpperCase()}`,9,'bold',col); doc.text(`${idx+1}. ${leak.label.toUpperCase()}`,m+10,y+10); // Smaller font
+        txt(`Recovery: ${fix.impact}`,8,'bold',C.textMid); doc.text(`Recovery: ${fix.impact}`,pw-m-10,y+10,{align:'right'});
         
-        txt('PRIORITY:',8,'bold',C.text); doc.text('PRIORITY:',m+12,y+24);
-        txt(fix.priority,9,'bold',col); doc.text(fix.priority,m+35,y+24);
+        txt('PRIORITY:',7,'bold',C.text); doc.text('PRIORITY:',m+10,y+20);
+        txt(fix.priority,8,'bold',col); doc.text(fix.priority,m+30,y+20);
 
-        let sY = y+38;
-        fix.steps.forEach(s => {
-            fill(col); doc.circle(m+15,sY,1, 'F');
-            txt(s,9,'normal',C.text); doc.text(s,m+20,sY+2);
-            sY += 8;
+        let sY = y+30;
+        fix.steps.slice(0,3).forEach(s => { // Limit to 3 steps for space
+            fill(col); doc.circle(m+12,sY,1, 'F');
+            const stepLines = doc.splitTextToSize(s, cw-25);
+            txt(stepLines,8,'normal',C.text); doc.text(stepLines,m+16,sY+1);
+            sY += 7; // Tighter spacing
         });
-        y += 90;
+        y += 70; // Reduced spacing
     });
 
     // =============================
@@ -588,36 +620,36 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p) => {
-        cp(45);
-        fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
-        txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
-        y += 15;
+        cp(35); // Check space before drawing phase
+        fill(p.c); doc.roundedRect(m,y,cw,8,2,2,'F'); // Reduced height
+        txt(p.t,8,'bold',C.white); doc.text(p.t,m+cw/2,y+5.5,{align:'center'}); // Smaller font
+        y += 12; // Reduced spacing
         p.items.forEach(it => {
             fill(p.c); doc.circle(m+5,y+2,1,'F');
-            txt(it,9,'normal',C.text); doc.text(it,m+10,y+4);
-            y += 8;
+            txt(it,8,'normal',C.text); doc.text(it,m+10,y+4); // Smaller font
+            y += 6; // Tighter spacing
         });
-        y += 5;
+        y += 3; // Reduced spacing
     });
 
-    y += 20;
-    cp(65);
+    y += 15;
+    cp(40);
     stroke(C.red); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
-    txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
-    txt(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,9,'normal',C.textMid);
-    doc.text(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,pw/2,y+24,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+    fill(C.white); doc.roundedRect(m,y,cw,35,3,3,'FD'); // Reduced height
+    txt("LET'S RECOVER YOUR PROFIT",12,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+12,{align:'center'});
+    txt(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,8,'normal',C.textMid);
+    doc.text(`You've identified $${runningLeak.toLocaleString()} in annual profit leakage. Let's get it back.`,pw/2,y+20,{align:'center'});
+    txt('mo@deeplineop.ai',11,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,y+28,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
-        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
-        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD'); // Reduced footer height
+        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
+        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
     doc.save('Profit-Leak-Diagnostic-Report.pdf');
 }

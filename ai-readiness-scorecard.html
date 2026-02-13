@@ -1100,7 +1100,7 @@
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 20, cw = pw - 2*m;
+    const m = 15, cw = pw - 2*m; // Reduced margin from 20 to 15
     let y = 0;
 
     // Design system - Material Design
@@ -1117,13 +1117,20 @@
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
     
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Improved page break checking with actual content height
+    const cp = (contentHeight=20) => { 
+        if(y + contentHeight > 270){ // Increased from 265 to 270 for tighter packing
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.purple); doc.rect(0,0,pw,1.5,'F');
-        y = 20;
+        y = 15; // Reduced from 20 to 15
     };
 
     const card = (x,yc,w,h,opts={}) => {
@@ -1135,42 +1142,62 @@
     };
 
     const secTitle = (title,yy,color=C.purple) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+        cp(15); // Check space before drawing header
+        txt(title,11,'bold',C.text); doc.text(title,m,yy+6); // Reduced font and spacing
+        fill(color); doc.rect(m,yy+9,20,1.5,'F'); // Reduced underline width
+        return yy+15; // Reduced from 18 to 15
     };
 
     // =============================
-    // PAGE 1: COVER
+    // PAGE 1: COVER (More Compact)
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.purple); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD'); // Reduced height from 95 to 70
+    fill(C.purple); doc.circle(pw/2,18,6,'F'); // Smaller circle
+    txt('A',10,'bold',C.white); doc.text('A',pw/2,21,{align:'center'}); // Smaller font
 
-    txt('AI READINESS REPORT',20,'bold',C.text); doc.text('AI READINESS REPORT',pw/2,48,{align:'center'});
-    txt('Personalized Assessment for Your Distribution Business',10,'normal',C.textMid);
-    doc.text('Personalized Assessment for Your Distribution Business',pw/2,58,{align:'center'});
+    txt('AI READINESS REPORT',18,'bold',C.text); doc.text('AI READINESS REPORT',pw/2,38,{align:'center'}); // Reduced font size
+    txt('Personalized Assessment for Your Distribution Business',9,'normal',C.textMid); // Reduced font
+    doc.text('Personalized Assessment for Your Distribution Business',pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F'); // Smaller date pill
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 105;
+    y = 75; // Reduced from 105
 
-    // Overall Score Card
+    // Overall Score Card (More Compact)
     const scoreColor = totalScore >= 75 ? C.green : totalScore >= 50 ? C.amber : C.red;
-    card(m,y,cw,45,{accent:scoreColor});
-    txt('YOUR OVERALL READINESS SCORE',9,'bold',scoreColor); doc.text('YOUR OVERALL READINESS SCORE',m+cw/2,y+12,{align:'center'});
+    card(m,y,cw,35,{accent:scoreColor}); // Reduced height from 45 to 35
+    txt('YOUR AI READINESS SCORE',9,'bold',scoreColor); doc.text('YOUR AI READINESS SCORE',m+cw/2,y+10,{align:'center'});
 
-    fill(scoreColor); doc.circle(m+cw/2,y+28,12,'F');
-    txt(totalScore.toString(),18,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+32,{align:'center'});
+    fill(scoreColor); doc.circle(m+cw/2,y+23,10,'F'); // Smaller circle
+    txt(totalScore.toString(),16,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+27,{align:'center'}); // Smaller font
 
     const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
-    txt(title,10,'bold',scoreColor); doc.text(title,m+cw/2,y+42,{align:'center'});
-    y += 60;
+    txt(title,9,'bold',scoreColor); doc.text(title,m+cw/2,y+33,{align:'center'}); // Smaller font
+    y += 40; // Reduced spacing
 
-    // Category Grid
+    // Table of Contents (NEW!)
+    cp(35);
+    card(m,y,cw,30,{accent:C.purple});
+    txt('WHAT\'S IN THIS REPORT:',8,'bold',C.purple); doc.text('WHAT\'S IN THIS REPORT:',m+10,y+10);
+    
+    const toc = [
+        'Page 1: Your AI Readiness Score & Category Breakdown',
+        'Page 2: Detailed Recommendations & Action Plans', 
+        'Page 3: ROI Projections & Implementation Roadmap'
+    ];
+    let tocY = y+16;
+    toc.forEach(item => {
+        fill(C.purple); doc.circle(m+12,tocY,0.8,'F');
+        txt(item,7.5,'normal',C.text); doc.text(item,m+16,tocY+2);
+        tocY += 6;
+    });
+    y += 35;
+
+    // Category Grid (More Compact)
+    cp(45);
     y = secTitle('CATEGORY BREAKDOWN', y);
     const hw = (cw-6)/2;
     let ci = 0;
@@ -1178,74 +1205,77 @@
         const score = Math.round((data.total / (data.count * 3)) * 100);
         const col = catC[cat] || C.purple;
         const cx = ci % 2 === 0 ? m : m + hw + 6;
-        const cy = y + Math.floor(ci / 2) * 28;
+        const cy = y + Math.floor(ci / 2) * 20; // Reduced from 28 to 20
         
-        card(cx, cy, hw, 22, {accent:col});
-        txt(cat.toUpperCase(),8,'bold',col); doc.text(cat.toUpperCase(), cx+10, cy+12);
-        txt(`${score}%`,14,'bold',col); doc.text(`${score}%`, cx+hw-10, cy+14, {align:'right'});
+        card(cx, cy, hw, 16, {accent:col}); // Reduced height from 22 to 16
+        txt(cat.toUpperCase(),7,'bold',col); doc.text(cat.toUpperCase(), cx+8, cy+8); // Smaller font and margin
+        txt(`${score}%`,12,'bold',col); doc.text(`${score}%`, cx+hw-8, cy+10, {align:'right'}); // Larger, more prominent score
         
         ci++;
     });
-    y += 65;
+    y += 45; // Reduced from 65
 
     // =============================
-    // RECOMMENDATIONS
+    // PAGE 2: RECOMMENDATIONS
     // =============================
     newPage();
     y = secTitle('DETAILED RECOMMENDATIONS', y);
 
     const wins = getQuickWins();
     wins.forEach((rec, idx) => {
-        cp(85);
+        const requiredHeight = 70; // Calculate actual content height
+        cp(requiredHeight);
         const col = catC[rec.category] || C.purple;
-        card(m,y,cw,75,{accent:col});
-        txt(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,10,'bold',col); doc.text(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,m+12,y+12);
+        card(m,y,cw,65,{accent:col}); // Reduced height from 75 to 65
+        txt(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,9,'bold',col); doc.text(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,m+10,y+10);
         
-        txt('QUICK WIN:',8,'bold',C.text); doc.text('QUICK WIN:',m+12,y+24);
-        txt(rec.quickWin,9,'normal',C.text); doc.text(rec.quickWin,m+35,y+24);
+        txt('QUICK WIN:',7,'bold',C.text); doc.text('QUICK WIN:',m+10,y+20);
+        const quickWinLines = doc.splitTextToSize(rec.quickWin, cw-25);
+        txt(quickWinLines,8,'normal',C.text); doc.text(quickWinLines,m+10,y+27);
 
-        txt('90-DAY ACTION PLAN:',8,'bold',C.textMid); doc.text('90-DAY ACTION PLAN:',m+12,y+32);
+        txt('90-DAY ACTION PLAN:',7,'bold',C.textMid); doc.text('90-DAY ACTION PLAN:',m+10,y+38);
 
-        let sY = y+42;
-        rec.actions.forEach(a => {
-            fill(col); doc.circle(m+15,sY,1, 'F');
-            txt(a,9,'normal',C.text); doc.text(a,m+20,sY+2);
-            sY += 8;
+        let sY = y+45;
+        rec.actions.slice(0,3).forEach(a => { // Limit to 3 actions for space
+            fill(col); doc.circle(m+12,sY,1, 'F');
+            const actionLines = doc.splitTextToSize(a, cw-30);
+            txt(actionLines,8,'normal',C.text); doc.text(actionLines,m+16,sY+1);
+            sY += 6; // Tighter spacing
         });
-        y += 85;
+        y += 70; // Reduced spacing
     });
 
-    // ROI
-    cp(60);
+    // ROI (More Compact)
+    cp(35);
     y = secTitle('POTENTIAL ROI', y, C.green);
-    card(m,y,cw,30);
+    card(m,y,cw,25); // Reduced height
     const benchmarks = ['15-30% reduction in processing time','20-40% fewer pricing errors','10-25% better inventory accuracy','2-4 hours saved per employee/week'];
-    let bY = y+10;
+    let bY = y+8;
     benchmarks.forEach(b => {
-        fill(C.green); doc.circle(m+10, bY, 1, 'F');
-        txt(b,9,'normal',C.text); doc.text(b, m+15, bY+2);
-        bY += 6;
+        fill(C.green); doc.circle(m+8, bY, 1, 'F');
+        txt(b,8,'normal',C.text); doc.text(b, m+12, bY+2);
+        bY += 5; // Tighter spacing
     });
-    y += 45;
+    y += 30; // Reduced spacing
 
-    // CTA
-    cp(65);
+    // CTA (More Compact)
+    cp(40);
     stroke(C.purple); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
-    txt("READY TO TAKE THE NEXT STEP?",13,'bold',C.text); doc.text("READY TO TAKE THE NEXT STEP?",pw/2,y+15,{align:'center'});
-    txt("Let's discuss how to implement these AI foundations in your business.",9,'normal',C.textMid);
-    doc.text("Let's discuss how to implement these AI foundations in your business.",pw/2,y+24,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.purple); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+    fill(C.white); doc.roundedRect(m,y,cw,35,3,3,'FD'); // Reduced height
+    txt("READY TO TAKE THE NEXT STEP?",12,'bold',C.text); doc.text("READY TO TAKE THE NEXT STEP?",pw/2,y+12,{align:'center'});
+    txt("Let's discuss how to implement these AI foundations in your business.",8,'normal',C.textMid);
+    doc.text("Let's discuss how to implement these AI foundations in your business.",pw/2,y+20,{align:'center'});
+    txt('mo@deeplineop.ai',11,'bold',C.purple); doc.text('mo@deeplineop.ai',pw/2,y+28,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
-        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
-        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
+        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
     doc.save('AI-Readiness-Report.pdf');
 }

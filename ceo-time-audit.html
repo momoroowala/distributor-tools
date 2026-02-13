@@ -401,7 +401,7 @@ function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 20, cw = pw - 2*m;
+    const m = 15, cw = pw - 2*m; // Reduced margin from 20 to 15
     let y = 0;
     let pageNum = 0;
 
@@ -418,14 +418,21 @@ function generatePDF(email) {
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
     
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Improved page break checking with actual content height
+    const cp = (contentHeight=20) => { 
+        if(y + contentHeight > 270){ // Increased from 265 to 270 for tighter packing
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage(); pageNum++;
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         // Top accent
         fill(C.amber); doc.rect(0,0,pw,1.5,'F');
-        y = 20;
+        y = 15; // Reduced from 20 to 15
     };
 
     // Material Card with subtle shadow and border
@@ -443,9 +450,10 @@ function generatePDF(email) {
 
     // Section header
     const secTitle = (title,yy,color=C.amber) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+        cp(15); // Check space before drawing header
+        txt(title,11,'bold',C.text); doc.text(title,m,yy+6); // Reduced font and spacing
+        fill(color); doc.rect(m,yy+9,20,1.5,'F'); // Reduced underline width
+        return yy+15; // Reduced from 18 to 15
     };
 
     const totalHrs = d.breakdown.reduce((s,t) => s+t.hours,0);
@@ -456,26 +464,46 @@ function generatePDF(email) {
     const maxHrs = Math.max(...sorted.map(t=>t.hours));
 
     // =============================
-    // PAGE 1: COVER
+    // PAGE 1: COVER (More Compact)
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
 
     // Hero Section
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.amber); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD'); // Reduced height from 95 to 70
+    fill(C.amber); doc.circle(pw/2,18,6,'F'); // Smaller circle
+    txt('⏰',10,'bold',C.white); doc.text('⏰',pw/2,21,{align:'center'}); // Clock emoji instead of 'A'
 
-    txt('CEO TIME AUDIT',24,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,48,{align:'center'});
-    txt('Your Personalized Time Recovery Analysis',11,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,58,{align:'center'});
+    txt('CEO TIME AUDIT',18,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,38,{align:'center'}); // Reduced font size
+    txt('Your Personalized Time Recovery Analysis',9,'normal',C.textMid); // Reduced font
+    doc.text('Your Personalized Time Recovery Analysis',pw/2,46,{align:'center'});
 
     // Info Pill
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F'); // Smaller date pill
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 105;
+    y = 75; // Reduced from 105
 
-    // Key metrics row
+    // Table of Contents (NEW!)
+    cp(30);
+    card(m,y,cw,25,{accent:C.amber});
+    txt('WHAT\'S IN THIS REPORT:',8,'bold',C.amber); doc.text('WHAT\'S IN THIS REPORT:',m+8,y+8);
+    
+    const toc = [
+        'Page 1: Time Recovery Potential & Executive Summary',
+        'Page 2: Time Allocation Analysis & Category Breakdown', 
+        'Page 3: Automation Playbook & 90-Day Roadmap'
+    ];
+    let tocY = y+14;
+    toc.forEach(item => {
+        fill(C.amber); doc.circle(m+10,tocY,0.8,'F');
+        txt(item,7.5,'normal',C.text); doc.text(item,m+14,tocY+2);
+        tocY += 5;
+    });
+    y += 30;
+
+    // Key metrics row (More Compact)
+    cp(35);
     const metricW = (cw-10)/3;
     const mets = [
         { val: d.automatableHrs.toFixed(1)+'h', label:'RECOVERABLE', sub:'per week', color:C.red },
@@ -484,29 +512,30 @@ function generatePDF(email) {
     ];
     mets.forEach((mt,i) => {
         const x = m + i*(metricW+5);
-        card(x,y,metricW,38,{accent:mt.color});
-        txt(mt.val,22,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+18,{align:'center'});
-        txt(mt.label,8,'bold',C.text); doc.text(mt.label,x+metricW/2,y+27,{align:'center'});
-        txt(mt.sub,7,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+33,{align:'center'});
+        card(x,y,metricW,30,{accent:mt.color}); // Reduced height from 38 to 30
+        txt(mt.val,18,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+14,{align:'center'}); // Larger, more prominent
+        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metricW/2,y+21,{align:'center'}); // Smaller font
+        txt(mt.sub,6,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+26,{align:'center'}); // Smaller font
     });
-    y += 55;
+    y += 35; // Reduced spacing
 
-    // Summary Card
-    card(m,y,cw,45);
-    txt('EXECUTIVE SUMMARY',9,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+12);
+    // Summary Card (More Compact)
+    cp(35);
+    card(m,y,cw,30); // Reduced height from 45 to 30
+    txt('EXECUTIVE SUMMARY',8,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+8,y+9); // Smaller font
     
     const sumLines = [
-        `You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,
-        `${d.automatableHrs.toFixed(1)} hours (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,
-        `Current state: only ${strategicPct}% of your time is spent on high-leverage strategic work.`
+        `${totalHrs}h/week across ${d.breakdown.filter(t=>t.hours>0).length} categories. ${d.automatableHrs.toFixed(1)}h (${Math.round(d.automatableHrs/totalHrs*100)}%) automatable.`,
+        `Current state: only ${strategicPct}% strategic work. Goal: Reclaim ${d.yearlyDays} days/year.`
     ];
-    let sY = y + 22;
+    let sY = y + 16;
     sumLines.forEach(l => {
-        txt(l,10,'normal',C.text);
-        doc.text(l,m+10,sY);
-        sY += 7;
+        const lines = doc.splitTextToSize(l, cw-20);
+        txt(lines,8,'normal',C.text); // Smaller font
+        doc.text(lines,m+8,sY);
+        sY += 6; // Tighter spacing
     });
-    y = sY + 15;
+    y = sY + 10;
 
     // =============================
     // PAGE 2: ANALYSIS
@@ -514,62 +543,63 @@ function generatePDF(email) {
     newPage();
     y = secTitle('TIME ALLOCATION ANALYSIS', y);
 
-    card(m,y,cw, sorted.length*14 + 15);
-    let bY = y + 12;
-    sorted.forEach(t => {
+    const cardHeight = Math.min(sorted.length*10 + 12, 80); // Limit card height
+    card(m,y,cw, cardHeight);
+    let bY = y + 8;
+    sorted.slice(0,8).forEach(t => { // Limit to 8 items for space
         const typeCol = t.type==='strategic'?C.green:t.type==='delegatable'?C.amber:C.red;
-        fill(typeCol); doc.circle(m+8,bY+2,2,'F');
-        txt(t.name,9,'bold',C.text); doc.text(t.name,m+14,bY+4.5);
+        fill(typeCol); doc.circle(m+6,bY+2,1.5,'F'); // Smaller circle
+        txt(t.name,8,'bold',C.text); doc.text(t.name,m+12,bY+3.5); // Smaller font
         
-        const barX = m+70, barW = cw-90;
+        const barX = m+60, barW = cw-85; // Adjusted for smaller layout
         const curW = (t.hours/maxHrs)*barW;
         const aftW = ((t.hours-t.saved)/maxHrs)*barW;
         
-        fill(C.bg); doc.roundedRect(barX,bY,barW,5,1.5,1.5,'F');
-        fill(typeCol); doc.roundedRect(barX,bY,Math.max(aftW,1),5,1.5,1.5,'F');
+        fill(C.bg); doc.roundedRect(barX,bY,barW,4,1,1,'F'); // Smaller bar
+        fill(typeCol); doc.roundedRect(barX,bY,Math.max(aftW,1),4,1,1,'F');
         
-        txt(t.hours+'h',7,'bold',C.textMid); doc.text(t.hours+'h',barX+curW+3,bY+4);
+        txt(t.hours+'h',6,'bold',C.textMid); doc.text(t.hours+'h',barX+curW+2,bY+3); // Smaller font
         if(t.saved>0){
-            txt('-'+t.saved.toFixed(1),7,'bold',C.red); doc.text('-'+t.saved.toFixed(1),pw-m-5,bY+4,{align:'right'});
+            txt('-'+t.saved.toFixed(1)+'h',7,'bold',C.red); doc.text('-'+t.saved.toFixed(1)+'h',pw-m-5,bY+3,{align:'right'}); // More prominent
         }
-        bY += 14;
+        bY += 9; // Tighter spacing
     });
-    y = bY + 15;
+    y = bY + 10;
 
-    // Breakdown side-by-side
-    cp(60);
+    // Breakdown side-by-side (More Compact)
+    cp(45);
     const hw = (cw-6)/2;
     // Left: Category
-    card(m,y,hw,50);
-    txt('TIME BY CATEGORY',8,'bold',C.textMid); doc.text('TIME BY CATEGORY',m+10,y+12);
+    card(m,y,hw,35); // Reduced height
+    txt('TIME BY CATEGORY',7,'bold',C.textMid); doc.text('TIME BY CATEGORY',m+8,y+9);
     const cats = [
         { label:'Strategic', color:C.green, hrs: d.breakdown.filter(t=>t.type==='strategic').reduce((s,t)=>s+t.hours,0) },
         { label:'Delegatable', color:C.amber, hrs: d.breakdown.filter(t=>t.type==='delegatable').reduce((s,t)=>s+t.hours,0) },
         { label:'Automatable', color:C.red, hrs: d.breakdown.filter(t=>t.type==='automatable').reduce((s,t)=>s+t.hours,0) }
     ];
-    let cY = y+22;
+    let cY = y+16;
     cats.forEach(c => {
         if(c.hrs<=0) return;
         const p = Math.round(c.hrs/totalHrs*100);
-        fill(c.color); doc.circle(m+12,cY,2,'F');
-        txt(`${c.label}: ${c.hrs}h (${p}%)`,9,'normal',C.text); doc.text(`${c.label}: ${c.hrs}h (${p}%)`,m+18,cY+2.5);
-        cY += 9;
+        fill(c.color); doc.circle(m+10,cY,1.5,'F'); // Smaller circle
+        txt(`${c.label}: ${c.hrs}h (${p}%)`,8,'normal',C.text); doc.text(`${c.label}: ${c.hrs}h (${p}%)`,m+14,cY+2);
+        cY += 6; // Tighter spacing
     });
 
     // Right: Impact
-    card(m+hw+6,y,hw,50);
-    txt('WEEKLY IMPACT',8,'bold',C.textMid); doc.text('WEEKLY IMPACT',m+hw+16,y+12);
-    fill(C.red); doc.circle(m+hw+hw/2+3, y+32, 12, 'F');
-    txt(totalHrs.toString(),14,'bold',C.white); doc.text(totalHrs.toString(),m+hw+hw/2+3,y+36,{align:'center'});
-    txt('NOW',7,'bold',C.red); doc.text('NOW',m+hw+hw/2+3,y+48,{align:'center'});
+    card(m+hw+6,y,hw,35); // Reduced height
+    txt('WEEKLY IMPACT',7,'bold',C.textMid); doc.text('WEEKLY IMPACT',m+hw+12,y+9);
+    fill(C.red); doc.circle(m+hw+hw/2-8, y+22, 8, 'F'); // Smaller circles
+    txt(totalHrs.toString(),11,'bold',C.white); doc.text(totalHrs.toString(),m+hw+hw/2-8,y+25,{align:'center'}); // Larger, more prominent
+    txt('NOW',6,'bold',C.red); doc.text('NOW',m+hw+hw/2-8,y+33,{align:'center'});
     
-    txt('>',14,'bold',C.textLight); doc.text('>',m+hw+6,y+36);
+    txt('→',12,'bold',C.textLight); doc.text('→',m+hw+hw/2-1,y+25); // Arrow instead of >
 
-    fill(C.green); doc.circle(m+hw+hw-15, y+32, 12, 'F');
-    txt(afterTotal.toFixed(0),14,'bold',C.white); doc.text(afterTotal.toFixed(0),m+hw+hw-15,y+36,{align:'center'});
-    txt('GOAL',7,'bold',C.green); doc.text('GOAL',m+hw+hw-15,y+48,{align:'center'});
+    fill(C.green); doc.circle(m+hw+hw/2+8, y+22, 8, 'F');
+    txt(afterTotal.toFixed(0),11,'bold',C.white); doc.text(afterTotal.toFixed(0),m+hw+hw/2+8,y+25,{align:'center'}); // Larger, more prominent
+    txt('GOAL',6,'bold',C.green); doc.text('GOAL',m+hw+hw/2+8,y+33,{align:'center'});
     
-    y += 70;
+    y += 45; // Reduced spacing
 
     // =============================
     // PAGE 3: PLAYBOOK
@@ -588,26 +618,29 @@ function generatePDF(email) {
         'Internal Meetings': { solution:'Async-first communication', impact:'Recovers 40% of time.', steps:['Audit all recurring meetings.','Convert status to dashboards.','Enforce 25-min defaults.','Require agendas 24h prior.'] }
     };
 
-    sorted.filter(t=>t.saved>=0.5).slice(0,5).forEach((t,idx) => {
+    sorted.filter(t=>t.saved>=0.5).slice(0,4).forEach((t,idx) => { // Limit to 4 for space
         const g = guides[t.name] || { solution:'Process automation', impact:'Efficiency gain', steps:['Audit current steps.','Document the SOP.','Apply automation tools.','Train the team.'] };
-        cp(85);
-        card(m,y,cw,75,{accent:C.blue});
-        txt(`${idx+1}. ${t.name.toUpperCase()}`,10,'bold',C.blue); doc.text(`${idx+1}. ${t.name.toUpperCase()}`,m+10,y+12);
-        txt(`Recovery Potential: ${t.saved.toFixed(1)}h/week`,8,'bold',C.textMid); doc.text(`Recovery Potential: ${t.saved.toFixed(1)}h/week`,pw-m-10,y+12,{align:'right'});
+        const requiredHeight = 65; // Calculate actual content height
+        cp(requiredHeight);
+        card(m,y,cw,60,{accent:C.blue}); // Reduced height from 75 to 60
+        txt(`${idx+1}. ${t.name.toUpperCase()}`,9,'bold',C.blue); doc.text(`${idx+1}. ${t.name.toUpperCase()}`,m+8,y+10); // Smaller font
+        txt(`Recovery: ${t.saved.toFixed(1)}h/week`,8,'bold',C.textMid); doc.text(`Recovery: ${t.saved.toFixed(1)}h/week`,pw-m-8,y+10,{align:'right'});
         
-        txt('SOLUTION:',8,'bold',C.text); doc.text('SOLUTION:',m+10,y+24);
-        txt(g.solution,9,'normal',C.text); doc.text(g.solution,m+32,y+24);
+        txt('SOLUTION:',7,'bold',C.text); doc.text('SOLUTION:',m+8,y+20);
+        const solutionLines = doc.splitTextToSize(g.solution, cw-40);
+        txt(solutionLines,8,'normal',C.text); doc.text(solutionLines,m+30,y+20);
         
-        txt('IMPACT:',8,'bold',C.text); doc.text('IMPACT:',m+10,y+31);
-        txt(g.impact,9,'normal',C.textMid); doc.text(g.impact,m+32,y+31);
+        txt('IMPACT:',7,'bold',C.text); doc.text('IMPACT:',m+8,y+28);
+        txt(g.impact,8,'normal',C.textMid); doc.text(g.impact,m+30,y+28);
 
-        let sY = y+42;
-        g.steps.forEach((s,si) => {
-            fill(C.blue); doc.circle(m+12,sY,1, 'F');
-            txt(s,8.5,'normal',C.text); doc.text(s,m+16,sY+2);
-            sY += 7;
+        let sY = y+36;
+        g.steps.slice(0,3).forEach((s,si) => { // Limit to 3 steps for space
+            fill(C.blue); doc.circle(m+10,sY,1, 'F');
+            const stepLines = doc.splitTextToSize(s, cw-25);
+            txt(stepLines,7.5,'normal',C.text); doc.text(stepLines,m+14,sY+1);
+            sY += 6; // Tighter spacing
         });
-        y += 90;
+        y += 65; // Reduced spacing
     });
 
     // =============================
@@ -624,39 +657,39 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p,pi) => {
-        cp(45);
-        fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
-        txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
-        y += 15;
+        cp(35); // Check space before drawing phase
+        fill(p.c); doc.roundedRect(m,y,cw,8,2,2,'F'); // Reduced height
+        txt(p.t,8,'bold',C.white); doc.text(p.t,m+cw/2,y+5.5,{align:'center'}); // Smaller font
+        y += 12; // Reduced spacing
         p.items.forEach(it => {
             fill(p.c); doc.circle(m+5,y+2,1,'F');
-            txt(it,9,'normal',C.text); doc.text(it,m+10,y+4);
-            y += 8;
+            txt(it,8,'normal',C.text); doc.text(it,m+10,y+4); // Smaller font
+            y += 6; // Tighter spacing
         });
-        y += 5;
+        y += 3; // Reduced spacing
     });
 
     // CTA - GOOGLE STYLE (White bg, colored border)
-    y += 20;
-    cp(60);
+    y += 15;
+    cp(40);
     stroke(C.amber); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,45,3,3,'FD');
+    fill(C.white); doc.roundedRect(m,y,cw,35,3,3,'FD'); // Reduced height
     
-    txt("LET'S RECLAIM YOUR TIME",14,'bold',C.text); doc.text("LET'S RECLAIM YOUR TIME",pw/2,y+15,{align:'center'});
-    txt(`You are losing ${d.automatableHrs.toFixed(0)} hours every single week. That ends now.`,9,'normal',C.textMid);
-    doc.text(`You are losing ${d.automatableHrs.toFixed(0)} hours every single week. That ends now.`,pw/2,y+24,{align:'center'});
+    txt("LET'S RECLAIM YOUR TIME",12,'bold',C.text); doc.text("LET'S RECLAIM YOUR TIME",pw/2,y+12,{align:'center'});
+    txt(`You are losing ${d.automatableHrs.toFixed(0)} hours every single week. That ends now.`,8,'normal',C.textMid);
+    doc.text(`You are losing ${d.automatableHrs.toFixed(0)} hours every single week. That ends now.`,pw/2,y+20,{align:'center'});
     
-    txt('mo@deeplineop.ai',12,'bold',C.amber); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+    txt('mo@deeplineop.ai',11,'bold',C.amber); doc.text('mo@deeplineop.ai',pw/2,y+28,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
-        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
-        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD'); // Reduced footer height
+        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
+        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
 
     doc.save('CEO-Time-Audit-Report.pdf');
