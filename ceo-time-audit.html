@@ -460,20 +460,20 @@ function generatePDF(email) {
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
 
-    // Hero Section
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.amber); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    // Hero Section (compact)
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,75,0,0,'FD');
+    fill(C.amber); doc.circle(pw/2,18,7,'F');
+    txt('A',11,'bold',C.white); doc.text('A',pw/2,21,{align:'center'});
 
-    txt('CEO TIME AUDIT',24,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,48,{align:'center'});
-    txt('Your Personalized Time Recovery Analysis',11,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,58,{align:'center'});
+    txt('CEO TIME AUDIT',20,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,38,{align:'center'});
+    txt('Your Personalized Time Recovery Analysis',10,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,47,{align:'center'});
 
     // Info Pill
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-45,53,90,9,4,4,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 105;
+    y = 75;
 
     // Key metrics row
     const metricW = (cw-10)/3;
@@ -484,29 +484,47 @@ function generatePDF(email) {
     ];
     mets.forEach((mt,i) => {
         const x = m + i*(metricW+5);
-        card(x,y,metricW,38,{accent:mt.color});
-        txt(mt.val,22,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+18,{align:'center'});
-        txt(mt.label,8,'bold',C.text); doc.text(mt.label,x+metricW/2,y+27,{align:'center'});
-        txt(mt.sub,7,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+33,{align:'center'});
+        card(x,y,metricW,32,{accent:mt.color});
+        txt(mt.val,20,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+15,{align:'center'});
+        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metricW/2,y+22,{align:'center'});
+        txt(mt.sub,6,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+27,{align:'center'});
     });
-    y += 55;
+    y += 40;
 
     // Summary Card
-    card(m,y,cw,45);
-    txt('EXECUTIVE SUMMARY',9,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+12);
+    card(m,y,cw,38);
+    txt('EXECUTIVE SUMMARY',8,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+10);
     
     const sumLines = [
         `You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories.`,
         `${d.automatableHrs.toFixed(1)} hours (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated.`,
         `Current state: only ${strategicPct}% of your time is spent on high-leverage strategic work.`
     ];
-    let sY = y + 22;
+    let sY = y + 18;
     sumLines.forEach(l => {
-        txt(l,10,'normal',C.text);
+        txt(l,9,'normal',C.text);
         doc.text(l,m+10,sY);
-        sY += 7;
+        sY += 6;
     });
-    y = sY + 15;
+    y = sY + 8;
+
+    // Report Outline
+    card(m,y,cw,38);
+    txt('WHAT\u2019S IN THIS REPORT',8,'bold',C.amber); doc.text('WHAT\u2019S IN THIS REPORT',m+10,y+10);
+    const outline = [
+        {label:'Time Allocation Analysis', desc:'Where your hours actually go', color:C.blue},
+        {label:'Automation Playbook', desc:'Specific fixes for your top time drains', color:C.blue},
+        {label:'90-Day Roadmap', desc:'Week-by-week implementation plan', color:C.blue},
+        {label:'Next Steps', desc:'How to start reclaiming time immediately', color:C.amber}
+    ];
+    let oY = y + 17;
+    outline.forEach(o => {
+        fill(o.color); doc.circle(m+12,oY+1,1.2,'F');
+        txt(o.label,8,'bold',C.text); doc.text(o.label,m+17,oY+3);
+        txt(' \u2014 '+o.desc,8,'normal',C.textMid); doc.text(o.desc,m+17+doc.getTextWidth(o.label)+2,oY+3);
+        oY += 6;
+    });
+    y = oY + 6;
 
     // =============================
     // PAGE 2: ANALYSIS
