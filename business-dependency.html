@@ -527,32 +527,58 @@ function generatePDF(email) {
     newPage();
     y = secTitle('INDEPENDENCE ROADMAP', y);
     const roadmap = {
-        Operations: {title:"Systematize Operations",steps:["Document order handling step by step.","Create tiered approvals: <$X auto.","Train team leads on key accounts.","Implement tracking dashboards."]},
-        Pricing: {title:"Codify Pricing Knowledge",steps:["Centralize special arrangements.","Create logic-based pricing matrix.","Train team on margin rules.","Implement ERP approval workflows."]},
-        Knowledge: {title:"Transfer Knowledge",steps:["Record key process screencasts.","Create emergency handbook.","Build company wiki (SOPs).","Host weekly knowledge sessions."]},
-        Decisions: {title:"Delegate Authority",steps:["List recurring decisions.","Write clear decision frameworks.","Formally authorize team leads.","Monitor outcomes, provide feedback."]},
-        Relationships: {title:"Multi-Thread Relationships",steps:["Introduce leads to top clients.","Conduct joint business reviews.","Transition routine comms to team.","Systematize relationship management."]}
+        Operations: {title:"Automate Order Processing",steps:["Pull ERP override logs from last 6 months to identify manual intervention patterns","Map customer PO formats and create automated parsing rules for your top 20 accounts","Build warehouse pick efficiency dashboards showing pick time by operator and product location","Implement auto-approval limits: <$500 orders ship without review, >$10K orders require manager sign-off","Create exception handling playbook: when system flags orders, who approves what by value tier"]},
+        Pricing: {title:"Systematize Pricing Decisions",steps:["Export pricing history by customer: identify who gets custom pricing and document the business logic","Build pricing matrix in your ERP: product category + customer tier + volume = automatic price","Create override approval workflows: reps can discount 5%, managers 15%, you approve >15%","Audit 'tribal knowledge' pricing: when your pricing person leaves, companies lose 1-3% margin for months","Track pricing variance by rep: who deviates from standard pricing and what's the margin impact"]},
+        Knowledge: {title:"Capture Institutional Memory",steps:["Record vendor negotiation playbooks: payment terms, volume rebates, and relationship history by supplier","Document customer quirks: special shipping instructions, PO requirements, and contact preferences","Create troubleshooting guides: when ERP crashes, when key supplier is out of stock, when major customer complains","Build route optimization knowledge base: delivery schedules, driver preferences, traffic patterns","Capture 'tribal knowledge': if you were hit by a bus, what would your team NOT know how to handle"]},
+        Decisions: {title:"Build Decision-Making Systems",steps:["Audit your daily decisions: pricing overrides, vendor selections, hiring choices, customer complaints","Create decision trees: IF customer wants 2% discount AND order >$5K THEN auto-approve","Document escalation paths: rep handles routine, manager handles exceptions, you handle strategic","Implement approval limits by role: who can approve what dollar amounts without escalation","Track decision outcomes: measure the results of delegated decisions vs. your personal choices"]},
+        Relationships: {title:"Multi-Thread Key Accounts",steps:["Pull your top 10 accounts by revenue: who else at your company has a relationship with them?","Conduct quarterly business reviews with your largest customers: bring operations manager or sales rep","Create account handoff protocols: if customer calls you directly, how do you transfer to team member?","Map customer org charts: who makes buying decisions, who influences, who uses the product daily","Systematize relationship building: monthly check-ins, annual strategy sessions, proactive problem-solving"]}
     };
 
     d.answers.filter(a=>a.score>=4).slice(0,4).forEach((a,idx) => {
         const plan = roadmap[a.category] || {title:a.category, steps:["Document current process.","Delegate small tasks.","Monitor performance.","Review outcomes." ]};
-        cp(85);
+        
+        // Calculate dynamic height using splitTextToSize
+        let totalHeight = 35; // Base height for title and padding
+        plan.steps.forEach(s => {
+            const lines = doc.splitTextToSize(s, cw-35);
+            totalHeight += lines.length * 6 + 2; // 6pt line height + 2pt spacing
+        });
+        
+        cp(totalHeight + 10);
         const rColor = a.score>=8 ? C.red : C.amber;
-        card(m,y,cw,75,{accent:C.blue});
+        card(m,y,cw,totalHeight,{accent:C.blue});
         txt(`${idx+1}. ${plan.title.toUpperCase()}`,10,'bold',C.blue); doc.text(`${idx+1}. ${plan.title.toUpperCase()}`,m+12,y+12);
         
         let sY = y+25;
         plan.steps.forEach(s => {
             fill(C.blue); doc.circle(m+15,sY,1, 'F');
-            txt(s,9,'normal',C.text); doc.text(s,m+20,sY+2);
-            sY += 8;
+            txt(s,9,'normal',C.text); 
+            const lines = doc.splitTextToSize(s, cw-35);
+            lines.forEach((line, lineIdx) => {
+                doc.text(line, m+20, sY+2+(lineIdx*6));
+            });
+            sY += lines.length * 6 + 2;
         });
-        y += 85;
+        y += totalHeight + 10;
     });
 
-    // Valuation impact
-    cp(70);
-    y = secTitle('VALUATION IMPACT', y);
+    // Dollar Impact Callout
+    cp(85);
+    y = secTitle('DOLLAR IMPACT', y);
+    card(m,y,cw,65,{accent:C.amber});
+    fill(C.amber); doc.circle(m+15,y+15,5,'F');
+    txt('$',10,'bold',C.card); doc.text('$',m+15,y+18,{align:'center'});
+    txt('THE VALUATION GAP',11,'bold',C.amber); doc.text('THE VALUATION GAP',m+28,y+15);
+    txt('A $2M EBITDA business: $4-6M owner-dependent vs $8-12M systematized.',9,'bold',C.text);
+    doc.text('A $2M EBITDA business: $4-6M owner-dependent vs $8-12M systematized.',m+15,y+28);
+    txt("That's $4-6M you're leaving on the table.",10,'bold',C.amber);
+    doc.text("That's $4-6M you're leaving on the table.",m+15,y+40);
+    txt('Owner-dependent businesses sell for 2-3x earnings; systematized ones sell for 4-6x.',8,'normal',C.textMid);
+    doc.text('Owner-dependent businesses sell for 2-3x earnings; systematized ones sell for 4-6x.',m+15,y+50);
+    y += 75;
+
+    // Valuation comparison
+    cp(50);
     const hw = (cw-6)/2;
     card(m,y,hw,35,{accent:C.red});
     txt('OWNER-DEPENDENT',7,'bold',C.red); doc.text('OWNER-DEPENDENT',m+10,y+10);

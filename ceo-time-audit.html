@@ -511,7 +511,7 @@ function generatePDF(email) {
     y = sY + 8;
 
     // What's In This Report
-    card(m,y,cw,32);
+    card(m,y,cw,38);
     txt("WHAT'S IN THIS REPORT",8,'bold',C.amber); doc.text("WHAT'S IN THIS REPORT",m+10,y+10);
     const reportItems = [
         ['Time Allocation Analysis','Where your hours go'],
@@ -519,15 +519,15 @@ function generatePDF(email) {
         ['90-Day Roadmap','Week-by-week implementation plan'],
         ['Next Steps','How to start reclaiming time immediately']
     ];
-    let rY = y + 17;
+    let rY = y + 16;
     reportItems.forEach(function(item) {
         fill(C.blue); doc.circle(m+12,rY-1,1.2,'F');
         txt(item[0],8,'bold',C.text); doc.text(item[0],m+16,rY);
         var labelW = doc.getTextWidth(item[0]);
         txt(' - '+item[1],8,'normal',C.textMid); doc.text(' - '+item[1],m+16+labelW,rY);
-        rY += 4.5;
+        rY += 5;
     });
-    y = rY + 4;
+    y = rY + 10;
 
     // Dollar Impact callout
     if(dollarImpact > 0) {
@@ -698,7 +698,7 @@ function generatePDF(email) {
     y += 10;
     cp(60);
     stroke(C.amber); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,55,3,3,'FD');
+    fill(C.card); doc.roundedRect(m,y,cw,55,3,3,'FD');
     
     txt("LET'S RECLAIM YOUR TIME",14,'bold',C.text); doc.text("LET'S RECLAIM YOUR TIME",pw/2,y+15,{align:'center'});
 
@@ -716,7 +716,7 @@ function generatePDF(email) {
     const pc = doc.internal.getNumberOfPages();
     for(var i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
         txt('Page '+i+' of '+pc,7,'normal',C.textMid);
