@@ -498,7 +498,7 @@ function generatePDF(email) {
             totalContentHeight += itemHeight;
         });
 
-        const cardHeight = totalContentHeight + 16; // 8px top + 8px bottom padding
+        const cardHeight = totalContentHeight + 20; // 10px top + 10px bottom padding
 
         // Check page break with actual calculated height
         if (yPos + cardHeight > 265) {
@@ -518,39 +518,27 @@ function generatePDF(email) {
         }
 
         // Render content with measured positions
-        let currentY = yPos + 8;
+        let currentY = yPos + 10;
         measuredContent.forEach(item => {
-            if (item.type === 'title') {
-                txt(item.text, item.fitted.fontSize, item.style || 'bold', item.color || C.text);
+            const lh = item.fitted ? item.fitted.fontSize * 0.55 : 0;
+            if (item.type === 'title' || item.type === 'text') {
+                txt(item.text, item.fitted.fontSize, item.type === 'title' ? (item.style || 'bold') : (item.style || 'normal'), item.color || C.text);
                 if (item.align === 'center') {
-                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.35, {align: 'center'});
-                } else {
-                    item.fitted.lines.forEach(line => {
-                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.35);
-                        currentY += item.fitted.fontSize * 0.55;
+                    item.fitted.lines.forEach((line, li) => {
+                        doc.text(line, x + w/2, currentY + item.fitted.fontSize * 0.35 + li * lh, {align: 'center'});
                     });
-                    currentY -= item.fitted.fontSize * 0.55;
-                }
-            } else if (item.type === 'text') {
-                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
-                if (item.align === 'center') {
-                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.35, {align: 'center'});
                 } else {
-                    item.fitted.lines.forEach(line => {
-                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.35);
-                        currentY += item.fitted.fontSize * 0.55;
+                    item.fitted.lines.forEach((line, li) => {
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.35 + li * lh);
                     });
-                    currentY -= item.fitted.fontSize * 0.55;
                 }
             } else if (item.type === 'bullet') {
                 fill(item.bulletColor || C.blue);
                 doc.circle(x + 12, currentY + 2, 1, 'F');
                 txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
-                item.fitted.lines.forEach(line => {
-                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.35);
-                    currentY += item.fitted.fontSize * 0.55;
+                item.fitted.lines.forEach((line, li) => {
+                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.35 + li * lh);
                 });
-                currentY -= item.fitted.fontSize * 0.55;
             } else if (item.type === 'metric') {
                 txt(item.text, item.fontSize || 16, item.style || 'bold', item.color || C.text);
                 if (item.align === 'center') {
@@ -559,7 +547,6 @@ function generatePDF(email) {
                     doc.text(item.text, x + 10, currentY + (item.fontSize || 16) * 0.3);
                 }
             } else if (item.type === 'chart') {
-                // Render circles for visual elements
                 if (item.circleData) {
                     item.circleData.forEach(circle => {
                         fill(circle.color);
