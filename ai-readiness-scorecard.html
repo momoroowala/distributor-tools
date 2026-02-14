@@ -1118,7 +1118,7 @@
     const stroke = (c) => doc.setDrawColor(...c);
 
     // Fit text helper for dynamic sizing
-    const fitText = (doc, text, maxWidth, startSize, minSize = 7.5, maxLines = 0) => {
+    const fitText = (doc, text, maxWidth, startSize, minSize = 9, maxLines = 0) => {
         let sz = startSize;
         let lines;
         // For long text, allow more lines instead of shrinking to unreadable sizes
@@ -1184,7 +1184,7 @@
     txt('',titleFit.fontSize,'bold',C.text);
     doc.text(titleFit.lines,pw/2,38,{align:'center'});
     
-    const subtitleFit = fitText(doc, 'Personalized Assessment for Your Distribution Business', cw, 9, 7);
+    const subtitleFit = fitText(doc, 'Personalized Assessment for Your Distribution Business', cw, 10, 9);
     txt('',subtitleFit.fontSize,'normal',C.textMid);
     doc.text(subtitleFit.lines,pw/2,46,{align:'center'});
 
@@ -1196,9 +1196,9 @@
 
     // Overall Score Card - Calculate dynamic height
     const scoreColor = totalScore >= 75 ? C.green : totalScore >= 50 ? C.amber : C.red;
-    const scoreTextFit = fitText(doc, 'YOUR AI READINESS SCORE', cw-20, 9, 7);
+    const scoreTextFit = fitText(doc, 'YOUR AI READINESS SCORE', cw-20, 10, 9);
     const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
-    const titleFit2 = fitText(doc, title, cw-20, 9, 7);
+    const titleFit2 = fitText(doc, title, cw-20, 10, 9);
     const scoreCardHeight = 15 + scoreTextFit.lines.length * 5 + 12 + titleFit2.lines.length * 5 + 8;
     
     cp(scoreCardHeight);
@@ -1221,10 +1221,10 @@
         'ROI Projections with Real Dollar Amounts',
         'Your 90-Day AI Readiness Roadmap (4 Phases, Weekly Actions)'
     ];
-    const tocHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT:", cw-20, 8, 7);
+    const tocHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT:", cw-20, 9, 9);
     let tocContentHeight = tocHeaderFit.lines.length * 5 + 6;
     const tocItemFits = toc.map(item => {
-        const itemFit = fitText(doc, item, cw-25, 7.5, 7);
+        const itemFit = fitText(doc, item, cw-25, 9, 9);
         tocContentHeight += itemFit.lines.length * 5 + 2;
         return itemFit;
     });
@@ -1259,7 +1259,7 @@
         const cx = ci % 2 === 0 ? m : m + hw + 6;
         const cy = y + Math.floor(ci / 2) * 20;
         
-        const catFit = fitText(doc, cat.toUpperCase(), hw-16, 7, 7);
+        const catFit = fitText(doc, cat.toUpperCase(), hw-16, 9, 9);
         const cardHeight = Math.max(16, catFit.lines.length * 5 + 12);
         
         card(cx, cy, hw, cardHeight, {accent:col});
@@ -1281,8 +1281,8 @@
         const col = catC[rec.category] || C.purple;
         
         // Measure all text content first
-        const headerFit = fitText(doc, `${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`, cw-20, 9, 7);
-        const quickWinFit = fitText(doc, rec.quickWin, cw-25, 8.5, 7.5);
+        const headerFit = fitText(doc, `${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`, cw-20, 10, 9);
+        const quickWinFit = fitText(doc, rec.quickWin, cw-25, 9.5, 9);
         
         // Calculate total height needed
         let totalHeight = 10; // top padding
@@ -1292,7 +1292,7 @@
         totalHeight += 5; // ACTION PLAN label
         
         const actionSlice = rec.actions.slice(0,3);
-        const actionFits = actionSlice.map(a => fitText(doc, a, cw-30, 8.5, 7.5));
+        const actionFits = actionSlice.map(a => fitText(doc, a, cw-30, 9.5, 9));
         actionFits.forEach(af => {
             totalHeight += af.lines.length * (af.fontSize * 0.55) + 4; // action text + gap
         });
@@ -1307,14 +1307,14 @@
         doc.text(headerFit.lines,m+10,currentY);
         currentY += headerFit.lines.length * 5 + 6;
         
-        txt('QUICK WIN:',7,'bold',C.text);
+        txt('QUICK WIN:',9,'bold',C.text);
         doc.text('QUICK WIN:',m+10,currentY);
         currentY += 5;
         txt('',quickWinFit.fontSize,'normal',C.text);
         doc.text(quickWinFit.lines,m+10,currentY);
         currentY += quickWinFit.lines.length * 5 + 4;
         
-        txt('90-DAY ACTION PLAN:',7,'bold',C.textMid);
+        txt('90-DAY ACTION PLAN:',9,'bold',C.textMid);
         doc.text('90-DAY ACTION PLAN:',m+10,currentY);
         currentY += 5;
         
@@ -1344,8 +1344,8 @@
 
     industryMetrics.forEach((metric) => {
         const statFit = fitText(doc, metric.stat, 20, 14, 10);
-        const descFit = fitText(doc, metric.desc, cw - 40, 8, 7);
-        const srcFit = fitText(doc, 'Source: ' + metric.source, cw - 40, 7, 7);
+        const descFit = fitText(doc, metric.desc, cw - 40, 9, 9);
+        const srcFit = fitText(doc, 'Source: ' + metric.source, cw - 40, 9, 9);
         const metricHeight = Math.max(statFit.lines.length * 7, descFit.lines.length * 5 + srcFit.lines.length * 4) + 14;
         
         cp(metricHeight);
@@ -1379,7 +1379,7 @@
     
     let roiContentHeight = 8;
     const roiBenchmarkFits = roiBenchmarks.map(b => {
-        const bFit = fitText(doc, b, cw-20, 8, 7);
+        const bFit = fitText(doc, b, cw-20, 9, 9);
         roiContentHeight += bFit.lines.length * 5 + 2;
         return bFit;
     });
@@ -1457,7 +1457,7 @@
 
     roadmapPhases.forEach((phase) => {
         // Phase header
-        const phaseHeaderFit = fitText(doc, phase.phase, cw - 10, 10, 8);
+        const phaseHeaderFit = fitText(doc, phase.phase, cw - 10, 10, 9);
         const phaseHeaderHeight = phaseHeaderFit.lines.length * 6 + 8;
         cp(phaseHeaderHeight);
         
@@ -1467,7 +1467,7 @@
         y += phaseHeaderHeight + 2;
 
         // Deliverables
-        const delFit = fitText(doc, phase.deliverables, cw - 20, 7, 7);
+        const delFit = fitText(doc, phase.deliverables, cw - 20, 9, 9);
         const delHeight = delFit.lines.length * 4.5 + 8;
         cp(delHeight);
         card(m, y, cw, delHeight, {accent: phase.color});
@@ -1477,7 +1477,7 @@
 
         // Items
         phase.items.forEach((item) => {
-            const itemFit = fitText(doc, item, cw - 25, 8.5, 7.5);
+            const itemFit = fitText(doc, item, cw - 25, 9.5, 9);
             const itemHeight = itemFit.lines.length * (itemFit.fontSize * 0.55) + 10;
             cp(itemHeight);
             card(m, y, cw, itemHeight);
@@ -1502,7 +1502,7 @@
     const ctaTitle = "READY TO TAKE THE NEXT STEP?";
     const ctaText = "Let's discuss how to implement these AI foundations in your business.";
     const ctaTitleFit = fitText(doc, ctaTitle, cw-20, 12, 10);
-    const ctaTextFit = fitText(doc, ctaText, cw-20, 8, 7);
+    const ctaTextFit = fitText(doc, ctaText, cw-20, 9, 9);
     
     const ctaHeight = 12 + ctaTitleFit.lines.length * 6 + ctaTextFit.lines.length * 5 + 12 + 8; // title + text + email + padding
     cp(ctaHeight);
