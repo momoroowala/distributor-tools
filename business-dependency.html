@@ -440,7 +440,7 @@ function generatePDF(email) {
     const stroke = (c) => doc.setDrawColor(...c);
 
     // Dynamic text fitting helper
-    const fitText = (doc, text, maxWidth, startSize, minSize) => {
+    const fitText = (doc, text, maxWidth, startSize, minSize = 6) => {
         let sz = startSize;
         let lines;
         while (sz >= minSize) {
@@ -452,26 +452,16 @@ function generatePDF(email) {
         return { lines, fontSize: sz };
     };
 
-    // Calculate actual content height before drawing
-    const measureContent = (content) => {
-        let totalHeight = 0;
-        content.forEach(item => {
-            if (item.type === 'text') {
-                doc.setFontSize(item.fontSize || 9);
-                const lines = doc.splitTextToSize(item.text, item.maxWidth || cw - 20);
-                totalHeight += lines.length * (item.lineHeight || 6);
-            } else if (item.type === 'space') {
-                totalHeight += item.height;
-            } else if (item.type === 'circle') {
-                totalHeight += item.radius * 2;
-            }
-        });
-        return totalHeight + 8; // Add bottom padding
+    // Measure text height precisely
+    const measureText = (text, fontSize, maxWidth) => {
+        doc.setFontSize(fontSize);
+        const lines = doc.splitTextToSize(text, maxWidth);
+        return lines.length * (fontSize * 0.4);
     };
-    
+
     // Dynamic page break checking with actual content height
     const cp = (contentHeight) => { 
-        if(y + contentHeight > 270){
+        if (y + contentHeight > 270) {
             newPage(); 
             return true;
         } 
@@ -485,62 +475,113 @@ function generatePDF(email) {
         y = 15;
     };
 
+    // Dynamic card with measured content height
     const dynamicCard = (x, yPos, w, content, opts = {}) => {
-        // Measure content first
-        const contentHeight = measureContent(content);
-        const totalHeight = contentHeight + 16; // 8px top + bottom padding
-        
-        // Draw card background
-        const r = opts.radius || 2;
-        fill(C.shadow); doc.roundedRect(x+0.5, yPos+0.5, w, totalHeight, r, r, 'F');
-        stroke(C.border); doc.setLineWidth(0.2);
-        fill(C.card); doc.roundedRect(x, yPos, w, totalHeight, r, r, 'FD');
-        if(opts.accent) { 
-            fill(opts.accent); 
-            doc.roundedRect(x, yPos, 3, totalHeight, r, 0, 'F'); 
-            doc.rect(x+1.5, yPos, 1.5, totalHeight, 'F'); 
-        }
+        // First pass: measure all content to get exact height
+        let totalContentHeight = 0;
+        let measuredContent = [];
 
-        // Render content
-        let currentY = yPos + 8;
         content.forEach(item => {
-            if (item.type === 'text') {
-                txt(item.text, item.fontSize || 9, item.style || 'normal', item.color || C.text);
-                const lines = doc.splitTextToSize(item.text, item.maxWidth || w - 20);
-                lines.forEach(line => {
-                    doc.text(line, item.x || (x + 10), currentY + (item.lineHeight || 6));
-                    currentY += item.lineHeight || 6;
-                });
+            let itemHeight = 0;
+            if (item.type === 'title') {
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
+                measuredContent.push({...item, fitted, height: itemHeight});
+            } else if (item.type === 'text') {
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
+                measuredContent.push({...item, fitted, height: itemHeight});
+            } else if (item.type === 'bullet') {
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 30, item.fontSize || 8, 6);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 1;
+                measuredContent.push({...item, fitted, height: itemHeight});
+            } else if (item.type === 'metric') {
+                itemHeight = (item.fontSize || 16) * 0.4 + 8;
+                measuredContent.push({...item, height: itemHeight});
             } else if (item.type === 'space') {
-                currentY += item.height;
-            } else if (item.type === 'circle') {
-                fill(item.color || C.blue);
-                doc.circle(item.x || (x + 10), currentY + item.radius, item.radius, 'F');
-                currentY += item.radius * 2;
-            } else if (item.type === 'rect') {
-                fill(item.color || C.blue);
-                doc.rect(item.x || (x + 10), currentY, item.width, item.height, 'F');
-                currentY += item.height;
+                itemHeight = item.height;
+                measuredContent.push({...item, height: itemHeight});
             }
+            totalContentHeight += itemHeight;
         });
 
-        return totalHeight;
+        const cardHeight = totalContentHeight + 16; // 8px top + 8px bottom padding
+
+        // Check page break with actual calculated height
+        cp(cardHeight);
+        if (yPos + cardHeight > 270) {
+            newPage();
+            yPos = y;
+        }
+
+        // Draw card background
+        const r = opts.radius || 2;
+        fill(C.shadow); doc.roundedRect(x+0.5, yPos+0.5, w, cardHeight, r, r, 'F');
+        stroke(C.border); doc.setLineWidth(0.2);
+        fill(C.card); doc.roundedRect(x, yPos, w, cardHeight, r, r, 'FD');
+        if(opts.accent) { 
+            fill(opts.accent); 
+            doc.roundedRect(x, yPos, 3, cardHeight, r, 0, 'F'); 
+            doc.rect(x+1.5, yPos, 1.5, cardHeight, 'F'); 
+        }
+
+        // Render content with measured positions
+        let currentY = yPos + 8;
+        measuredContent.forEach(item => {
+            if (item.type === 'title') {
+                txt(item.text, item.fitted.fontSize, item.style || 'bold', item.color || C.text);
+                if (item.align === 'center') {
+                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                } else {
+                    item.fitted.lines.forEach(line => {
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
+                        currentY += item.fitted.fontSize * 0.4;
+                    });
+                    currentY -= item.fitted.fontSize * 0.4;
+                }
+            } else if (item.type === 'text') {
+                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
+                if (item.align === 'center') {
+                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                } else {
+                    item.fitted.lines.forEach(line => {
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
+                        currentY += item.fitted.fontSize * 0.4;
+                    });
+                    currentY -= item.fitted.fontSize * 0.4;
+                }
+            } else if (item.type === 'bullet') {
+                fill(item.bulletColor || C.blue);
+                doc.circle(x + 12, currentY + 2, 1, 'F');
+                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
+                item.fitted.lines.forEach(line => {
+                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.3);
+                    currentY += item.fitted.fontSize * 0.4;
+                });
+                currentY -= item.fitted.fontSize * 0.4;
+            } else if (item.type === 'metric') {
+                txt(item.text, item.fontSize || 16, item.style || 'bold', item.color || C.text);
+                if (item.align === 'center') {
+                    doc.text(item.text, x + w/2, currentY + (item.fontSize || 16) * 0.3, {align: 'center'});
+                } else {
+                    doc.text(item.text, x + 10, currentY + (item.fontSize || 16) * 0.3);
+                }
+            }
+            currentY += item.height;
+        });
+
+        return cardHeight;
     };
 
     const secTitle = (title, yy, color = C.blue) => {
-        const titleContent = [
-            { type: 'text', text: title, fontSize: 11, style: 'bold', color: C.text, x: m, lineHeight: 7 },
-            { type: 'space', height: 3 },
-            { type: 'rect', x: m, width: 20, height: 1.5, color: color }
-        ];
-        const titleHeight = measureContent(titleContent);
+        const titleHeight = measureText(title, 11, cw - 30) + 15;
         cp(titleHeight);
         
         txt(title, 11, 'bold', C.text); 
-        doc.text(title, m, yy + 6);
+        doc.text(title, m, yy + 7);
         fill(color); 
-        doc.rect(m, yy + 9, 20, 1.5, 'F');
-        return yy + 15;
+        doc.rect(m, yy + 10, 20, 1.5, 'F');
+        return yy + titleHeight;
     };
 
     // =============================
@@ -563,46 +604,28 @@ function generatePDF(email) {
 
     // Table of Contents - Dynamic
     const tocContent = [
-        { type: 'text', text: "WHAT'S IN THIS REPORT:", fontSize: 8, style: 'bold', color: C.blue, x: m+8, lineHeight: 6 },
-        { type: 'space', height: 6 }
+        { type: 'title', text: "WHAT'S IN THIS REPORT:", fontSize: 8, style: 'bold', color: C.blue },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Page 1: Owner Dependency Index and Risk Assessment', fontSize: 7.5, bulletColor: C.blue },
+        { type: 'bullet', text: 'Pages 2-3: Actionable Independence Roadmap by Category', fontSize: 7.5, bulletColor: C.blue },
+        { type: 'bullet', text: 'Page 4: Industry Benchmarks with Sourced Metrics (2024-2025)', fontSize: 7.5, bulletColor: C.blue },
+        { type: 'bullet', text: 'Pages 5-6: 90-Day Independence Roadmap (4 Phases)', fontSize: 7.5, bulletColor: C.blue },
+        { type: 'bullet', text: 'Page 7: Valuation Impact Analysis', fontSize: 7.5, bulletColor: C.blue },
+        { type: 'space', height: 8 }
     ];
     
-    const toc = [
-        'Page 1: Owner Dependency Index & Risk Assessment',
-        'Page 2: Independence Roadmap & Valuation Impact', 
-        'Page 3: Implementation Framework'
-    ];
-    
-    toc.forEach(item => {
-        const fitted = fitText(doc, item, cw-25, 7.5, 6);
-        tocContent.push({ 
-            type: 'circle', 
-            x: m+10, 
-            radius: 0.8, 
-            color: C.blue 
-        });
-        tocContent.push({ 
-            type: 'text', 
-            text: item, 
-            fontSize: fitted.fontSize, 
-            x: m+14, 
-            lineHeight: 5,
-            maxWidth: cw-25
-        });
-    });
-
     const tocHeight = dynamicCard(m, y, cw, tocContent, {accent: C.blue});
     y += tocHeight + 8;
 
     // Score visualization card - Dynamic
     const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : C.green;
     const scoreContent = [
-        { type: 'text', text: 'OWNER DEPENDENCY INDEX', fontSize: 9, style: 'bold', color: scoreCol, x: m+cw/2, lineHeight: 8 },
+        { type: 'title', text: 'OWNER DEPENDENCY INDEX', fontSize: 9, style: 'bold', color: scoreCol, align: 'center' },
+        { type: 'space', height: 6 },
+        { type: 'metric', text: d.totalScore.toString(), fontSize: 20, style: 'bold', color: scoreCol, align: 'center' },
         { type: 'space', height: 4 },
-        { type: 'circle', x: m+cw/2, radius: 10, color: scoreCol },
-        { type: 'text', text: d.totalScore.toString(), fontSize: 16, style: 'bold', color: C.white, x: m+cw/2, lineHeight: 8 },
-        { type: 'space', height: 3 },
-        { type: 'text', text: d.verdict, fontSize: 8, color: C.textMid, x: m+cw/2, lineHeight: 6, maxWidth: cw-20 }
+        { type: 'text', text: d.verdict, fontSize: 8, color: C.textMid, align: 'center', maxWidth: cw-30 },
+        { type: 'space', height: 8 }
     ];
     
     const scoreHeight = dynamicCard(m, y, cw, scoreContent, {accent: scoreCol});
@@ -617,15 +640,25 @@ function generatePDF(email) {
     [{val:critical,label:'CRITICAL',color:C.red},{val:atRisk,label:'AT RISK',color:C.amber},{val:healthy,label:'HEALTHY',color:C.green}].forEach((mt,i) => {
         const x = m + i*(metW+5);
         const metricContent = [
-            { type: 'text', text: mt.val.toString(), fontSize: 16, style: 'bold', color: mt.color, x: x+metW/2, lineHeight: 8 },
+            { type: 'metric', text: mt.val.toString(), fontSize: 16, style: 'bold', color: mt.color, align: 'center' },
             { type: 'space', height: 2 },
-            { type: 'text', text: mt.label+' AREAS', fontSize: 6, style: 'bold', color: C.text, x: x+metW/2, lineHeight: 6 }
+            { type: 'text', text: mt.label + ' AREAS', fontSize: 6, style: 'bold', color: C.text, align: 'center' },
+            { type: 'space', height: 8 }
         ];
         
-        cp(measureContent(metricContent) + 16);
-        dynamicCard(x, y, metW, metricContent, {accent: mt.color});
+        const cardHeight = dynamicCard(x, y, metW, metricContent, {accent: mt.color});
     });
-    y += measureContent([{ type: 'text', text: 'Sample', fontSize: 16, lineHeight: 8 }, { type: 'space', height: 2 }, { type: 'text', text: 'Sample', fontSize: 6, lineHeight: 6 }]) + 24;
+    
+    // Calculate max height of metric cards for consistent spacing
+    const sampleMetricContent = [
+        { type: 'metric', text: '0', fontSize: 16, style: 'bold', color: C.red, align: 'center' },
+        { type: 'space', height: 2 },
+        { type: 'text', text: 'SAMPLE AREAS', fontSize: 6, style: 'bold', color: C.text, align: 'center' },
+        { type: 'space', height: 8 }
+    ];
+    let testY = y;
+    const metricCardHeight = dynamicCard(0, 0, metW, sampleMetricContent, {accent: C.red}) - 16;
+    y += metricCardHeight + 24;
 
     // Risk assessment breakdown - Dynamic
     y = secTitle('RISK ASSESSMENT BY AREA', y);
@@ -635,20 +668,19 @@ function generatePDF(email) {
         const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
         
         const riskContent = [
-            { type: 'circle', x: m+10, radius: 1.5, color: rColor },
-            { type: 'text', text: a.category.toUpperCase(), fontSize: 8, style: 'bold', color: C.text, x: m+16, lineHeight: 6 },
-            { type: 'space', height: 2 }
+            { type: 'text', text: a.category.toUpperCase(), fontSize: 8, style: 'bold', color: C.text },
+            { type: 'space', height: 8 }
         ];
         
-        const riskHeight = dynamicCard(m, y, cw, riskContent);
+        const riskHeight = dynamicCard(m, y, cw-100, riskContent);
         
-        // Draw progress bar after card
-        const barX = m+60, barW = cw-90;
-        fill(C.bg); doc.roundedRect(barX, y+5, barW, 3, 1, 1, 'F');
-        fill(rColor); doc.roundedRect(barX, y+5, (a.score/10)*barW, 3, 1, 1, 'F');
+        // Draw progress bar after card (positioned relative to card)
+        const barX = m + cw - 90, barW = 80;
+        fill(C.bg); doc.roundedRect(barX, y + 5, barW, 3, 1, 1, 'F');
+        fill(rColor); doc.roundedRect(barX, y + 5, (a.score/10)*barW, 3, 1, 1, 'F');
         
         txt(level, 7, 'bold', rColor); 
-        doc.text(level, pw-m-10, y+8, {align:'right'});
+        doc.text(level, pw-m-5, y + 8, {align:'right'});
         
         y += riskHeight + 8;
     });
@@ -660,79 +692,266 @@ function generatePDF(email) {
     y = secTitle('INDEPENDENCE ROADMAP', y);
     
     const roadmap = {
-        Operations: {title:"Systematize Operations",steps:["Document order handling step by step.","Create tiered approvals: <$X auto.","Train team leads on key accounts.","Implement tracking dashboards."]},
-        Pricing: {title:"Codify Pricing Knowledge",steps:["Centralize special arrangements.","Create logic-based pricing matrix.","Train team on margin rules.","Implement ERP approval workflows."]},
-        Knowledge: {title:"Transfer Knowledge",steps:["Record key process screencasts.","Create emergency handbook.","Build company wiki (SOPs).","Host weekly knowledge sessions."]},
-        Decisions: {title:"Delegate Authority",steps:["List recurring decisions.","Write clear decision frameworks.","Formally authorize team leads.","Monitor outcomes, provide feedback."]},
-        Relationships: {title:"Multi-Thread Relationships",steps:["Introduce leads to top clients.","Conduct joint business reviews.","Transition routine comms to team.","Systematize relationship management."]}
+        Operations: {title:"Systematize Order Flow and Fulfillment",steps:[
+            "Week 1: Shadow yourself for 5 days. Every time you touch an order, log it: customer name, what you did, why only you could do it. Be honest. You will find that 60-70% of your interventions follow a pattern someone else could learn. The other 30% are genuine exceptions; those get documented in Week 3.",
+            "Week 2: Pick your top 5 accounts by revenue. Write a one-page 'account brief' for each: special handling rules (e.g., 'ABC Electric requires packing slips inside every box, not on the outside'), shipping preferences, common issues, and emergency contacts. This alone makes your team capable of handling 80% of daily order flow without calling you.",
+            "Week 3: Set a dollar threshold (e.g., orders under $5,000) where your team can approve and ship without you. For orders above the threshold, create a one-page approval checklist: margin check, credit check, inventory check. If all three pass, ship it. Distributors with tiered approval systems reduce order cycle time by 30-40% because orders stop sitting in one person's inbox.",
+            "Week 4: Build a simple dashboard (even a shared spreadsheet) showing open orders, exceptions, and daily ship rate. Review it once at end of day instead of checking orders all day. Your goal: go from touching every order to reviewing a summary. Within 30 days, you should touch fewer than 10% of orders personally."
+        ]},
+        Pricing: {title:"Extract and Codify Pricing Knowledge",steps:[
+            "Week 1: Export your top 50 customers from your ERP or invoicing system. For each, document: standard discount %, volume breaks, any special arrangements, and who negotiated them. This is the single most valuable document in your business. If you got hit by a bus tomorrow, your team would either overprice (losing deals) or underprice (losing margin) on every one of these accounts.",
+            "Week 2: Build a pricing decision matrix. Three columns: customer tier (A/B/C by volume), product category, and approved discount range. If a request falls within the range, your team approves it. Outside the range, it escalates to you. Acquirers apply a 15-20%+ valuation discount when pricing knowledge lives in the owner's head, because they cannot trust margins will hold after the sale. (MarshBerry, 2024)",
+            "Week 3: Train your sales team on the matrix. Role-play the 5 most common pricing scenarios: volume discount request, competitor price match, new customer quote, annual contract renewal, and rush order surcharge. Record the role-plays so new hires can learn from them later.",
+            "Week 4: Enter pricing rules into your ERP or quoting system so the software enforces your logic automatically. Set floor prices and ceiling discounts. This turns tribal knowledge into a transferable asset and prevents margin erosion when you are not reviewing every quote."
+        ]},
+        Knowledge: {title:"Capture and Transfer Institutional Knowledge",steps:[
+            "Week 1: Record yourself doing the 10 tasks only you handle. Use Loom or any screen recorder. Five-minute videos beat 20-page documents every time. Focus on supplier portals, workaround processes, and exception handling. Example: 'When Grainger's portal rejects a PO, here is the workaround I use.' That one video could save your team 4 hours of confusion.",
+            "Week 2: Create an 'Emergency Runbook': a single document covering what to do if you are unreachable for 30 days. Include: bank contacts, insurance info, key supplier reps (with direct numbers), IT vendor access, and payroll instructions. Only 46% of business owners even have a succession plan in progress; 30% have nothing at all. (PLANADVISER, 2025; Gallup, 2024)",
+            "Week 3: Build a company wiki or shared drive with folders for each department. Start with the top 5 processes per department. Each SOP should answer: What triggers this? Who does it? What are the steps? What does 'done' look like? When expertise walks out the door without documentation, replacement costs reach 200% of that person's salary for leadership roles. (Gallup, 2024)",
+            "Week 4: Hold a 30-minute weekly 'knowledge transfer' session where you walk one team member through a process they have never handled. Rotate the audience. Within 3 months, your entire team gains cross-functional awareness. This is insurance you cannot buy; it is the only way to eliminate single points of failure."
+        ]},
+        Decisions: {title:"Delegate Decision-Making Authority",steps:[
+            "Week 1: Track every decision you make for 5 business days. Write each one down with three labels: A) Only I can make this, B) Someone could make this with a framework, C) Someone already knows how. You will typically find 60-70% are B or C.",
+            "Week 2: For each 'C' decision, formally tell the responsible person: 'This is yours now. You do not need my approval.' Send it in writing. This feels uncomfortable, but these are decisions they already know how to make; you are just removing an unnecessary bottleneck.",
+            "Week 3: For each 'B' decision, write a one-paragraph decision framework. Example: 'Customer requests a return on an order over 30 days old. If the item is undamaged and resellable, approve it. If damaged, offer 50% credit. If over $2,000, call me.' These frameworks turn your judgment into reusable guidelines.",
+            "Every Friday at 4pm: Review which decisions you made that week that someone else could have made. Write the decision framework for the top one. Takes 20 minutes. After 12 weeks, you will have frameworks covering 90% of recurring decisions."
+        ]},
+        Relationships: {title:"Multi-Thread Customer Relationships",steps:[
+            "Week 1: List your top 10 customers by revenue. For each, answer honestly: if you disappeared, would they stay? If the answer is 'probably not' for more than 3, your business has a serious key-person risk. Acquirers discount business value by 15-20%+ when customer relationships are tied to the owner personally. (MarshBerry, 2024)",
+            "Week 2: For each at-risk account, identify the team member who should own the relationship. Introduce them by email: 'I want you to meet [Name], who will be your day-to-day contact for orders and service. I am still here for strategic conversations.' Frame it as better service, not abandonment. Your top 3 customers call YOUR cell phone right now. Here is how to transition them in 60 days without losing the relationship.",
+            "Week 3: Have your new account contacts schedule joint visits or calls with each customer. You attend but let your team lead the conversation. The customer builds trust with the new person while you are still present as a safety net. Do not skip this step; cold handoffs lose accounts, warm handoffs keep them.",
+            "Day 60 target: Your top 10 customers should each have at least two people at your company they trust. 70% of small businesses fail to sell at all (Exit Planning Institute, 2024). One of the top reasons: customer relationships that cannot transfer. Multi-threaded relationships are one of the highest-value assets in any acquisition."
+        ]},
+        Financial: {title:"Build Documented, Transferable Systems",steps:[
+            "Week 1: Pull your last 12 months of P&L statements and create a one-page financial summary a stranger could understand. Include: revenue trends, gross margin by product line, top 10 customer concentration, and major expense categories. If your top 3 customers represent more than 40% of revenue, that is a concentration risk buyers will flag immediately.",
+            "Week 2: Document your cash flow cycle: when customers pay, when you pay suppliers, and where the gaps are. Wholesalers with $1-3M EBITDA and documented systems average 7.7x EBITDA multiples. Without documentation, small businesses trade at 2-3x earnings. (First Page Sage, Q1 2025; BizBuySell, 2025)",
+            "Week 3: Create a 'business manual' that covers: legal structure, insurance policies, lease terms, key contracts, and vendor agreements. This is the document a buyer, lender, or successor would need on day one. 70% of small businesses never find a buyer; lack of documentation is a leading reason. (Exit Planning Institute, 2024)",
+            "Week 4: Have your accountant or bookkeeper review the manual for completeness. A clean, documented business with transferable processes commands multiples 2-4x higher than one that runs on tribal knowledge. On $1M EBITDA, that is the difference between a $2.5M and an $8M+ sale price."
+        ]},
+        Suppliers: {title:"Systematize Supplier Management",steps:[
+            "Week 1: List your top 10 suppliers. For each, document: primary contact name and number, your account terms, volume commitments, backup suppliers, and any verbal agreements. If this information only exists in your head, your team is flying blind when you are unavailable.",
+            "Week 2: Introduce your operations lead or purchasing manager to each key supplier rep. A simple email: 'Please add [Name] as an authorized contact on our account.' This takes 10 minutes per supplier and eliminates a massive single point of failure.",
+            "Week 3: Create a supplier disruption playbook: if Supplier A cannot deliver, here is Supplier B. If prices increase more than 5%, here is the escalation process. If lead times double, here is how we communicate to customers. Document three scenarios per top supplier.",
+            "Week 4: Set up quarterly supplier reviews where your team (not just you) evaluates performance, negotiates terms, and identifies risks. This builds organizational capability that survives your absence."
+        ]},
+        Technology: {title:"Reduce IT Single Points of Failure",steps:[
+            "Week 1: Create a master systems document listing every tool your business uses: ERP, email, accounting, CRM, e-commerce, shipping. For each, document: admin login (stored in a password manager), vendor support contact, and who internally knows the system best.",
+            "Week 2: Identify your 'bus factor' systems: tools where only you know how things connect. For each, record a 5-minute video walking through the setup, integrations, and common troubleshooting steps.",
+            "Week 3: Establish a relationship with an IT support vendor or MSP who can handle emergencies. Give them documentation of your environment. The cost is typically $500-1,500/month, which is trivial compared to the cost of a multi-day outage.",
+            "Week 4: Run a 'fire drill': pretend your main system is down and have your team follow the documented recovery steps without your help. Fix any gaps in the documentation based on what they struggled with."
+        ]},
+        Team: {title:"Develop Your Second-in-Command",steps:[
+            "Week 1: Identify your strongest candidate for a #2 role. This is not necessarily your longest-tenured employee; it is the person who already makes good decisions, earns respect from peers, and understands the business holistically.",
+            "Week 2: Have an honest conversation: 'I want to develop you into someone who can run this business if I am not here. Here is what that looks like.' Define three areas where they will start taking ownership this month.",
+            "Week 3: Start delegating one 'owner-level' responsibility per week: running a team meeting, approving a purchase order, handling a customer escalation. Debrief afterward: what went well, what would you do differently?",
+            "Day 60 target: Your #2 should be able to run the business for 2 weeks without calling you. Replacing a leader costs 200% of their salary (Gallup, 2024). But a trained #2 is not a cost; they are a multiplier. Businesses with a capable second-in-command sell for significantly higher multiples because buyers see continuity, not a single point of failure."
+        ]},
+        Growth: {title:"Build Growth Systems Beyond Yourself",steps:[
+            "Week 1: Audit where your new business comes from. If more than 50% of new revenue depends on your personal relationships or sales efforts, you are the growth bottleneck. Document your sales process step by step.",
+            "Week 2: Create a lead generation system that does not require you: referral programs, inbound marketing, trade show follow-up processes, or outbound prospecting scripts your team can execute.",
+            "Week 3: Set up a weekly pipeline review where your sales team presents opportunities and you coach rather than close. Your role shifts from 'doer' to 'multiplier.' Distribution businesses with systematized sales processes command 6.4x-13x EBITDA vs. 2-3x for owner-driven operations. (First Page Sage, Q1 2025)",
+            "Week 4: Define 3 growth targets that do not require your direct involvement. Track them monthly. If the business can grow 15-20% without you driving every deal, you have built something a buyer will pay a premium for."
+        ]}
     };
 
-    d.answers.filter(a=>a.score>=4).slice(0,4).forEach((a,idx) => {
-        const plan = roadmap[a.category] || {title:a.category, steps:["Document current process.","Delegate small tasks.","Monitor performance.","Review outcomes." ]};
+    d.answers.filter(a=>a.score>=4).slice(0,5).forEach((a,idx) => {
+        const plan = roadmap[a.category] || {title:a.category, steps:["Document current process step by step using screen recordings.","Identify and train the team member best suited to own this area.","Create a decision framework so they can handle 80% of cases without you.","Monitor outcomes weekly for 30 days, then shift to monthly reviews." ]};
         
         const planContent = [
-            { type: 'text', text: `${idx+1}. ${plan.title.toUpperCase()}`, fontSize: 9, style: 'bold', color: C.blue, x: m+10, lineHeight: 8 },
+            { type: 'title', text: `${idx+1}. ${plan.title.toUpperCase()}`, fontSize: 9, style: 'bold', color: C.blue },
             { type: 'space', height: 4 }
         ];
         
         plan.steps.slice(0,3).forEach(s => {
-            const fitted = fitText(doc, s, cw-25, 8, 7);
-            planContent.push({ type: 'circle', x: m+12, radius: 1, color: C.blue });
             planContent.push({ 
-                type: 'text', 
+                type: 'bullet', 
                 text: s, 
-                fontSize: fitted.fontSize, 
-                x: m+16, 
-                lineHeight: 7,
-                maxWidth: cw-25
+                fontSize: 8, 
+                bulletColor: C.blue,
+                maxWidth: cw-30
             });
         });
+        
+        planContent.push({ type: 'space', height: 8 });
 
         const planHeight = dynamicCard(m, y, cw, planContent, {accent: C.blue});
         y += planHeight + 8;
     });
 
-    // Valuation impact - Dynamic
-    y = secTitle('VALUATION IMPACT', y);
+    // =============================
+    // INDUSTRY BENCHMARKS
+    // =============================
+    newPage();
+    y = secTitle('INDUSTRY BENCHMARKS: OWNER DEPENDENCY', y);
+
+    const benchmarks = [
+        { metric: '15-20%+', label: 'Key Person Valuation Discount', desc: 'Buyers discount business value by 15%, 20%, or more when critical operations depend on the owner. For firms where the owner IS the business, the discount can exceed 25%. Acquirers model this as a direct risk premium. (MarshBerry, 2024; Fiveable Business Valuation, 2025)', color: C.red },
+        { metric: '6.4x-13x', label: 'Distribution EBITDA Multiples (Q1 2025)', desc: 'Private distribution companies sell for 6.4x (small industrial) to 13x (large wholesalers) EBITDA. Wholesalers with $5-10M EBITDA average 13x. Even small distributors ($1-3M EBITDA) command 6.4x to 7.7x when systematized. (First Page Sage, Q1 2025)', color: C.green },
+        { metric: '70%', label: 'Small Businesses Fail to Sell', desc: 'Only 30% of small businesses successfully find a buyer. The remaining 70% close or dissolve without a transaction, often because the business cannot operate without the owner. (Exit Planning Institute, 2024; Teamshares, 2025)', color: C.red },
+        { metric: '30%', label: 'No Succession Plan At All', desc: 'Only 46% of business owners have a formal succession plan in progress. 30% have no plan whatsoever. Meanwhile, 52% of U.S. employer businesses are owned by people aged 55+, meaning millions of businesses face leadership transitions within a decade. (PLANADVISER, 2025; Gallup, 2024)', color: C.amber },
+        { metric: '200%', label: 'Cost to Replace a Key Leader', desc: 'Replacing a leader or manager costs approximately 200% of their annual salary. For technical professionals, 80%. For frontline workers, 40%. When the "key person" is the owner, replacement cost is incalculable because the knowledge often walks out the door permanently. (Gallup, 2024)', color: C.amber },
+        { metric: '30 Days', label: 'The Buyer Stress Test', desc: 'During due diligence, buyers simulate your 30-day absence. They ask: who sells, who approves discounts, who manages delivery, who keeps key customers happy? If the answer is "the owner" for more than two of those, expect a discounted offer, an earn-out structure, or no offer at all. (MarshBerry, 2024)', color: C.blue }
+    ];
+
+    benchmarks.forEach(b => {
+        const bContent = [
+            { type: 'metric', text: b.metric, fontSize: 14, style: 'bold', color: b.color, align: 'center' },
+            { type: 'space', height: 2 },
+            { type: 'title', text: b.label, fontSize: 9, style: 'bold', color: C.text, align: 'center' },
+            { type: 'space', height: 2 },
+            { type: 'text', text: b.desc, fontSize: 7.5, color: C.textMid, maxWidth: cw-30 },
+            { type: 'space', height: 8 }
+        ];
+        const bHeight = dynamicCard(m, y, cw, bContent, {accent: b.color});
+        y += bHeight + 6;
+    });
+
+    // =============================
+    // 90-DAY INDEPENDENCE ROADMAP
+    // =============================
+    newPage();
+    y = secTitle('YOUR 90-DAY INDEPENDENCE ROADMAP', y);
+
+    const introContent = [
+        { type: 'text', text: 'This roadmap sequences your independence steps logically: audit first, then document, then delegate, then verify. Each phase has clear deliverables and a target improvement to your dependency score. The goal is not perfection; it is progress. Every task you remove from your plate is a chain you break.', fontSize: 8, color: C.textMid, maxWidth: cw-20 },
+        { type: 'space', height: 8 }
+    ];
+    const introH = dynamicCard(m, y, cw, introContent, {accent: C.blue});
+    y += introH + 8;
+
+    // Phase 1
+    const phase1Content = [
+        { type: 'title', text: 'PHASE 1: AUDIT (DAYS 1-14)', fontSize: 10, style: 'bold', color: C.red },
+        { type: 'text', text: 'Goal: See clearly where you are trapped. Target: Identify every single point of failure.', fontSize: 8, style: 'bold', color: C.textMid },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Days 1-5: Track every decision, task, and interaction you handle personally. Use a simple notebook or spreadsheet. Columns: Time, Task, Could Someone Else Do This (Y/N), Why Not? You will fill 3-5 pages per day.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 6-7: Categorize your list into the 6 dependency areas: Operations, Pricing, Knowledge, Decisions, Relationships, and Growth. Count how many tasks fall in each. The largest category is your biggest vulnerability.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 8-10: For each category, identify the "bus factor": how many people can do this if you are gone? If the answer is zero, mark it red. If one person, mark it yellow. Two or more, green. Your goal by Day 90: no red items remain. Remember: replacing a key leader costs 200% of their salary (Gallup, 2024). For an owner, the cost is the entire business.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 11-14: Rank your red items by business impact (revenue at risk). The top 5 become your documentation priorities for Phase 2. Share your audit findings with your leadership team or key employees.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
+        { type: 'space', height: 4 },
+        { type: 'text', text: 'Deliverables: Complete dependency audit, risk-ranked task list, bus factor map for all critical functions.', fontSize: 7.5, style: 'bold', color: C.text },
+        { type: 'text', text: 'Expected score improvement: 0 points (this phase is measurement, not action).', fontSize: 7.5, color: C.textMid },
+        { type: 'space', height: 8 }
+    ];
+    const p1H = dynamicCard(m, y, cw, phase1Content, {accent: C.red});
+    y += p1H + 8;
+
+    // Phase 2
+    const phase2Content = [
+        { type: 'title', text: 'PHASE 2: DOCUMENT (DAYS 15-30)', fontSize: 10, style: 'bold', color: C.amber },
+        { type: 'text', text: 'Goal: Get critical knowledge out of your head and into systems. Target: 15-20 point score reduction.', fontSize: 8, style: 'bold', color: C.textMid },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Days 15-17: Start with your #1 red item. Record a 5-10 minute video of yourself doing the task. Narrate your thinking: "I check this first because... I use this shortcut because..." Video captures nuance that written SOPs miss.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 18-21: Document your pricing arrangements. Export your top 50 customers, write their special terms, and build the pricing decision matrix. This single document can be worth $100K+ in preserved margin during a transition.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 22-25: Create your Emergency Runbook: the one document someone needs if you are unreachable for 30 days. Bank contacts, insurance, key suppliers, IT access, payroll, and the top 10 customer account briefs.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 26-30: Write decision frameworks for your top 10 recurring decisions. Format: "If [situation], then [action]. If [exception], escalate to [person]." Each framework takes 10-15 minutes to write and saves hours of bottleneck time.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
+        { type: 'space', height: 4 },
+        { type: 'text', text: 'Deliverables: 5+ process videos, pricing matrix, Emergency Runbook, 10 decision frameworks.', fontSize: 7.5, style: 'bold', color: C.text },
+        { type: 'text', text: 'Common roadblock: "It is faster to just do it myself." It is, today. But every task you keep is a chain. The goal is not efficiency this week; it is freedom next year. 70% of small businesses never sell because they cannot operate without the owner. (Exit Planning Institute, 2024)', fontSize: 7.5, style: 'italic', color: C.textMid },
+        { type: 'space', height: 8 }
+    ];
+    const p2H = dynamicCard(m, y, cw, phase2Content, {accent: C.amber});
+    y += p2H + 8;
+
+    // Phase 3
+    const phase3Content = [
+        { type: 'title', text: 'PHASE 3: DELEGATE (DAYS 31-60)', fontSize: 10, style: 'bold', color: C.blue },
+        { type: 'text', text: 'Goal: Transfer ownership of tasks and decisions to your team. Target: 20-30 point score reduction.', fontSize: 8, style: 'bold', color: C.textMid },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Days 31-35: Start with the "C" decisions from your audit (things people already know how to do). Tell each person in writing: "This is yours now. You do not need my approval." This is the easiest win and builds momentum.', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 36-42: Hand off your top 3 customer relationships. Introduce account contacts by email, then schedule joint calls where your team member leads and you observe. Frame it as better service: "You now have a dedicated contact who is available every day."', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 43-50: Delegate order approval below your threshold. Let your team run daily operations using the SOPs and decision frameworks you created. Check the dashboard once at end of day instead of monitoring all day.', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 51-60: Begin developing your #2. Assign them one owner-level responsibility per week: running a team meeting, handling a supplier negotiation, resolving a customer escalation. Debrief each one together.', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
+        { type: 'space', height: 4 },
+        { type: 'text', text: 'Deliverables: Formal delegation assignments in writing, customer relationship transitions started, #2 development plan in progress.', fontSize: 7.5, style: 'bold', color: C.text },
+        { type: 'text', text: 'Friday ritual (20 min): Review which decisions you made this week that someone else could have made. Write the decision framework for the top one.', fontSize: 7.5, style: 'italic', color: C.textMid },
+        { type: 'space', height: 8 }
+    ];
+    const p3H = dynamicCard(m, y, cw, phase3Content, {accent: C.blue});
+    y += p3H + 8;
+
+    // Phase 4
+    const phase4Content = [
+        { type: 'title', text: 'PHASE 4: VERIFY (DAYS 61-90)', fontSize: 10, style: 'bold', color: C.green },
+        { type: 'text', text: 'Goal: Prove the system works without you. Target: 10-15 point score reduction.', fontSize: 8, style: 'bold', color: C.textMid },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Days 61-67: Take a 3-day "mini-vacation" from decision-making. Be available by phone for true emergencies only. Tell your team: "Handle everything you can. Call me only if something will cost us more than $5,000 or lose a customer." Track what happens.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 68-75: Review the results. What went well? What broke? Update your SOPs and decision frameworks based on real-world gaps. This is where your documentation goes from "theoretical" to "battle-tested."', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 76-83: Run a full "fire drill" week. Do not approve any orders, make any pricing decisions, or contact any customers directly. Let the system run. Measure: revenue maintained, customer satisfaction, error rate.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Days 84-90: Retake this assessment. Compare your new score to your original. If you have dropped 30+ points, your business is meaningfully more independent. If gaps remain, you know exactly where to focus next quarter.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
+        { type: 'space', height: 4 },
+        { type: 'text', text: 'Deliverables: 3-day absence test completed, updated SOPs, fire drill results documented, reassessment score.', fontSize: 7.5, style: 'bold', color: C.text },
+        { type: 'text', text: 'The real test of a business is simple: can it run without you for 30 days and still grow? After 90 days of this roadmap, you should be able to answer "yes" for at least 2 weeks.', fontSize: 7.5, style: 'italic', color: C.textMid },
+        { type: 'space', height: 8 }
+    ];
+    const p4H = dynamicCard(m, y, cw, phase4Content, {accent: C.green});
+    y += p4H + 8;
+
+    // =============================
+    // VALUATION IMPACT
+    // =============================
+    newPage();
+    y = secTitle('VALUATION IMPACT: WHAT YOUR BUSINESS IS WORTH', y);
+
+    const valIntro = [
+        { type: 'text', text: 'Owner dependence is the single biggest valuation killer in distribution M&A. Buyers do not just pay for your current earnings; they pay for earnings they can keep after you leave. If the business depends on your relationships, decisions, or daily presence, buyers will discount the price by 15-20%+, stretch payments into earn-outs, or walk away entirely. 52% of U.S. employer businesses are owned by people aged 55+, meaning millions of transitions are coming. (MarshBerry, 2024; Gallup, 2024)', fontSize: 8, color: C.textMid, maxWidth: cw-20 },
+        { type: 'space', height: 8 }
+    ];
+    const valIntroH = dynamicCard(m, y, cw, valIntro, {accent: C.amber});
+    y += valIntroH + 8;
+
     const hw = (cw-6)/2;
     
     const leftContent = [
-        { type: 'text', text: 'OWNER-DEPENDENT', fontSize: 6, style: 'bold', color: C.red, x: m+8, lineHeight: 6 },
-        { type: 'text', text: '2-3x', fontSize: 16, style: 'bold', color: C.red, x: m+8, lineHeight: 8 },
-        { type: 'text', text: 'earnings multiple', fontSize: 7, color: C.textMid, x: m+8, lineHeight: 6 }
+        { type: 'text', text: 'OWNER-DEPENDENT', fontSize: 6, style: 'bold', color: C.red, align: 'center' },
+        { type: 'metric', text: '2-3x', fontSize: 16, style: 'bold', color: C.red, align: 'center' },
+        { type: 'text', text: 'earnings multiple', fontSize: 7, color: C.textMid, align: 'center' },
+        { type: 'space', height: 2 },
+        { type: 'text', text: 'Plus 15-20%+ key person discount applied during due diligence', fontSize: 6.5, color: C.red, align: 'center' },
+        { type: 'space', height: 8 }
     ];
     
     const rightContent = [
-        { type: 'text', text: 'SYSTEMATIZED', fontSize: 6, style: 'bold', color: C.green, x: m+hw+12, lineHeight: 6 },
-        { type: 'text', text: '4-6x', fontSize: 16, style: 'bold', color: C.green, x: m+hw+12, lineHeight: 8 },
-        { type: 'text', text: 'earnings multiple', fontSize: 7, color: C.textMid, x: m+hw+12, lineHeight: 6 }
+        { type: 'text', text: 'SYSTEMATIZED', fontSize: 6, style: 'bold', color: C.green, align: 'center' },
+        { type: 'metric', text: '7-10x', fontSize: 16, style: 'bold', color: C.green, align: 'center' },
+        { type: 'text', text: 'EBITDA multiple', fontSize: 7, color: C.textMid, align: 'center' },
+        { type: 'space', height: 2 },
+        { type: 'text', text: 'Documented systems, trained team, transferable value', fontSize: 6.5, color: C.green, align: 'center' },
+        { type: 'space', height: 8 }
     ];
     
     const leftHeight = dynamicCard(m, y, hw, leftContent, {accent: C.red});
-    dynamicCard(m+hw+6, y, hw, rightContent, {accent: C.green});
-    y += leftHeight + 8;
+    const rightHeight = dynamicCard(m+hw+6, y, hw, rightContent, {accent: C.green});
+    y += Math.max(leftHeight, rightHeight) + 8;
+
+    // Concrete example
+    const exampleContent = [
+        { type: 'title', text: 'WHAT THIS MEANS FOR A $1M EBITDA DISTRIBUTOR', fontSize: 9, style: 'bold', color: C.text },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Owner-dependent: $1M x 2.5x multiple = $2.5M sale price, minus 18% key person discount = $2.05M. Plus a 2-3 year earn-out where you stay on to "transition" the business. You sell your company but keep your job. And you are one of the lucky 30% who find a buyer at all. (Exit Planning Institute, 2024)', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
+        { type: 'bullet', text: 'Systematized: $1M x 7.7x multiple (average for small wholesalers, First Page Sage Q1 2025) = $7.7M sale price, clean close, 6-month transition. Documented processes, trained team, and multi-threaded customer relationships give the buyer confidence. You walk away with nearly 4x more money and actual freedom.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
+        { type: 'space', height: 4 },
+        { type: 'text', text: 'The difference: $5.65 million. That is the cost of keeping everything in your head.', fontSize: 8, style: 'bold', color: C.text },
+        { type: 'space', height: 8 }
+    ];
+    const exH = dynamicCard(m, y, cw, exampleContent, {accent: C.purple});
+    y += exH + 8;
 
     // CTA - Dynamic
     const ctaContent = [
-        { type: 'text', text: "BUILD A BUSINESS THAT RUNS WITHOUT YOU", fontSize: 11, style: 'bold', color: C.text, x: pw/2, lineHeight: 8 },
-        { type: 'text', text: "Let's create the systems and automation that set you free.", fontSize: 8, color: C.textMid, x: pw/2, lineHeight: 6 },
-        { type: 'text', text: 'mo@deeplineop.ai', fontSize: 11, style: 'bold', color: C.blue, x: pw/2, lineHeight: 8 }
+        { type: 'title', text: "BUILD A BUSINESS THAT RUNS WITHOUT YOU", fontSize: 11, style: 'bold', color: C.text, align: 'center' },
+        { type: 'space', height: 4 },
+        { type: 'text', text: "You have seen the data: owner-dependent businesses sell for 2-3x earnings. Systematized distributors sell for 6.4x-13x EBITDA (First Page Sage, Q1 2025). The difference is not luck or industry; it is documentation, delegation, and systems.", fontSize: 8, color: C.textMid, align: 'center' },
+        { type: 'space', height: 4 },
+        { type: 'text', text: "We help distributors build the systems and automation that create real independence, whether you want to sell in 2 years or just take a vacation without your phone buzzing every 10 minutes.", fontSize: 8, color: C.textMid, align: 'center' },
+        { type: 'space', height: 6 },
+        { type: 'text', text: 'mo@deeplineop.ai', fontSize: 11, style: 'bold', color: C.blue, align: 'center' },
+        { type: 'space', height: 8 }
     ];
     
-    const ctaHeight = measureContent(ctaContent) + 16;
-    cp(ctaHeight);
+    const ctaHeight = dynamicCard(m, y, cw, ctaContent);
     
-    stroke(C.blue); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m, y, cw, ctaHeight, 3, 3, 'FD');
-    
-    let ctaY = y + 8;
-    ctaContent.forEach(item => {
-        txt(item.text, item.fontSize, item.style, item.color);
-        doc.text(item.text, item.x, ctaY + item.lineHeight, {align: 'center'});
-        ctaY += item.lineHeight + 2;
-    });
-
-    // Footer
+    // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
@@ -742,6 +961,7 @@ function generatePDF(email) {
         txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
         doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
+    
     doc.save('Business-Dependency-Report.pdf');
 }
 
