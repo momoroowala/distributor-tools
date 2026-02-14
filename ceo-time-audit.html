@@ -500,11 +500,13 @@ function generatePDF(email) {
 
         const cardHeight = totalContentHeight + 20; // 10px top + 10px bottom padding
 
-        // Check page break with actual calculated height (unless caller handles it)
-        if (!opts.noPageBreak && yPos + cardHeight > 265) {
+        // Check page break with actual calculated height
+        if (yPos + cardHeight > 265) {
             newPage();
             yPos = y;
         }
+        // Sync outer y so callers start from correct position after page break
+        y = yPos;
 
         // Draw card background
         const r = opts.radius || 2;
