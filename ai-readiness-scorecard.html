@@ -764,128 +764,128 @@
                 low: {
                     title: "Build Your Data Foundation",
                     actions: [
-                        "Week 1-2: Audit all data sources. List every spreadsheet, system, and manual process that holds critical business data.",
-                        "Week 3-4: Identify your 'single source of truth' for inventory, customers, and pricing. If none exists, choose one system to be the master.",
-                        "Week 5-8: Migrate top 100 SKUs and top 50 customers into your chosen system with complete, accurate data.",
-                        "Week 9-12: Establish data entry standards. Create simple checklists for staff to ensure consistent data quality going forward."
+                        "Week 1-2: Audit every data source in your operation. Walk the warehouse, sit with customer service, shadow your buyers. List every spreadsheet, shared drive, email folder, and sticky note that holds business data. Average inventory accuracy across distributors is only 83% (Opensend, 2025); you need to know where you stand before fixing anything.",
+                        "Week 3-4: Designate one system as your master record for each data type. If you run NetSuite, SAP Business One, or Epicor Prophet 21, your ERP should own inventory, customers, and pricing. If data lives in QuickBooks plus 14 spreadsheets, consolidate the top 100 SKUs and top 50 accounts into one system first. Time investment: 10-15 hours total across two people.",
+                        "Week 5-8: Clean and migrate your A-class items (top 20% of SKUs driving 80% of revenue). For each SKU, verify: description, unit of measure, vendor lead time, reorder point, cost, and bin location. Expect to find 15-25% of records with at least one critical error. A $50M distributor closing this gap can recover $4-7M in lost sales from stockouts alone (Anchor Group, 2025).",
+                        "Week 9-12: Establish data entry standards with a one-page checklist posted at every workstation. Define required fields, naming conventions (no abbreviations in customer names), and who owns each data domain. Set up a weekly 15-minute data quality review: pull 20 random records and spot-check accuracy. Target: 95% accuracy within 90 days, matching world-class benchmarks."
                     ],
-                    quickWin: "Start with a physical inventory count of your top 20 SKUs. Compare to system. This 2-hour exercise reveals your data accuracy baseline."
+                    quickWin: "Count your top 20 SKUs physically right now and compare to system quantities. This 2-hour exercise reveals your actual accuracy rate. The industry average is just 63% (Opensend, 2025); world-class is 97% (Statista, 2025). If you are below 90%, every purchasing decision you make is based on flawed data, costing roughly $500K in lost revenue per $50M in sales for each percentage point below target."
                 },
                 medium: {
                     title: "Strengthen Data Quality",
                     actions: [
-                        "Week 1-2: Run data quality reports. Identify records with missing fields, duplicates, or obvious errors.",
-                        "Week 3-4: Clean your customer master data. Standardize company names, addresses, and contact info.",
-                        "Week 5-8: Implement automated data validation rules in your ERP to catch errors at entry.",
-                        "Week 9-12: Set up weekly data quality dashboards to monitor accuracy trends."
+                        "Week 1-2: Run a data quality audit in your ERP. In NetSuite, use Saved Searches to find: customers with no email, items with zero cost, vendors with no lead time, and duplicate records. In SAP B1, run the Data Cleanup Wizard. In Epicor, export your Item Master and filter for blanks. Most distributors find 5-15% duplicate customer records and 20-30% of items missing critical fields.",
+                        "Week 3-4: Clean your customer master data. Standardize company names (remove Inc, LLC variations), merge duplicates, verify shipping addresses against USPS validation, and confirm primary contacts. Assign each customer a sales rep, price level, and credit terms in the system. This directly impacts your ability to run AI-powered customer analytics later. Budget 2-3 hours per day for two weeks.",
+                        "Week 5-8: Implement automated validation rules at the point of entry. In NetSuite, use Custom Field validations and Workflow rules. In SAP B1, use User-Defined Validations. Examples: require vendor lead time on every new item, force email on new customer records, reject purchase orders without approved vendor. These rules prevent 60-70% of new data quality issues at the source.",
+                        "Week 9-12: Build a data quality dashboard you review weekly. Track: percent of items with complete records, customer duplicate rate, inventory accuracy by warehouse zone, and pricing exceptions vs. standard. Set targets: 95%+ item completeness, under 2% duplicate rate, 95%+ inventory accuracy. Companies that maintain this discipline see 20% reduction in carrying costs within 6 months (McKinsey, 2025)."
                     ],
-                    quickWin: "Export your customer list and remove duplicates. Most distributors find 5-15% duplicate records eating up their CRM."
+                    quickWin: "Export your full customer list to CSV and sort by company name. You will almost certainly find 5-15% duplicates (Smith Industrial, Smith Industrial Inc, Smith Ind.). Merging these takes about 3 hours and immediately improves your CRM, AR aging reports, and sales analytics."
                 },
                 high: {
                     title: "Leverage Data for Intelligence",
                     actions: [
-                        "Week 1-2: Identify 3 business questions you wish you could answer instantly (e.g., 'Which customers are at risk of churning?').",
-                        "Week 3-4: Build or request dashboards that answer these questions using your existing data.",
-                        "Week 5-8: Implement predictive analytics for demand forecasting on your top 50 SKUs.",
-                        "Week 9-12: Create automated alerts for anomalies (sudden demand spikes, pricing outliers, inventory discrepancies)."
+                        "Week 1-2: Identify your top 3 unanswered business questions. Common ones for distributors: Which customers are likely to churn in the next 90 days? Which SKUs should I stock more of next quarter? Where am I losing margin on pricing exceptions? Write these down; they will guide your analytics investment.",
+                        "Week 3-4: Build dashboards that answer these questions. In NetSuite, use SuiteAnalytics Workbooks or connect to a BI tool like Power BI or Looker. Key dashboards: Customer Purchase Frequency Trends (spots churn risk), SKU Velocity by Warehouse (optimizes stocking), and Margin Analysis by Customer/Product (finds profit leaks). AI-powered demand forecasting delivers 35% accuracy improvement over manual methods (AllAboutAI, 2025).",
+                        "Week 5-8: Implement predictive analytics for your top 50 SKUs. Use your ERP's built-in demand planning (NetSuite Demand Planning, SAP B1 MRP Wizard) or connect a specialized tool like Netstock or EazyStock. Feed in 24+ months of sales history. Expected outcome: 15% reduction in stockouts and 20% decrease in excess inventory carrying costs within the first quarter (McKinsey, 2025).",
+                        "Week 9-12: Set up automated anomaly alerts. Configure notifications for: orders 3x larger than customer average (potential fraud or data entry error), sudden demand spikes on specific SKUs (competitor stockout opportunity), cost increases above 5% on purchase orders (supplier price creep), and inventory counts deviating more than 10% from system. These alerts transform your data from passive records into an active early warning system."
                     ],
-                    quickWin: "Pull a report of customers who ordered last year but not this year. Call the top 5. This takes 30 minutes and often recovers thousands in revenue."
+                    quickWin: "Pull a report of customers who ordered in the same quarter last year but have not ordered yet this year. Call the top 5 today. This takes 30 minutes and routinely recovers $5,000-$50,000 in lapsed revenue per call, depending on your average account size."
                 }
             },
             Processes: {
                 low: {
                     title: "Document and Standardize",
                     actions: [
-                        "Week 1-2: Pick your most painful process (usually order entry or quoting). Shadow the person who does it and write down every step.",
-                        "Week 3-4: Identify bottlenecks and redundant steps. Mark which steps could be automated vs. need human judgment.",
-                        "Week 5-8: Create a simple process map (even a Word doc with steps). Share with team for feedback.",
-                        "Week 9-12: Standardize the process. Everyone follows the same steps. Track time savings."
+                        "Week 1-2: Pick your highest-volume process (usually order entry or quoting) and shadow the person who handles it for 2 full hours. Write down every click, every system switch, every phone call. Time each step. Most distributors discover that a single order takes 8-15 minutes of manual entry from an email or phone call. Multiply that by daily order volume; a 100-order-per-day operation burns 13-25 hours daily on data entry alone.",
+                        "Week 3-4: Map the process on paper or in a free tool like Lucidchart. Mark each step as: (A) value-adding, meaning it requires human judgment, (B) necessary but automatable, or (C) pure waste like re-keying data, walking to another desk, waiting for approval. Most distributors find 40-60% of steps fall into categories B or C. That is your automation opportunity.",
+                        "Week 5-8: Standardize the process before automating it. Write a one-page SOP (Standard Operating Procedure) for the workflow. Get input from everyone who touches it. Key rule: do not automate a broken process, because you will just create faster chaos. Have everyone follow the same steps for 2 weeks and measure consistency. Time investment: 4-6 hours to write, 1 hour to train.",
+                        "Week 9-12: Implement your first automation. Start with the most repetitive, lowest-risk step. Common first wins for distributors: auto-import orders from EDI or email using tools like SPS Commerce or TrueCommerce; auto-generate purchase orders when inventory hits reorder points; auto-send order confirmations and tracking numbers. Expected ROI: 2-4 hours saved per employee per week (McKinsey, 2025)."
                     ],
-                    quickWin: "Time how long it takes to enter one order from email. Multiply by daily orders. This is your 'automation opportunity' in hours per week."
+                    quickWin: "Time exactly how long it takes to process one customer order from email receipt to system entry. Multiply by your daily order count. For a distributor processing 75 orders per day at 12 minutes each, that is 15 hours of daily labor, or roughly $125,000 per year in fully loaded labor cost. A $50M distributor typically recovers $75,000-$180,000 annually through basic order processing automation alone (Anchor Group, 2025). That number is your business case."
                 },
                 medium: {
                     title: "Eliminate Manual Handoffs",
                     actions: [
-                        "Week 1-2: Map where data gets re-entered or copied between systems. Each handoff is an error opportunity.",
-                        "Week 3-4: Prioritize integrations by volume and error rate. High volume + high errors = fix first.",
-                        "Week 5-8: Implement your first integration (often ERP to accounting or ERP to shipping).",
-                        "Week 9-12: Build exception handling. Automate the 80% that's standard; flag the 20% that needs review."
+                        "Week 1-2: Map every point where data moves between systems manually. Common handoff points in distribution: orders from email into ERP, ERP to WMS for picking, shipping weights back to ERP, invoices from ERP to accounting, and tracking numbers to customers. Each handoff has a 2-5% error rate per manual touch. With 5 handoffs per order, you are looking at 10-25% of orders containing at least one error.",
+                        "Week 3-4: Prioritize by volume multiplied by error cost. High-volume, high-error-cost handoffs get fixed first. For most distributors, the top three are: (1) order entry from customer emails/calls into ERP, (2) inventory updates between WMS and ERP, and (3) invoice/payment reconciliation between ERP and accounting. Rank yours by weekly volume and average cost to fix an error.",
+                        "Week 5-8: Implement your first integration. Use native connectors where possible: NetSuite has SuiteCloud for integrations, SAP B1 has the Integration Framework, Epicor has REST APIs. For simpler connections, middleware like Celigo (NetSuite-focused), Boomi, or even Make/Zapier works for lower-volume flows. Start with the highest-volume data path. Budget: $200-2,000/month for middleware depending on complexity.",
+                        "Week 9-12: Build exception-only workflows. Automate the 80% of transactions that follow standard rules (known customer, standard pricing, in-stock items, approved credit). Route only the exceptions for human review: new customers, custom pricing requests, out-of-stock situations, orders exceeding credit limits. This typically cuts manual review time by 60-75% while actually improving accuracy on the exceptions that matter."
                     ],
-                    quickWin: "Implement email templates for common customer communications. Reduces typing and ensures consistent messaging."
+                    quickWin: "Create 5-10 email templates for your most common customer communications: order confirmation, shipping notification, backorder notice, payment reminder, and quote follow-up. Drop them into your ERP or email system as templates. Saves 5-10 minutes per interaction and ensures every customer gets professional, consistent messaging."
                 },
                 high: {
                     title: "Intelligent Automation",
                     actions: [
-                        "Week 1-2: Identify decisions that follow clear rules (pricing, credit approval, reorder points). These are automation candidates.",
-                        "Week 3-4: Document the decision logic. If X, then Y. Build decision trees.",
-                        "Week 5-8: Implement rule-based automation for one decision type. Start with low-risk (e.g., auto-approve orders under $500 for established customers).",
-                        "Week 9-12: Add AI layer for pattern recognition (e.g., flag orders that look unusual based on customer history)."
+                        "Week 1-2: Identify every decision in your workflows that follows clear rules. Pricing: if customer tier is Gold and order is above $5,000, apply 12% discount. Credit: if account is under 60 days old and order is under $1,000, auto-approve. Reorder: if on-hand drops below 30-day average demand, generate PO. Document at least 10 decision rules across order management, purchasing, and warehouse operations.",
+                        "Week 3-4: Build formal decision trees for each rule set. Validate them with your team: does the pricing logic match what your best sales rep actually does? Are the credit rules consistent with how your controller approves orders? This step surfaces all the 'tribal knowledge' exceptions. Expect 3-5 unwritten rules per process that need to be formalized.",
+                        "Week 5-8: Implement rule-based automation for one decision type. Start low-risk: auto-approve repeat orders under $2,000 from customers with clean payment history (no invoices over 30 days past due). In NetSuite, use SuiteFlow workflows. In SAP B1, use Approval Procedures. In Epicor, use BPM rules. Measure: orders processed without human touch, error rate, and time saved. Target: 50-70% of orders flowing through without manual approval.",
+                        "Week 9-12: Layer in AI pattern recognition. Use your ERP's AI features or a connected tool to flag anomalies: orders that deviate significantly from customer history (possible entry error), pricing that falls outside normal margin bands (possible unauthorized discount), and demand patterns that suggest a customer is shifting spend to a competitor (churn signal). AI-powered supply chain control towers deliver 307% ROI within 18 months (AllAboutAI/Nucleus Research, 2025)."
                     ],
-                    quickWin: "Set up automatic reorder point alerts for your top 20 SKUs. Takes 30 minutes in most ERPs; prevents stockouts forever."
+                    quickWin: "Set up automatic reorder point alerts for your top 20 A-class SKUs in your ERP right now. In NetSuite, use Item Record reorder points with email alerts. In SAP B1, use the Inventory Reorder Report. In Epicor P21, use the Replenishment Advisor. Takes 30-45 minutes to configure. A building products distributor improved fill rates 5-8% using this exact approach with AI layered on top (McKinsey, 2025). Start with alerts; graduate to AI forecasting."
                 }
             },
             People: {
                 low: {
                     title: "Build Internal Champions",
                     actions: [
-                        "Week 1-2: Identify your most tech-curious team member. This person will be your pilot user.",
-                        "Week 3-4: Have them experiment with free AI tools (ChatGPT for email drafting, etc.). Let them discover the value.",
-                        "Week 5-8: Ask them to share one win with the team. Peer endorsement beats top-down mandates.",
-                        "Week 9-12: Address concerns directly. Have honest conversations about what AI will and won't replace. Focus on 'work smarter' not 'fewer jobs'."
+                        "Week 1-2: Identify your 'early adopter' on the team. Every organization has one person who already uses ChatGPT, watches tech YouTube, or asks 'why do we still do this manually?' Find that person. Make them your pilot user and give them 2 hours per week of protected time to explore AI tools relevant to their role. Do not pick a manager first; peer influence is 3x more effective than top-down mandates for technology adoption.",
+                        "Week 3-4: Have your champion test one AI tool on a real task. For customer service reps: use ChatGPT or Claude to draft responses to common customer emails. For buyers: use AI to analyze vendor price trends. For sales reps: use AI to write follow-up emails or summarize account history before calls. The key is a visible, relatable win, not a theoretical demo. Time investment: 1-2 hours of experimentation.",
+                        "Week 5-8: Ask your champion to share their win in a 10-minute team meeting slot. Show the before and after: 'This email used to take me 8 minutes to write; now it takes 90 seconds.' Peer endorsement is worth more than any vendor presentation. Expect 2-3 more people to ask 'can I try that too?' after this meeting. Your team's reaction will tell you exactly where resistance lives.",
+                        "Week 9-12: Address resistance directly with honesty. Have one-on-one conversations with skeptics. Frame AI as 'protecting their expertise' not 'replacing them.' The real pitch: 'You spend 3 hours a day on data entry. That is not what we hired you for. AI handles the typing so you can handle the relationships.' Only 1% of companies consider themselves at AI maturity (McKinsey, 2025). You are not behind; you are starting at the right time."
                     ],
-                    quickWin: "Share one concrete example of AI saving time in distribution (plenty of case studies online). Make it real, not theoretical."
+                    quickWin: "Show your team this stat in your next meeting: 95% of distributors are exploring AI, but only 33% of companies have scaled it beyond pilots (McKinsey, 2025). Then ask: 'What is one repetitive task you wish a computer would handle for you?' Write down every answer. That list is your automation roadmap, built by the people who will actually use it."
                 },
                 medium: {
                     title: "Expand Capabilities",
                     actions: [
-                        "Week 1-2: Survey the team on biggest time-wasters. What tasks do they wish were automated?",
-                        "Week 3-4: Match complaints to available solutions. Create a 'what if' roadmap.",
-                        "Week 5-8: Run a small pilot with 2-3 team members. Measure time saved and satisfaction.",
-                        "Week 9-12: Create internal documentation. The team should be able to use new tools without constant IT help."
+                        "Week 1-2: Run an anonymous survey (Google Forms, 5 questions, takes 3 minutes) asking your team: What task do you spend the most time on that feels repetitive? What information do you wish you had faster? What part of your job would you happily hand off to a computer? What tool or process frustrates you most? Rate your comfort with new technology 1-10. This data is gold for prioritization.",
+                        "Week 3-4: Match the top 3 complaints to available solutions. Common pairings for distributors: 'I spend too long entering orders' maps to email parsing or EDI automation; 'I cannot get accurate inventory counts' maps to barcode scanning or cycle counting programs; 'Pricing is a mess' maps to CPQ (Configure Price Quote) tools or pricing rule engines in your ERP. Build a simple 'what if' comparison showing current time/cost vs. projected time/cost.",
+                        "Week 5-8: Run a 30-day pilot with 2-3 team members on one solution. Measure: time saved per day (have them log it), error rate before vs. after, and satisfaction (ask them weekly: is this making your job better?). Critical rule: do not pilot with people who are already overloaded. Give pilot users 30 minutes per day of breathing room for the learning curve. Expected productivity gain: 26-55% on the specific task (Fullview, 2025).",
+                        "Week 9-12: Create user-friendly documentation for the new tool. Not a 40-page manual; a laminated one-pager with screenshots for the 5 most common tasks. Post it at workstations. Set up a buddy system: each trained user mentors one untrained user. This peer training model scales faster than formal classes and builds ownership. Your goal: every user can perform core tasks independently within 2 weeks."
                     ],
-                    quickWin: "Let your most skeptical team member choose the first process to automate. Buy-in comes from ownership."
+                    quickWin: "Let your most skeptical team member choose which process to automate first. When the biggest critic picks the project, they become invested in its success. This single move converts your loudest objector into your strongest advocate."
                 },
                 high: {
                     title: "Scale the Culture",
                     actions: [
-                        "Week 1-2: Formalize an 'automation suggestion' process. Anyone can propose improvements.",
-                        "Week 3-4: Create success metrics for automation projects. Track hours saved, errors reduced, revenue impact.",
-                        "Week 5-8: Recognize and reward team members who drive improvements. Tie it to performance reviews.",
-                        "Week 9-12: Build internal training program. Make AI/automation literacy part of onboarding."
+                        "Week 1-2: Launch an 'Automation Ideas' channel (Slack, Teams, or even a physical suggestion box). Rules: anyone can submit an idea, no idea is too small, and every idea gets a response within one week. Assign one person (your AI champion from earlier) to triage submissions. Categorize as: quick win (under 4 hours to implement), project (1-4 weeks), or strategic (requires budget/approval).",
+                        "Week 3-4: Define success metrics for every automation project before starting it. Use the formula: Hours Saved Per Week x Hourly Fully-Loaded Cost = Weekly ROI. Track errors reduced (each order error costs distributors $25-50 to fix on average), revenue protected (stockout prevention), and employee satisfaction. Build a simple dashboard showing cumulative time saved across all automation projects.",
+                        "Week 5-8: Tie automation contributions to performance reviews and recognition. Publicly celebrate wins: 'Sarah automated our backorder notifications, saving the team 6 hours per week.' Consider a small quarterly bonus ($250-500) for the best automation idea implemented. Companies with strong innovation cultures see 2.5x faster AI adoption rates (McKinsey, 2025).",
+                        "Week 9-12: Build AI/automation literacy into your onboarding process. New hires should learn your automated workflows in week one, understand why processes are designed the way they are, and know how to suggest improvements. Create a 30-minute 'How We Work Smarter' module. This ensures your culture scales as you hire, rather than diluting with each new employee."
                     ],
-                    quickWin: "Start a monthly 'automation wins' share. 15 minutes in team meeting. Builds momentum and surfaces ideas."
+                    quickWin: "Start a 15-minute 'Automation Wins' segment in your next team meeting. Have one person share what they automated, how long it took, and what it saved. This creates social proof and surfaces ideas you never would have heard otherwise. Rotate the spotlight monthly."
                 }
             },
             Technology: {
                 low: {
                     title: "Modernize Foundation",
                     actions: [
-                        "Week 1-2: Inventory all systems currently in use. Note age, vendor, and integration capabilities.",
-                        "Week 3-4: Identify the biggest pain point. Usually it's either the ERP or the gap between ERP and everything else.",
-                        "Week 5-8: Research modern alternatives. Focus on cloud-native systems with open APIs.",
-                        "Week 9-12: Build a business case for upgrade. Calculate cost of current inefficiencies vs. cost of new system."
+                        "Week 1-2: Inventory every system in your technology stack. For each one, document: name and version, vendor, year implemented, cloud vs. on-premise, whether it has an API, and what data it holds. Common distributor stack: ERP (NetSuite, SAP B1, Epicor, Infor), WMS (if separate), CRM (often Salesforce or ERP-native), accounting (if separate from ERP), shipping (ShipStation, UPS WorldShip), and EDI (SPS Commerce, TrueCommerce). Most distributors have 5-12 systems with significant overlap and gaps.",
+                        "Week 3-4: Identify your biggest technology bottleneck. Warning signs: your ERP vendor no longer releases updates for your version; you cannot access data without calling IT; reports take hours to generate; your system cannot connect to customer portals or marketplaces. Distributors are the second-largest ERP buyer segment at 18% of total purchases (BluLink, 2025), so vendors actively compete for your business. Get 3 demos scheduled.",
+                        "Week 5-8: Research modern alternatives focused on three criteria: (1) cloud-native with automatic updates, (2) open APIs for integration, and (3) distribution-specific functionality (lot tracking, matrix pricing, warehouse management). Leading options for mid-market distributors: NetSuite (strong for multi-location), SAP Business One (strong for manufacturing-adjacent), Epicor Prophet 21 (strong for industrial distribution), and Acumatica (strong for growing companies). Budget: $500-2,000/user/month depending on complexity.",
+                        "Week 9-12: Build a business case for modernization. Calculate: hours per week spent on manual workarounds (multiply by loaded labor cost), revenue lost to stockouts from poor inventory visibility, cost of maintaining legacy systems (IT support, hosting, customizations), and integration costs you are paying because your old system cannot connect natively. ERP implementations deliver 85% success rates when using a qualified implementation partner (NetSuite, 2025). DIY attempts fail at 2-3x that rate."
                     ],
-                    quickWin: "Check if your current ERP vendor has newer modules you're not using. Sometimes the upgrade is already paid for."
+                    quickWin: "Call your current ERP vendor and ask: 'What modules or features are included in our license that we are not using?' Distributors routinely discover they have paid for WMS, CRM, or reporting modules they never activated. This is free capability sitting on the shelf. Distributors are the second-largest ERP buyer segment at 18% of total purchases (BluLink, 2025), so vendors will be eager to help you get more from your investment."
                 },
                 medium: {
                     title: "Connect Your Stack",
                     actions: [
-                        "Week 1-2: List all manual data transfers between systems. Each one is an integration opportunity.",
-                        "Week 3-4: Evaluate integration platforms (Zapier, Make, or ERP-specific connectors). Often cheaper than custom code.",
-                        "Week 5-8: Build your first integration. Start with highest-volume data flow.",
-                        "Week 9-12: Document integration and create monitoring. You need to know when data stops flowing."
+                        "Week 1-2: List every manual data transfer happening between systems. Watch for: someone exporting a CSV from one system and importing it into another, someone re-typing information from a screen into a different screen, someone emailing a report that someone else enters manually, and someone printing a pick ticket and re-entering shipping data. Each transfer takes 5-15 minutes and has a 2-5% error rate. With 20+ daily transfers, you are losing 2-5 hours and introducing 1-2 errors daily.",
+                        "Week 3-4: Evaluate integration platforms by complexity tier. For simple, low-volume connections (under 100 transactions/day): Zapier ($20-100/month) or Make ($9-30/month). For medium complexity with ERP-specific needs: Celigo for NetSuite ($500-1,500/month), Boomi for SAP ($300-1,000/month). For high complexity or high volume: custom API integrations built by your ERP partner ($5,000-25,000 one-time). Start with the cheapest option that meets your volume needs.",
+                        "Week 5-8: Build your first integration on the highest-volume data path. For most distributors, this is either: (1) orders from customer emails/portals into ERP, (2) inventory sync between ERP and WMS or e-commerce, or (3) shipping/tracking data from carrier to ERP to customer. Set up error handling from day one: when a record fails to sync, it should queue for review, not disappear. Test with 50 transactions before going live.",
+                        "Week 9-12: Create monitoring and alerting for your integrations. Set up notifications when: sync fails for more than 15 minutes, error queue exceeds 5 records, or data volume drops below normal (indicates broken connection). Document your integration: what connects to what, what triggers the sync, where errors go, and who owns the fix. 47% of SMBs now use AI in supply chain operations, up from 18% in 2023 (AllAboutAI, 2025). Connected systems are the prerequisite."
                     ],
-                    quickWin: "Connect your ERP to your email/calendar. Automatic reminders for follow-ups based on order status."
+                    quickWin: "Connect your ERP to your shipping system (ShipStation, ShipEngine, or carrier-direct) so tracking numbers flow back automatically. This eliminates the most common customer service call ('Where is my order?') and saves 5-10 minutes per shipment in manual lookup and data entry."
                 },
                 high: {
                     title: "Enable AI Readiness",
                     actions: [
-                        "Week 1-2: Audit your API capabilities. What data can be accessed programmatically?",
-                        "Week 3-4: Identify AI-ready use cases. Start with classification (categorizing), prediction (forecasting), or extraction (parsing documents).",
-                        "Week 5-8: Run a proof-of-concept with one AI use case. Measure accuracy and business impact.",
-                        "Week 9-12: Scale what works. Build internal capability or partner with experts for complex implementations."
+                        "Week 1-2: Audit your API access and data availability. For each system, answer: Can I pull data programmatically via REST API? Is the API documented? What rate limits exist? Can I push data back in? Most modern ERPs (NetSuite SuiteTalk/REST, SAP B1 Service Layer, Epicor REST API) support full CRUD operations. If your ERP does not have API access, that is your single biggest blocker for AI readiness. Prioritize enabling it.",
+                        "Week 3-4: Identify your top 3 AI use cases ranked by business impact. For distributors, the highest-ROI AI applications are: (1) Demand forecasting, which reduces stockouts by 15% and excess inventory by 20% (McKinsey, 2025), (2) Document parsing for orders/invoices/RFQs, which cuts processing time by 60-80%, and (3) Customer churn prediction, which protects revenue by flagging at-risk accounts 60-90 days early. Pick one to pilot.",
+                        "Week 5-8: Run a proof-of-concept on your chosen use case. For demand forecasting: export 24+ months of sales data by SKU, connect to a tool like Netstock, EazyStock, or a custom Python model, and compare AI forecasts vs. your current method for 30 days. For document parsing: test an AI tool like Rossum, Docsumo, or a custom GPT-based parser on 50 real customer POs and measure accuracy. Success threshold: AI should be at least 85% accurate on first pass. Critical warning: 95% of AI projects fail to show P&L impact (MIT, 2025), and the top cause is not bad models but poor data and unclear success metrics. Define your ROI formula before you start.",
+                        "Week 9-12: Scale what works and measure ROI formally. Track: time saved, errors avoided, revenue protected, and inventory carrying cost reduction. AI-powered supply chain control towers deliver 307% ROI within 18 months vs. 87% for traditional ERP dashboards (Nucleus Research, 2025). Build internal capability by training one team member on the AI tool administration, or partner with a specialist firm for complex implementations. The median AI investment returns 3.5x over three years (McKinsey, 2025)."
                     ],
-                    quickWin: "Enable API access on your ERP if not already active. This is the prerequisite for most modern integrations."
+                    quickWin: "Enable REST API access on your ERP today if it is not already active. In NetSuite, go to Setup > Company > Enable Features > SuiteCloud > REST Web Services. In SAP B1, enable the Service Layer. In Epicor, confirm REST API is enabled in your environment. This 15-minute configuration is the single prerequisite for every modern AI integration."
                 }
             }
         };
@@ -1100,10 +1100,10 @@
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 15, cw = pw - 2*m; // Reduced margin from 20 to 15
+    const m = 15, cw = pw - 2*m;
     let y = 0;
 
-    // Design system - Material Design
+    // Design system
     const C = {
         bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
         text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
@@ -1116,10 +1116,23 @@
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
-    
-    // Improved page break checking with actual content height
-    const cp = (contentHeight=20) => { 
-        if(y + contentHeight > 270){ // Increased from 265 to 270 for tighter packing
+
+    // Fit text helper for dynamic sizing
+    const fitText = (doc, text, maxWidth, startSize, minSize = 6) => {
+        let sz = startSize;
+        let lines;
+        while (sz >= minSize) {
+            doc.setFontSize(sz);
+            lines = doc.splitTextToSize(text, maxWidth);
+            if (lines.length <= 3) break;
+            sz -= 0.5;
+        }
+        return { lines, fontSize: sz };
+    };
+
+    // Dynamic page break with real content height
+    const cp = (contentHeight) => { 
+        if(y + contentHeight > 270){
             newPage(); 
             return true;
         } 
@@ -1130,7 +1143,7 @@
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.purple); doc.rect(0,0,pw,1.5,'F');
-        y = 15; // Reduced from 20 to 15
+        y = 15;
     };
 
     const card = (x,yc,w,h,opts={}) => {
@@ -1142,79 +1155,115 @@
     };
 
     const secTitle = (title,yy,color=C.purple) => {
-        cp(15); // Check space before drawing header
-        txt(title,11,'bold',C.text); doc.text(title,m,yy+6); // Reduced font and spacing
-        fill(color); doc.rect(m,yy+9,20,1.5,'F'); // Reduced underline width
-        return yy+15; // Reduced from 18 to 15
+        const titleFit = fitText(doc, title, cw, 11, 9);
+        const titleHeight = titleFit.lines.length * 5 + 8;
+        cp(titleHeight);
+        txt('',titleFit.fontSize,'bold',C.text);
+        doc.text(titleFit.lines,m,yy+6);
+        fill(color); doc.rect(m,yy+titleHeight-3,20,1.5,'F');
+        return yy + titleHeight;
     };
 
     // =============================
-    // PAGE 1: COVER (More Compact)
+    // PAGE 1: COVER
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD'); // Reduced height from 95 to 70
-    fill(C.purple); doc.circle(pw/2,18,6,'F'); // Smaller circle
-    txt('A',10,'bold',C.white); doc.text('A',pw/2,21,{align:'center'}); // Smaller font
+    
+    // Header card with dynamic content
+    const headerHeight = 65;
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,headerHeight,0,0,'FD');
+    fill(C.purple); doc.circle(pw/2,18,6,'F');
+    txt('A',10,'bold',C.white); doc.text('A',pw/2,21,{align:'center'});
 
-    txt('AI READINESS REPORT',18,'bold',C.text); doc.text('AI READINESS REPORT',pw/2,38,{align:'center'}); // Reduced font size
-    txt('Personalized Assessment for Your Distribution Business',9,'normal',C.textMid); // Reduced font
-    doc.text('Personalized Assessment for Your Distribution Business',pw/2,46,{align:'center'});
+    const titleFit = fitText(doc, 'AI READINESS REPORT', cw, 18, 14);
+    txt('',titleFit.fontSize,'bold',C.text);
+    doc.text(titleFit.lines,pw/2,38,{align:'center'});
+    
+    const subtitleFit = fitText(doc, 'Personalized Assessment for Your Distribution Business', cw, 9, 7);
+    txt('',subtitleFit.fontSize,'normal',C.textMid);
+    doc.text(subtitleFit.lines,pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F'); // Smaller date pill
+    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
     doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 75; // Reduced from 105
+    y = headerHeight + 5;
 
-    // Overall Score Card (More Compact)
+    // Overall Score Card - Calculate dynamic height
     const scoreColor = totalScore >= 75 ? C.green : totalScore >= 50 ? C.amber : C.red;
-    card(m,y,cw,35,{accent:scoreColor}); // Reduced height from 45 to 35
-    txt('YOUR AI READINESS SCORE',9,'bold',scoreColor); doc.text('YOUR AI READINESS SCORE',m+cw/2,y+10,{align:'center'});
-
-    fill(scoreColor); doc.circle(m+cw/2,y+23,10,'F'); // Smaller circle
-    txt(totalScore.toString(),16,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+27,{align:'center'}); // Smaller font
-
+    const scoreTextFit = fitText(doc, 'YOUR AI READINESS SCORE', cw-20, 9, 7);
     const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
-    txt(title,9,'bold',scoreColor); doc.text(title,m+cw/2,y+33,{align:'center'}); // Smaller font
-    y += 40; // Reduced spacing
-
-    // Table of Contents (NEW!)
-    const toc = [
-        'Page 1: Your AI Readiness Score & Category Breakdown',
-        'Page 2: Detailed Recommendations & Action Plans', 
-        'Page 3: ROI Projections & Implementation Roadmap'
-    ];
-    const tocH = 16 + toc.length * 6 + 4;
-    cp(tocH + 5);
-    card(m,y,cw,tocH,{accent:C.purple});
-    txt('WHAT\'S IN THIS REPORT:',8,'bold',C.purple); doc.text('WHAT\'S IN THIS REPORT:',m+10,y+10);
+    const titleFit2 = fitText(doc, title, cw-20, 9, 7);
+    const scoreCardHeight = 15 + scoreTextFit.lines.length * 5 + 12 + titleFit2.lines.length * 5 + 8;
     
-    let tocY = y+16;
-    toc.forEach(item => {
-        fill(C.purple); doc.circle(m+12,tocY,0.8,'F');
-        txt(item,7.5,'normal',C.text); doc.text(item,m+16,tocY+2);
-        tocY += 6;
-    });
-    y += tocH + 5;
+    cp(scoreCardHeight);
+    card(m,y,cw,scoreCardHeight,{accent:scoreColor});
+    txt('',scoreTextFit.fontSize,'bold',scoreColor);
+    doc.text(scoreTextFit.lines,m+cw/2,y+10,{align:'center'});
+    
+    fill(scoreColor); doc.circle(m+cw/2,y+scoreCardHeight/2,10,'F');
+    txt(totalScore.toString(),16,'bold',C.white); doc.text(totalScore.toString(),m+cw/2,y+scoreCardHeight/2+4,{align:'center'});
+    
+    txt('',titleFit2.fontSize,'bold',scoreColor);
+    doc.text(titleFit2.lines,m+cw/2,y+scoreCardHeight-8,{align:'center'});
+    y += scoreCardHeight + 10;
 
-    // Category Grid (More Compact)
-    cp(45);
+    // Table of Contents - Dynamic height
+    const toc = [
+        'Your AI Readiness Score and Category Breakdown',
+        'Detailed Recommendations with Distributor-Specific Action Plans', 
+        'Industry Benchmarks: Where Distributors Stand in 2025',
+        'ROI Projections with Real Dollar Amounts',
+        'Your 90-Day AI Readiness Roadmap (4 Phases, Weekly Actions)'
+    ];
+    const tocHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT:", cw-20, 8, 6);
+    let tocContentHeight = tocHeaderFit.lines.length * 5 + 6;
+    const tocItemFits = toc.map(item => {
+        const itemFit = fitText(doc, item, cw-25, 7.5, 6);
+        tocContentHeight += itemFit.lines.length * 5 + 2;
+        return itemFit;
+    });
+    const tocTotalHeight = tocContentHeight + 8;
+    
+    cp(tocTotalHeight);
+    card(m,y,cw,tocTotalHeight,{accent:C.purple});
+    txt('',tocHeaderFit.fontSize,'bold',C.purple);
+    doc.text(tocHeaderFit.lines,m+10,y+10);
+    
+    let tocY = y + 10 + tocHeaderFit.lines.length * 5 + 6;
+    tocItemFits.forEach((itemFit, idx) => {
+        fill(C.purple); doc.circle(m+12,tocY,0.8,'F');
+        txt('',itemFit.fontSize,'normal',C.text);
+        doc.text(itemFit.lines,m+16,tocY+2);
+        tocY += itemFit.lines.length * 5 + 2;
+    });
+    y += tocTotalHeight + 8;
+
+    // Category Grid - Dynamic sizing
+    const catBreakdownHeaderHeight = 15;
+    cp(catBreakdownHeaderHeight + 50);
     y = secTitle('CATEGORY BREAKDOWN', y);
+    
     const hw = (cw-6)/2;
-    let ci = 0;
-    Object.entries(categoryScores).forEach(([cat, data]) => {
+    const categories = Object.entries(categoryScores);
+    const gridHeight = Math.ceil(categories.length / 2) * 20 + 8;
+    
+    categories.forEach(([cat, data], ci) => {
         const score = Math.round((data.total / (data.count * 3)) * 100);
         const col = catC[cat] || C.purple;
         const cx = ci % 2 === 0 ? m : m + hw + 6;
-        const cy = y + Math.floor(ci / 2) * 20; // Reduced from 28 to 20
+        const cy = y + Math.floor(ci / 2) * 20;
         
-        card(cx, cy, hw, 16, {accent:col}); // Reduced height from 22 to 16
-        txt(cat.toUpperCase(),7,'bold',col); doc.text(cat.toUpperCase(), cx+8, cy+8); // Smaller font and margin
-        txt(`${score}%`,12,'bold',col); doc.text(`${score}%`, cx+hw-8, cy+10, {align:'right'}); // Larger, more prominent score
+        const catFit = fitText(doc, cat.toUpperCase(), hw-16, 7, 6);
+        const cardHeight = Math.max(16, catFit.lines.length * 5 + 12);
         
-        ci++;
+        card(cx, cy, hw, cardHeight, {accent:col});
+        txt('',catFit.fontSize,'bold',col);
+        doc.text(catFit.lines, cx+8, cy+8);
+        txt(`${score}%`,12,'bold',col);
+        doc.text(`${score}%`, cx+hw-8, cy+10, {align:'right'});
     });
-    y += 45; // Reduced from 65
+    y += gridHeight;
 
     // =============================
     // PAGE 2: RECOMMENDATIONS
@@ -1225,58 +1274,248 @@
     const wins = getQuickWins();
     wins.forEach((rec, idx) => {
         const col = catC[rec.category] || C.purple;
-        // Pre-calculate card height
-        const quickWinLines = doc.splitTextToSize(rec.quickWin, cw-25);
-        let calcH = 10 + 10 + quickWinLines.length * 5 + 4 + 7; // header + QUICK WIN label + text + gap + ACTION PLAN label
-        const actionSlice = rec.actions.slice(0,3);
-        actionSlice.forEach(a => {
-            const aLines = doc.splitTextToSize(a, cw-30);
-            calcH += aLines.length * 5 + 3;
-        });
-        calcH += 6; // bottom padding
-        cp(calcH + 5);
-        card(m,y,cw,calcH,{accent:col});
-        txt(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,9,'bold',col); doc.text(`${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`,m+10,y+10);
         
-        txt('QUICK WIN:',7,'bold',C.text); doc.text('QUICK WIN:',m+10,y+20);
-        txt(quickWinLines,8,'normal',C.text); doc.text(quickWinLines,m+10,y+27);
-
-        const actionPlanY = y + 27 + quickWinLines.length * 5 + 4;
-        txt('90-DAY ACTION PLAN:',7,'bold',C.textMid); doc.text('90-DAY ACTION PLAN:',m+10,actionPlanY);
-
-        let sY = actionPlanY + 7;
-        actionSlice.forEach(a => {
-            fill(col); doc.circle(m+12,sY,1, 'F');
-            const actionLines = doc.splitTextToSize(a, cw-30);
-            txt(actionLines,8,'normal',C.text); doc.text(actionLines,m+16,sY+1);
-            sY += actionLines.length * 5 + 3;
+        // Measure all text content first
+        const headerFit = fitText(doc, `${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`, cw-20, 9, 7);
+        const quickWinFit = fitText(doc, rec.quickWin, cw-25, 8, 6);
+        
+        // Calculate total height needed
+        let totalHeight = 10; // top padding
+        totalHeight += headerFit.lines.length * 5 + 6; // header + gap
+        totalHeight += 5; // QUICK WIN label
+        totalHeight += quickWinFit.lines.length * 5 + 4; // quick win text + gap
+        totalHeight += 5; // ACTION PLAN label
+        
+        const actionSlice = rec.actions.slice(0,3);
+        const actionFits = actionSlice.map(a => fitText(doc, a, cw-30, 8, 6));
+        actionFits.forEach(af => {
+            totalHeight += af.lines.length * 5 + 3; // action text + gap
         });
-        y += calcH + 5;
+        totalHeight += 8; // bottom padding
+        
+        cp(totalHeight);
+        card(m,y,cw,totalHeight,{accent:col});
+        
+        // Draw content
+        let currentY = y + 10;
+        txt('',headerFit.fontSize,'bold',col);
+        doc.text(headerFit.lines,m+10,currentY);
+        currentY += headerFit.lines.length * 5 + 6;
+        
+        txt('QUICK WIN:',7,'bold',C.text);
+        doc.text('QUICK WIN:',m+10,currentY);
+        currentY += 5;
+        txt('',quickWinFit.fontSize,'normal',C.text);
+        doc.text(quickWinFit.lines,m+10,currentY);
+        currentY += quickWinFit.lines.length * 5 + 4;
+        
+        txt('90-DAY ACTION PLAN:',7,'bold',C.textMid);
+        doc.text('90-DAY ACTION PLAN:',m+10,currentY);
+        currentY += 5;
+        
+        actionFits.forEach((af, ai) => {
+            fill(col); doc.circle(m+12,currentY,1,'F');
+            txt('',af.fontSize,'normal',C.text);
+            doc.text(af.lines,m+16,currentY+1);
+            currentY += af.lines.length * 5 + 3;
+        });
+        
+        y += totalHeight + 5;
     });
 
-    // ROI (More Compact)
-    cp(35);
-    y = secTitle('POTENTIAL ROI', y, C.green);
-    const benchmarks = ['15-30% reduction in processing time','20-40% fewer pricing errors','10-25% better inventory accuracy','2-4 hours saved per employee/week'];
-    const roiH = 8 + benchmarks.length * 5 + 4;
-    cp(roiH + 5);
-    card(m,y,cw,roiH);
-    let bY = y+8;
-    benchmarks.forEach(b => {
-        fill(C.green); doc.circle(m+8, bY, 1, 'F');
-        txt(b,8,'normal',C.text); doc.text(b, m+12, bY+2);
-        bY += 5;
-    });
-    y += roiH + 5;
+    // INDUSTRY METRICS Section - Dynamic
+    const industryHeaderHeight = 15;
+    cp(industryHeaderHeight);
+    y = secTitle('INDUSTRY BENCHMARKS: WHERE YOU STAND', y, C.blue);
 
-    // CTA (More Compact)
-    cp(40);
+    const industryMetrics = [
+        {stat: '95%', desc: 'of distributors say they are exploring AI use cases across their operations, from forecasting to delivery optimization. But exploring is not implementing. The gap between interest and action is where competitors pull ahead.', source: 'Aristek Systems / McKinsey, 2025'},
+        {stat: '95%', desc: 'of corporate AI projects fail to demonstrate profit-and-loss impact. The primary cause is not bad technology; it is poor data foundations and rushing to automate broken processes. Readiness work is not optional.', source: 'MIT Sloan / RAND, 2025'},
+        {stat: '307%', desc: 'ROI from AI-powered supply chain control towers within 18 months, vs. 87% from traditional ERP dashboards. The difference: control towers connect data across systems instead of trapping it in silos.', source: 'Nucleus Research, 2025'},
+        {stat: '33%', desc: 'of companies have achieved enterprise-wide AI scaling. Two thirds remain stuck in "pilot purgatory," running experiments that never reach production. The companies that scale share one trait: clean, connected data.', source: 'McKinsey State of AI, 2025'},
+        {stat: '$180K', desc: 'Annual labor savings for a $50M distributor through process automation that eliminates manual data entry, reduces picking errors, and streamlines order processing. This is before any AI; just basic automation of existing workflows.', source: 'Anchor Group, 2025'},
+        {stat: '20-30%', desc: 'Inventory reduction achieved by distributors embedding AI into demand planning, while simultaneously improving fill rates by 5-8%. Less capital tied up in stock, fewer lost sales. That is the compound effect of intelligent forecasting.', source: 'McKinsey Distribution Operations, 2025'}
+    ];
+
+    industryMetrics.forEach((metric) => {
+        const statFit = fitText(doc, metric.stat, 20, 14, 10);
+        const descFit = fitText(doc, metric.desc, cw - 40, 8, 6);
+        const srcFit = fitText(doc, 'Source: ' + metric.source, cw - 40, 6, 5);
+        const metricHeight = Math.max(statFit.lines.length * 7, descFit.lines.length * 5 + srcFit.lines.length * 4) + 14;
+        
+        cp(metricHeight);
+        card(m, y, cw, metricHeight, {accent: C.blue});
+        
+        txt('', statFit.fontSize, 'bold', C.blue);
+        doc.text(statFit.lines, m + 12, y + 10);
+        
+        txt('', descFit.fontSize, 'normal', C.text);
+        doc.text(descFit.lines, m + 35, y + 9);
+        
+        txt('', srcFit.fontSize, 'normal', C.textLight);
+        doc.text(srcFit.lines, m + 35, y + 9 + descFit.lines.length * 5 + 2);
+        
+        y += metricHeight + 3;
+    });
+    y += 5;
+
+    // ROI Section - Dynamic
+    const roiBenchmarks = [
+        '$75,000-$180,000 per year in labor savings for a $50M distributor through basic process automation: order entry, pick ticket generation, PO creation, and invoice matching (Anchor Group, 2025)',
+        '20-30% inventory reduction and 5-8% fill rate improvement with AI-powered demand planning. A building products distributor achieved this within one quarter of deployment (McKinsey, 2025)',
+        '5-15% procurement savings through AI-driven vendor analysis, spend consolidation, and automated price benchmarking across supplier catalogs (McKinsey / Aristek, 2025)',
+        '60-80% faster document processing (POs, invoices, RFQs) with AI parsing. One mid-market distributor cut order entry from 12 minutes to under 2 minutes per order using email parsing automation',
+        '15% reduction in logistics costs through AI route optimization, load consolidation, and carrier selection. Savings compound as order volume grows (DataRobot / McKinsey, 2025)',
+        '97% inventory accuracy achievable with modern ERP plus barcode scanning and cycle counting, up from the industry average of 63%. Each percentage point recovered protects roughly $500K in annual revenue per $50M in sales (Statista / Anchor Group, 2025)'
+    ];
+    const roiHeaderHeight = 15;
+    cp(roiHeaderHeight);
+    y = secTitle('POTENTIAL ROI FOR YOUR BUSINESS', y, C.green);
+    
+    let roiContentHeight = 8;
+    const roiBenchmarkFits = roiBenchmarks.map(b => {
+        const bFit = fitText(doc, b, cw-20, 8, 6);
+        roiContentHeight += bFit.lines.length * 5 + 2;
+        return bFit;
+    });
+    roiContentHeight += 8;
+    
+    cp(roiContentHeight);
+    card(m,y,cw,roiContentHeight);
+    let roiY = y + 8;
+    roiBenchmarkFits.forEach(bFit => {
+        fill(C.green); doc.circle(m+8, roiY, 1, 'F');
+        txt('',bFit.fontSize,'normal',C.text);
+        doc.text(bFit.lines, m+12, roiY+2);
+        roiY += bFit.lines.length * 5 + 2;
+    });
+    y += roiContentHeight + 5;
+
+    // 90-DAY ROADMAP Section - Dynamic
+    cp(15);
+    y = secTitle('YOUR 90-DAY AI READINESS ROADMAP', y, C.purple);
+
+    const roadmapPhases = [
+        {
+            phase: 'PHASE 1: DISCOVERY (Days 1-14)',
+            color: C.blue,
+            deliverables: 'Deliverables: Complete technology inventory, data quality baseline score, process time audit, team readiness survey results.',
+            items: [
+                'Days 1-3: Inventory every system, spreadsheet, and data source in your operation. Walk the warehouse floor with your operations manager. Open every shared drive folder. Check every bookmarked URL. Most distributors discover 5-12 systems with significant overlap and data gaps (Anchor Group, 2025). Document what you find in a simple grid: system name, what data it holds, who uses it, and whether it has an API.',
+                'Days 4-5: Run a physical count on your top 20 A-class SKUs. Compare to system quantities. Calculate your actual inventory accuracy percentage. The industry average is 63% (Opensend, 2025); you need 95%+ for AI to work. If below 90%, flag this as Priority 1. Have your warehouse manager pull the ABC velocity report from your ERP before you start counting.',
+                'Days 6-8: Shadow your order entry team for 2 hours. Time each step of processing an order from email receipt to system entry. Multiply by daily volume to calculate total hours and annual labor cost.',
+                'Days 9-10: Send a 5-question anonymous survey to your team asking about their biggest time wasters, technology frustrations, and comfort level with new tools.',
+                'Days 11-14: Compile findings into a one-page summary: current accuracy rate, hours spent on manual processes, top 3 team complaints, and technology gaps identified.',
+                'Common roadblock: "We do not have time for an audit." Response: 95% of AI projects fail to show P&L impact (MIT, 2025), and the number one cause is skipping this step. This audit prevents you from spending $50,000 automating the wrong thing first. Two weeks of discovery saves six months of rework.'
+            ]
+        },
+        {
+            phase: 'PHASE 2: FOUNDATION (Days 15-30)',
+            color: C.green,
+            deliverables: 'Deliverables: Clean data for top 100 SKUs and top 50 customers, one documented SOP, data entry standards checklist, first integration scoped.',
+            items: [
+                'Days 15-18: Clean your A-class item data. Schedule 2 hours on Tuesday and Thursday mornings for this. Have your warehouse manager pull the ABC velocity report first. Verify: description, UOM, vendor lead time, reorder point, cost, and bin location for each SKU.',
+                'Days 19-21: Clean your top 50 customer records. Merge duplicates, standardize names, verify addresses, confirm contacts, and assign price levels and credit terms in the ERP.',
+                'Days 22-24: Write a one-page SOP for your highest-volume process (usually order entry). Include screenshots. Post it at the relevant workstation. Train the team in a 30-minute session.',
+                'Days 25-27: Create a data entry standards checklist (one page, laminated). Define required fields, naming conventions, and who owns each data domain. Post at every data entry workstation.',
+                'Days 28-30: Scope your first integration project. Get quotes from 2-3 vendors or middleware providers. Define: what data flows, in what direction, how often, and what happens when it fails.',
+                'Common roadblock: "My team will push back on documentation." Frame it as protecting their vacation time: "If you are the only one who knows how to do this, you can never take a day off. Documentation means freedom, not replacement."'
+            ]
+        },
+        {
+            phase: 'PHASE 3: IMPLEMENTATION (Days 31-60)',
+            color: C.amber,
+            deliverables: 'Deliverables: First automation live in production, pilot AI tool tested with 2-3 users, weekly data quality review established, measurable time savings logged.',
+            items: [
+                'Days 31-35: Implement your first automation. For most distributors, start with: auto-import EDI orders, auto-generate POs at reorder points, or auto-send order confirmations. Use native ERP workflows before buying new tools.',
+                'Days 36-40: Set up your first AI pilot. Pick one use case: email order parsing, demand forecasting for top 50 SKUs, or customer churn prediction. Assign 2-3 users. Give them 30 minutes per day of protected time for the learning curve.',
+                'Days 41-50: Run the pilot for 10 business days. Measure daily: time saved, errors caught, accuracy rate. Hold a 15-minute check-in with pilot users every 3 days. Adjust based on feedback.',
+                'Days 51-55: Establish your weekly data quality review. Every Monday at 9 AM, pull 20 random records and spot-check accuracy. Track the trend. Target: 95% accuracy by day 90.',
+                'Days 56-60: Compile Phase 3 results. Calculate: hours saved per week, error rate reduction, and projected annual ROI. Present to leadership with specific numbers, not vague promises.',
+                'Common roadblock: "The pilot is not perfect yet." It does not need to be. An 85% accurate AI tool that processes 100 orders per day saves more time than a 100% accurate human processing 20. Ship the 85% version and improve iteratively.'
+            ]
+        },
+        {
+            phase: 'PHASE 4: OPTIMIZATION (Days 61-90)',
+            color: C.purple,
+            deliverables: 'Deliverables: Scaled automation across full team, ROI dashboard live, second integration in progress, AI roadmap for next 6 months documented.',
+            items: [
+                'Days 61-65: Scale successful pilot to the full team. Create a one-page training guide with screenshots. Pair each new user with a pilot user for buddy training. Schedule 1 hour of hands-on practice per person.',
+                'Days 66-70: Build your ROI dashboard. Track cumulative: hours saved, errors prevented, orders auto-processed, and dollars protected through better inventory accuracy. Make this visible to leadership weekly.',
+                'Days 71-80: Start your second integration or automation project. Use the prioritized list from Phase 1. The second project always goes faster because your team now understands the playbook.',
+                'Days 81-85: Document your AI and automation roadmap for the next 6 months. Identify the top 3 projects by ROI, estimated investment, and timeline. Present to leadership for budget approval.',
+                'Days 86-90: Conduct a retrospective. What worked? What surprised you? What would you do differently? Update your SOPs and training materials. Celebrate wins publicly. Launch your monthly Automation Wins meeting.',
+                'Common roadblock: "Leadership wants bigger results faster." Show them the compound math: 2 hours saved per day x 250 working days x $35/hour = $17,500 per employee per year. With 5 employees affected, that is $87,500 annually from one automation. Stack 3-4 of these and you hit $250,000+ in annual savings. Reference point: a $50M distributor typically realizes $75,000-$180,000 per year from process automation alone (Anchor Group, 2025). You are building toward the 3.5x median ROI that McKinsey documents across AI investments.'
+            ]
+        }
+    ];
+
+    roadmapPhases.forEach((phase) => {
+        // Phase header
+        const phaseHeaderFit = fitText(doc, phase.phase, cw - 10, 10, 8);
+        const phaseHeaderHeight = phaseHeaderFit.lines.length * 6 + 8;
+        cp(phaseHeaderHeight);
+        
+        fill(phase.color); doc.roundedRect(m, y, cw, phaseHeaderHeight, 2, 2, 'F');
+        txt('', phaseHeaderFit.fontSize, 'bold', C.white);
+        doc.text(phaseHeaderFit.lines, m + 8, y + 7);
+        y += phaseHeaderHeight + 2;
+
+        // Deliverables
+        const delFit = fitText(doc, phase.deliverables, cw - 20, 7, 6);
+        const delHeight = delFit.lines.length * 4.5 + 8;
+        cp(delHeight);
+        card(m, y, cw, delHeight, {accent: phase.color});
+        txt('', delFit.fontSize, 'italic', C.textMid);
+        doc.text(delFit.lines, m + 10, y + 6);
+        y += delHeight + 2;
+
+        // Items
+        phase.items.forEach((item) => {
+            const itemFit = fitText(doc, item, cw - 25, 7.5, 6);
+            const itemHeight = itemFit.lines.length * 4.5 + 8;
+            cp(itemHeight);
+            card(m, y, cw, itemHeight);
+            
+            const isRoadblock = item.startsWith('Common roadblock');
+            if (isRoadblock) {
+                fill(C.red); doc.circle(m + 8, y + 6, 1.2, 'F');
+                txt('', itemFit.fontSize, 'normal', C.red);
+            } else {
+                fill(phase.color); doc.circle(m + 8, y + 6, 1, 'F');
+                txt('', itemFit.fontSize, 'normal', C.text);
+            }
+            doc.text(itemFit.lines, m + 14, y + 6);
+            y += itemHeight + 1;
+        });
+        y += 5;
+    });
+
+    y += 5;
+
+    // CTA - Dynamic
+    const ctaTitle = "READY TO TAKE THE NEXT STEP?";
+    const ctaText = "Let's discuss how to implement these AI foundations in your business.";
+    const ctaTitleFit = fitText(doc, ctaTitle, cw-20, 12, 10);
+    const ctaTextFit = fitText(doc, ctaText, cw-20, 8, 6);
+    
+    const ctaHeight = 12 + ctaTitleFit.lines.length * 6 + ctaTextFit.lines.length * 5 + 12 + 8; // title + text + email + padding
+    cp(ctaHeight);
+    
     stroke(C.purple); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,35,3,3,'FD'); // Reduced height
-    txt("READY TO TAKE THE NEXT STEP?",12,'bold',C.text); doc.text("READY TO TAKE THE NEXT STEP?",pw/2,y+12,{align:'center'});
-    txt("Let's discuss how to implement these AI foundations in your business.",8,'normal',C.textMid);
-    doc.text("Let's discuss how to implement these AI foundations in your business.",pw/2,y+20,{align:'center'});
-    txt('mo@deeplineop.ai',11,'bold',C.purple); doc.text('mo@deeplineop.ai',pw/2,y+28,{align:'center'});
+    fill(C.white); doc.roundedRect(m,y,cw,ctaHeight,3,3,'FD');
+    
+    let ctaY = y + 12;
+    txt('',ctaTitleFit.fontSize,'bold',C.text);
+    doc.text(ctaTitleFit.lines,pw/2,ctaY,{align:'center'});
+    ctaY += ctaTitleFit.lines.length * 6;
+    
+    txt('',ctaTextFit.fontSize,'normal',C.textMid);
+    doc.text(ctaTextFit.lines,pw/2,ctaY,{align:'center'});
+    ctaY += ctaTextFit.lines.length * 5 + 6;
+    
+    txt('mo@deeplineop.ai',11,'bold',C.purple);
+    doc.text('mo@deeplineop.ai',pw/2,ctaY,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
@@ -1306,21 +1545,21 @@
             <strong>All Tools</strong>
         </a>
         <div style="height:1px;background:#2a2a3a;margin:6px 4px;"></div>
-        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
-            AI Readiness Scorecard
-        </a>
-        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Profit Leak Diagnostic
+        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
+            Business Dependency
         </a>
         <a href="ceo-time-audit.html" class="nav-link" data-color="#f59e0b" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5"/><path d="M2 7h14M6 3v-1M12 3v-1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><rect x="5" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/><rect x="8" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/></svg>
             CEO Time Audit
         </a>
-        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
-            Business Dependency
+        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Profit Leak Diagnostic
+        </a>
+        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
+            AI Readiness Scorecard
         </a>
         <a href="rfq-parser.html" class="nav-link" data-color="#06b6d4" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="1" width="12" height="16" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M6 5h6M6 8h6M6 11h4" stroke="#06b6d4" stroke-width="1.2" stroke-linecap="round"/></svg>

@@ -445,7 +445,7 @@ function generatePDF(email) {
     const margin = rev * 0.05;
     const leakVsMargin = runningLeak > margin;
 
-    // Design system - Material Design
+    // Design system
     const C = {
         bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
         text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
@@ -458,7 +458,27 @@ function generatePDF(email) {
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
 
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Fit text helper for dynamic sizing
+    const fitText = (doc, text, maxWidth, startSize, minSize = 6) => {
+        let sz = startSize;
+        let lines;
+        while (sz >= minSize) {
+            doc.setFontSize(sz);
+            lines = doc.splitTextToSize(text, maxWidth);
+            if (lines.length <= 3) break;
+            sz -= 0.5;
+        }
+        return { lines, fontSize: sz };
+    };
+
+    // Dynamic page break with real content height
+    const cp = (contentHeight) => { 
+        if(y + contentHeight > 265){
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage();
@@ -476,95 +496,181 @@ function generatePDF(email) {
     };
 
     const secTitle = (title,yy,color=C.red) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+        const titleFit = fitText(doc, title, cw, 12, 9);
+        const titleHeight = titleFit.lines.length * 5 + 10;
+        cp(titleHeight);
+        txt('',titleFit.fontSize,'bold',C.text);
+        doc.text(titleFit.lines,m,yy+7);
+        fill(color); doc.rect(m,yy+titleHeight-3,25,1.5,'F');
+        return yy + titleHeight;
     };
 
     // =============================
     // PAGE 1: COVER
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,72,0,0,'FD');
+    
+    // Header card with dynamic content
+    const headerHeight = 72;
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,headerHeight,0,0,'FD');
     fill(C.red); doc.circle(pw/2,16,7,'F');
     txt('A',10,'bold',C.white); doc.text('A',pw/2,19,{align:'center'});
 
-    txt('PROFIT LEAK DIAGNOSTIC',20,'bold',C.text); doc.text('PROFIT LEAK DIAGNOSTIC',pw/2,36,{align:'center'});
-    txt('Your Personalized Recovery Plan',11,'normal',C.textMid); doc.text('Your Personalized Recovery Plan',pw/2,46,{align:'center'});
+    const titleFit = fitText(doc, 'PROFIT LEAK DIAGNOSTIC', cw, 20, 16);
+    txt('',titleFit.fontSize,'bold',C.text);
+    doc.text(titleFit.lines,pw/2,36,{align:'center'});
+    
+    const subtitleFit = fitText(doc, 'Your Personalized Recovery Plan', cw, 11, 8);
+    txt('',subtitleFit.fontSize,'normal',C.textMid);
+    doc.text(subtitleFit.lines,pw/2,46,{align:'center'});
 
     fill(C.bg); doc.roundedRect(pw/2-50,50,100,10,5,5,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
     doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,56.5,{align:'center'});
 
-    y = 80;
+    y = headerHeight + 8;
 
-    // Estimated leakage card
-    card(m,y,cw,48,{accent:C.red});
-    txt('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',9,'bold',C.red); doc.text('TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE',m+cw/2,y+15,{align:'center'});
-    txt('$' + runningLeak.toLocaleString(),32,'bold',C.red); doc.text('$' + runningLeak.toLocaleString(),m+cw/2,y+32,{align:'center'});
-    txt(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,10,'normal',C.textMid);
-    doc.text(`${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`,m+cw/2,y+42,{align:'center'});
-    y += 55;
+    // Estimated leakage card - dynamic height
+    const leakageTitleFit = fitText(doc, 'TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE', cw-20, 9, 7);
+    const amountText = '$' + runningLeak.toLocaleString();
+    const leakagePctText = `${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`;
+    const leakagePctFit = fitText(doc, leakagePctText, cw-20, 10, 8);
+    const leakageCardHeight = 15 + leakageTitleFit.lines.length * 5 + 20 + leakagePctFit.lines.length * 5 + 8;
+    
+    cp(leakageCardHeight);
+    card(m,y,cw,leakageCardHeight,{accent:C.red});
+    
+    let cardY = y + 15;
+    txt('',leakageTitleFit.fontSize,'bold',C.red);
+    doc.text(leakageTitleFit.lines,m+cw/2,cardY,{align:'center'});
+    cardY += leakageTitleFit.lines.length * 5;
+    
+    txt(amountText,32,'bold',C.red);
+    doc.text(amountText,m+cw/2,cardY + 12,{align:'center'});
+    cardY += 20;
+    
+    txt('',leakagePctFit.fontSize,'normal',C.textMid);
+    doc.text(leakagePctFit.lines,m+cw/2,cardY,{align:'center'});
+    
+    y += leakageCardHeight + 8;
 
-    // Breakdown metrics
+    // Breakdown metrics - dynamic sizing
     const metW = (cw-10)/3;
     const mets = [
         { val:'$'+Math.round(runningLeak/12).toLocaleString(), label:'PER MONTH', color:C.red },
         { val:'$'+Math.round(runningLeak/365).toLocaleString(), label:'PER DAY', color:C.amber },
         { val:((runningLeak/rev)*100).toFixed(1)+'%', label:'OF REVENUE', color:C.purple }
     ];
+    
+    let metricCardHeight = 10; // base height
+    const metricFits = mets.map(mt => {
+        const valFit = fitText(doc, mt.val, metW-10, 16, 12);
+        const labelFit = fitText(doc, mt.label, metW-10, 7, 6);
+        const thisHeight = 10 + valFit.lines.length * 8 + labelFit.lines.length * 4 + 8;
+        metricCardHeight = Math.max(metricCardHeight, thisHeight);
+        return { valFit, labelFit };
+    });
+    
+    cp(metricCardHeight);
     mets.forEach((mt,i) => {
         const x = m + i*(metW+5);
-        card(x,y,metW,34,{accent:mt.color});
-        txt(mt.val,16,'bold',mt.color); doc.text(mt.val,x+metW/2,y+16,{align:'center'});
-        txt(mt.label,7,'bold',C.text); doc.text(mt.label,x+metW/2,y+24,{align:'center'});
+        card(x,y,metW,metricCardHeight,{accent:mt.color});
+        
+        const mf = metricFits[i];
+        let metY = y + 10;
+        txt('',mf.valFit.fontSize,'bold',mt.color);
+        doc.text(mf.valFit.lines,x+metW/2,metY,{align:'center'});
+        metY += mf.valFit.lines.length * 8;
+        
+        txt('',mf.labelFit.fontSize,'bold',C.text);
+        doc.text(mf.labelFit.lines,x+metW/2,metY,{align:'center'});
     });
-    y += 42;
+    y += metricCardHeight + 8;
 
-    // Nuclear insight card
+    // Nuclear insight card - dynamic
     if (leakVsMargin) {
-        card(m,y,cw,30,{accent:C.red});
-        stroke(C.red); doc.setLineWidth(0.8); doc.roundedRect(m,y,cw,30,2,2,'D');
-        txt('WARNING: LEAKAGE EXCEEDS PROFIT',10,'bold',C.red); doc.text('WARNING: LEAKAGE EXCEEDS PROFIT',m+cw/2,y+11,{align:'center'});
+        const warnTitleFit = fitText(doc, 'WARNING: LEAKAGE EXCEEDS PROFIT', cw-20, 10, 8);
         const warnMsg = `Your estimated leakage ($${runningLeak.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you are keeping.`;
-        txt(warnMsg,8,'normal',C.text);
-        const warnLines = doc.splitTextToSize(warnMsg, cw - 20);
-        doc.text(warnLines, m+10, y+19);
-        y += 36;
+        const warnMsgFit = fitText(doc, warnMsg, cw-30, 8, 6);
+        const warnCardHeight = 11 + warnTitleFit.lines.length * 5 + 8 + warnMsgFit.lines.length * 5 + 8;
+        
+        cp(warnCardHeight);
+        card(m,y,cw,warnCardHeight,{accent:C.red});
+        stroke(C.red); doc.setLineWidth(0.8); doc.roundedRect(m,y,cw,warnCardHeight,2,2,'D');
+        
+        let warnY = y + 11;
+        txt('',warnTitleFit.fontSize,'bold',C.red);
+        doc.text(warnTitleFit.lines,m+cw/2,warnY,{align:'center'});
+        warnY += warnTitleFit.lines.length * 5 + 8;
+        
+        txt('',warnMsgFit.fontSize,'normal',C.text);
+        doc.text(warnMsgFit.lines,m+15,warnY);
+        
+        y += warnCardHeight + 8;
     }
 
-    // Report outline card
+    // Report outline card - dynamic
     const outlineItems = ['Leak Breakdown - where your profit is going','Recovery Plans - step-by-step fixes for each leak','90-Day Roadmap - phased implementation plan','Next Steps - how to start recovering profit'];
-    const outlineH = 20 + outlineItems.length * 7 + 4;
-    cp(outlineH + 5);
-    card(m,y,cw,outlineH);
-    txt("WHAT'S IN THIS REPORT",10,'bold',C.text); doc.text("WHAT'S IN THIS REPORT",m+10,y+12);
-    let oY = y + 20;
-    outlineItems.forEach((item,i) => {
-        fill(C.red); doc.circle(m+14,oY,1.5,'F');
-        txt((i+1).toString(),6,'bold',C.white); doc.text((i+1).toString(),m+14,oY+1.5,{align:'center'});
-        txt(item,8,'normal',C.textMid); doc.text(item,m+20,oY+1.5);
-        oY += 7;
+    const outlineHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT", cw-20, 10, 8);
+    let outlineContentHeight = 12 + outlineHeaderFit.lines.length * 5 + 8;
+    const outlineItemFits = outlineItems.map((item, i) => {
+        const itemFit = fitText(doc, item, cw-40, 8, 6);
+        outlineContentHeight += itemFit.lines.length * 5 + 2;
+        return itemFit;
     });
-    y += outlineH + 5;
+    outlineContentHeight += 8; // bottom padding
+    
+    cp(outlineContentHeight);
+    card(m,y,cw,outlineContentHeight);
+    
+    let outlineY = y + 12;
+    txt('',outlineHeaderFit.fontSize,'bold',C.text);
+    doc.text(outlineHeaderFit.lines,m+10,outlineY);
+    outlineY += outlineHeaderFit.lines.length * 5 + 8;
+    
+    outlineItemFits.forEach((itemFit, i) => {
+        fill(C.red); doc.circle(m+14,outlineY,1.5,'F');
+        txt((i+1).toString(),6,'bold',C.white);
+        doc.text((i+1).toString(),m+14,outlineY+1.5,{align:'center'});
+        txt('',itemFit.fontSize,'normal',C.textMid);
+        doc.text(itemFit.lines,m+20,outlineY+1.5);
+        outlineY += itemFit.lines.length * 5 + 2;
+    });
+    y += outlineContentHeight + 8;
 
-    // Impact Cards breakdown
+    // Leak breakdown section - dynamic
+    const breakdownTitleHeight = 18;
+    cp(breakdownTitleHeight);
     y = secTitle('WHERE YOUR PROFIT IS LEAKING', y);
+    
     const validLeaks = leaks.filter(l=>l&&l.leak>0).sort((a,b)=>b.leak-a.leak);
-    const maxLeak = validLeaks[0]?.leak || 1;
-
+    
     validLeaks.forEach((l,li) => {
-        cp(30);
-        card(m,y,cw,22);
-        fill(C.red); doc.circle(m+12,y+11,6,'F');
-        txt((li+1).toString(),10,'bold',C.white); doc.text((li+1).toString(),m+12,y+14.5,{align:'center'});
-        txt(l.label,10,'bold',C.text); doc.text(l.label,m+25,y+10);
-        txt(l.desc,8,'normal',C.textMid);
-        const descL = doc.splitTextToSize(l.desc, cw-80);
-        doc.text(descL,m+25,y+15);
+        const leakLabelFit = fitText(doc, l.label, cw-100, 10, 8);
+        const leakDescFit = fitText(doc, l.desc, cw-100, 8, 6);
+        const amountText = '$'+l.leak.toLocaleString();
+        const leakItemHeight = Math.max(22, 12 + leakLabelFit.lines.length * 5 + leakDescFit.lines.length * 4 + 8);
+        
+        cp(leakItemHeight);
+        card(m,y,cw,leakItemHeight);
+        
+        fill(C.red); doc.circle(m+12,y+leakItemHeight/2,6,'F');
+        txt((li+1).toString(),10,'bold',C.white);
+        doc.text((li+1).toString(),m+12,y+leakItemHeight/2+3,{align:'center'});
+        
+        let leakY = y + 10;
+        txt('',leakLabelFit.fontSize,'bold',C.text);
+        doc.text(leakLabelFit.lines,m+25,leakY);
+        leakY += leakLabelFit.lines.length * 5;
+        
+        txt('',leakDescFit.fontSize,'normal',C.textMid);
+        doc.text(leakDescFit.lines,m+25,leakY);
+        
         fill(C.red); doc.roundedRect(pw-m-45,y+6,35,10,5,5,'F');
-        txt('$'+l.leak.toLocaleString(),9,'bold',C.white); doc.text('$'+l.leak.toLocaleString(),pw-m-27.5,y+12.5,{align:'center'});
-        y += 28;
+        txt(amountText,9,'bold',C.white);
+        doc.text(amountText,pw-m-27.5,y+12.5,{align:'center'});
+        
+        y += leakItemHeight + 6;
     });
 
     // =============================
@@ -650,30 +756,51 @@ function generatePDF(email) {
         const fix = fixes[leak.label];
         if(!fix) return;
         const col = fix.priority==="CRITICAL"?C.red:fix.priority==="HIGH"?C.amber:C.blue;
-        // Pre-calculate actual height needed
-        let calcH = 34; // header space
-        fix.steps.forEach(s => {
-            const sLines = doc.splitTextToSize(s, cw - 30);
-            calcH += sLines.length * 5 + 5;
+        
+        // Measure all text content for dynamic height
+        const headerFit = fitText(doc, `${idx+1}. ${leak.label.toUpperCase()}`, cw-30, 10, 8);
+        const impactFit = fitText(doc, `Impact: ${fix.impact}`, cw/3, 8, 6);
+        const priorityLabelFit = fitText(doc, 'PRIORITY:', 40, 8, 6);
+        const priorityValueFit = fitText(doc, fix.priority, 60, 9, 7);
+        
+        // Calculate total height needed
+        let totalHeight = 12; // top padding
+        totalHeight += headerFit.lines.length * 5 + 6; // header + gap
+        totalHeight += Math.max(impactFit.lines.length * 4, 10) + 4; // impact line + gap
+        totalHeight += Math.max(priorityLabelFit.lines.length * 4 + priorityValueFit.lines.length * 5, 10) + 6; // priority line + gap
+        
+        const stepFits = fix.steps.map(s => fitText(doc, s, cw-35, 8, 6));
+        stepFits.forEach(sf => {
+            totalHeight += sf.lines.length * 5 + 3; // step text + gap
         });
-        calcH += 4; // bottom padding
-        cp(calcH + 5);
-        card(m,y,cw,calcH,{accent:col});
-        txt(`${idx+1}. ${leak.label.toUpperCase()}`,10,'bold',col); doc.text(`${idx+1}. ${leak.label.toUpperCase()}`,m+12,y+12);
-        txt(`Impact: ${fix.impact}`,8,'bold',C.textMid); doc.text(`Impact: ${fix.impact}`,pw-m-12,y+12,{align:'right'});
-
-        txt('PRIORITY:',8,'bold',C.text); doc.text('PRIORITY:',m+12,y+24);
-        txt(fix.priority,9,'bold',col); doc.text(fix.priority,m+35,y+24);
-
-        let sY = y+34;
-        fix.steps.forEach((s,si) => {
-            fill(col); doc.circle(m+15,sY,1,'F');
-            txt(s,8,'normal',C.text);
-            const sLines = doc.splitTextToSize(s, cw - 30);
-            doc.text(sLines,m+20,sY+1.5);
-            sY += sLines.length * 5 + 5;
+        totalHeight += 8; // bottom padding
+        
+        cp(totalHeight);
+        card(m,y,cw,totalHeight,{accent:col});
+        
+        // Draw content
+        let currentY = y + 12;
+        txt('',headerFit.fontSize,'bold',col);
+        doc.text(headerFit.lines,m+12,currentY);
+        currentY += headerFit.lines.length * 5 + 6;
+        
+        txt('',impactFit.fontSize,'bold',C.textMid);
+        doc.text(impactFit.lines,pw-m-12,currentY,{align:'right'});
+        
+        txt('',priorityLabelFit.fontSize,'bold',C.text);
+        doc.text(priorityLabelFit.lines,m+12,currentY);
+        txt('',priorityValueFit.fontSize,'bold',col);
+        doc.text(priorityValueFit.lines,m+35,currentY);
+        currentY += Math.max(impactFit.lines.length * 4, priorityLabelFit.lines.length * 4 + priorityValueFit.lines.length * 5) + 6;
+        
+        stepFits.forEach(sf => {
+            fill(col); doc.circle(m+15,currentY,1,'F');
+            txt('',sf.fontSize,'normal',C.text);
+            doc.text(sf.lines,m+20,currentY+1.5);
+            currentY += sf.lines.length * 5 + 3;
         });
-        y += calcH + 8;
+        
+        y += totalHeight + 8;
     });
 
     // =============================
@@ -681,6 +808,7 @@ function generatePDF(email) {
     // =============================
     newPage();
     y = secTitle('90-DAY PROFIT RECOVERY ROADMAP', y);
+    
     const phases = [
         { t:'DAYS 1-14: AUDIT AND DISCOVER', c:C.green, items:['Audit ERP price override logs.','Pull declining customer report.','Time-study 20 orders.'] },
         { t:'DAYS 15-30: SET THE FLOOR', c:C.amber, items:['Set margin floors for top 50 SKUs.','Run ABC inventory analysis.','Create top 20 quote templates.'] },
@@ -689,52 +817,71 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p) => {
-        // Pre-calculate phase height
-        let phaseH = 15; // header bar + gap
-        p.items.forEach(it => {
-            const itLines = doc.splitTextToSize(it, cw - 15);
-            phaseH += itLines.length * 5 + 3;
+        const phaseTitleFit = fitText(doc, p.t, cw-20, 9, 7);
+        
+        let phaseContentHeight = 10 + phaseTitleFit.lines.length * 5 + 5; // header bar + gap
+        const phaseItemFits = p.items.map(item => {
+            const itemFit = fitText(doc, item, cw-20, 9, 7);
+            phaseContentHeight += itemFit.lines.length * 5 + 3;
+            return itemFit;
         });
-        phaseH += 5; // bottom spacing
-        cp(phaseH);
+        phaseContentHeight += 8; // bottom spacing
+        
+        cp(phaseContentHeight);
         fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
-        txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
+        txt('',phaseTitleFit.fontSize,'bold',C.white);
+        doc.text(phaseTitleFit.lines,m+cw/2,y+7,{align:'center'});
         y += 15;
-        p.items.forEach(it => {
+        
+        phaseItemFits.forEach(itemFit => {
             fill(p.c); doc.circle(m+5,y+2,1,'F');
-            txt(it,9,'normal',C.text);
-            const itLines = doc.splitTextToSize(it, cw - 15);
-            doc.text(itLines,m+10,y+4);
-            y += itLines.length * 5 + 3;
+            txt('',itemFit.fontSize,'normal',C.text);
+            doc.text(itemFit.lines,m+10,y+4);
+            y += itemFit.lines.length * 5 + 3;
         });
-        y += 5;
+        y += 8;
     });
 
-    // NOT AN ERP card
-    y += 10;
+    // NOT AN ERP card - dynamic
+    const notErpTitleFit = fitText(doc, 'THIS IS NOT AN ERP IMPLEMENTATION', cw-20, 10, 8);
     const notErpMsg = 'We build targeted automation on top of your existing systems. No 14-month projects. No rip-and-replace. Start seeing results in weeks, not years.';
-    const notErpLines = doc.splitTextToSize(notErpMsg, cw - 20);
-    const notErpH = 22 + notErpLines.length * 5 + 6;
-    cp(notErpH + 5);
-    card(m,y,cw,notErpH,{accent:C.green});
-    txt('THIS IS NOT AN ERP IMPLEMENTATION',10,'bold',C.green); doc.text('THIS IS NOT AN ERP IMPLEMENTATION',m+cw/2,y+12,{align:'center'});
-    txt(notErpMsg,9,'normal',C.text);
-    doc.text(notErpLines, m+10, y+22);
-    y += notErpH + 5;
+    const notErpMsgFit = fitText(doc, notErpMsg, cw-30, 9, 7);
+    const notErpHeight = 12 + notErpTitleFit.lines.length * 5 + 6 + notErpMsgFit.lines.length * 5 + 8;
+    
+    cp(notErpHeight);
+    card(m,y,cw,notErpHeight,{accent:C.green});
+    
+    let notErpY = y + 12;
+    txt('',notErpTitleFit.fontSize,'bold',C.green);
+    doc.text(notErpTitleFit.lines,m+cw/2,notErpY,{align:'center'});
+    notErpY += notErpTitleFit.lines.length * 5 + 6;
+    
+    txt('',notErpMsgFit.fontSize,'normal',C.text);
+    doc.text(notErpMsgFit.lines,m+15,notErpY);
+    
+    y += notErpHeight + 10;
 
-    // CTA
-    y += 10;
+    // CTA - dynamic
+    const ctaTitleFit = fitText(doc, "LET'S RECOVER YOUR PROFIT", cw-20, 14, 11);
     const ctaMsg = 'You have identified $' + runningLeak.toLocaleString() + ' in annual profit leakage. Let us get it back.';
-    const ctaMsgLines = doc.splitTextToSize(ctaMsg, cw - 20);
-    const ctaH = 15 + ctaMsgLines.length * 5 + 4 + 12 + 6;
-    cp(ctaH + 5);
+    const ctaMsgFit = fitText(doc, ctaMsg, cw-30, 9, 7);
+    const ctaHeight = 15 + ctaTitleFit.lines.length * 6 + ctaMsgFit.lines.length * 5 + 8 + 12 + 8;
+    
+    cp(ctaHeight);
     stroke(C.red); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,ctaH,3,3,'FD');
-    txt("LET'S RECOVER YOUR PROFIT",14,'bold',C.text); doc.text("LET'S RECOVER YOUR PROFIT",pw/2,y+15,{align:'center'});
-    txt(ctaMsg,9,'normal',C.textMid);
-    doc.text(ctaMsgLines,pw/2,y+24,{align:'center'});
-    const ctaEmailY = y + 24 + ctaMsgLines.length * 5 + 4;
-    txt('mo@deeplineop.ai',12,'bold',C.red); doc.text('mo@deeplineop.ai',pw/2,ctaEmailY,{align:'center'});
+    fill(C.white); doc.roundedRect(m,y,cw,ctaHeight,3,3,'FD');
+    
+    let ctaY = y + 15;
+    txt('',ctaTitleFit.fontSize,'bold',C.text);
+    doc.text(ctaTitleFit.lines,pw/2,ctaY,{align:'center'});
+    ctaY += ctaTitleFit.lines.length * 6;
+    
+    txt('',ctaMsgFit.fontSize,'normal',C.textMid);
+    doc.text(ctaMsgFit.lines,pw/2,ctaY,{align:'center'});
+    ctaY += ctaMsgFit.lines.length * 5 + 8;
+    
+    txt('mo@deeplineop.ai',12,'bold',C.red);
+    doc.text('mo@deeplineop.ai',pw/2,ctaY,{align:'center'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
@@ -763,21 +910,21 @@ init();
             <strong>All Tools</strong>
         </a>
         <div style="height:1px;background:#2a2a3a;margin:6px 4px;"></div>
-        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
-            AI Readiness Scorecard
-        </a>
-        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Profit Leak Diagnostic
+        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
+            Business Dependency
         </a>
         <a href="ceo-time-audit.html" class="nav-link" data-color="#f59e0b" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5"/><path d="M2 7h14M6 3v-1M12 3v-1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><rect x="5" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/><rect x="8" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/></svg>
             CEO Time Audit
         </a>
-        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
-            Business Dependency
+        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Profit Leak Diagnostic
+        </a>
+        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
+            AI Readiness Scorecard
         </a>
         <a href="rfq-parser.html" class="nav-link" data-color="#06b6d4" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="1" width="12" height="16" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M6 5h6M6 8h6M6 11h4" stroke="#06b6d4" stroke-width="1.2" stroke-linecap="round"/></svg>

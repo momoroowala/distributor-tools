@@ -423,102 +423,234 @@ function generatePDF(email) {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
-    const m = 20, cw = pw - 2*m;
+    const m = 15, cw = pw - 2*m;
     let y = 0;
 
-    // Design system - Dark Mode
+    // Design system - Material Design
     const C = {
-        bg: [10, 10, 15], card: [18, 18, 26], cell: [26, 26, 37],
-        border: [42, 42, 58], text: [241, 245, 249], textMid: [148, 163, 184],
-        textLight: [100, 116, 139], white: [255, 255, 255], shadow: [6, 6, 10],
-        blue: [59, 130, 246], red: [239, 68, 68], yellow: [250, 204, 21],
-        green: [34, 197, 94], purple: [168, 85, 247], amber: [245, 158, 11]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
+
+    // Dynamic text fitting helper
+    const fitText = (doc, text, maxWidth, startSize, minSize) => {
+        let sz = startSize;
+        let lines;
+        while (sz >= minSize) {
+            doc.setFontSize(sz);
+            lines = doc.splitTextToSize(text, maxWidth);
+            if (lines.length <= 3) break;
+            sz -= 0.5;
+        }
+        return { lines, fontSize: sz };
+    };
+
+    // Calculate actual content height before drawing
+    const measureContent = (content) => {
+        let totalHeight = 0;
+        content.forEach(item => {
+            if (item.type === 'text') {
+                doc.setFontSize(item.fontSize || 9);
+                const lines = doc.splitTextToSize(item.text, item.maxWidth || cw - 20);
+                totalHeight += lines.length * (item.lineHeight || 6);
+            } else if (item.type === 'space') {
+                totalHeight += item.height;
+            } else if (item.type === 'circle') {
+                totalHeight += item.radius * 2;
+            }
+        });
+        return totalHeight + 8; // Add bottom padding
+    };
     
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Dynamic page break checking with actual content height
+    const cp = (contentHeight) => { 
+        if(y + contentHeight > 270){
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.blue); doc.rect(0,0,pw,1.5,'F');
-        y = 20;
+        y = 15;
     };
 
-    const card = (x,yc,w,h,opts={}) => {
+    const dynamicCard = (x, yPos, w, content, opts = {}) => {
+        // Measure content first
+        const contentHeight = measureContent(content);
+        const totalHeight = contentHeight + 16; // 8px top + bottom padding
+        
+        // Draw card background
         const r = opts.radius || 2;
-        fill(C.shadow); doc.roundedRect(x+0.5,yc+0.5,w,h,r,r,'F');
+        fill(C.shadow); doc.roundedRect(x+0.5, yPos+0.5, w, totalHeight, r, r, 'F');
         stroke(C.border); doc.setLineWidth(0.2);
-        fill(C.card); doc.roundedRect(x,yc,w,h,r,r,'FD');
-        if(opts.accent) { fill(opts.accent); doc.roundedRect(x,yc,3,h,r,0,'F'); doc.rect(x+1.5,yc,1.5,h,'F'); }
+        fill(C.card); doc.roundedRect(x, yPos, w, totalHeight, r, r, 'FD');
+        if(opts.accent) { 
+            fill(opts.accent); 
+            doc.roundedRect(x, yPos, 3, totalHeight, r, 0, 'F'); 
+            doc.rect(x+1.5, yPos, 1.5, totalHeight, 'F'); 
+        }
+
+        // Render content
+        let currentY = yPos + 8;
+        content.forEach(item => {
+            if (item.type === 'text') {
+                txt(item.text, item.fontSize || 9, item.style || 'normal', item.color || C.text);
+                const lines = doc.splitTextToSize(item.text, item.maxWidth || w - 20);
+                lines.forEach(line => {
+                    doc.text(line, item.x || (x + 10), currentY + (item.lineHeight || 6));
+                    currentY += item.lineHeight || 6;
+                });
+            } else if (item.type === 'space') {
+                currentY += item.height;
+            } else if (item.type === 'circle') {
+                fill(item.color || C.blue);
+                doc.circle(item.x || (x + 10), currentY + item.radius, item.radius, 'F');
+                currentY += item.radius * 2;
+            } else if (item.type === 'rect') {
+                fill(item.color || C.blue);
+                doc.rect(item.x || (x + 10), currentY, item.width, item.height, 'F');
+                currentY += item.height;
+            }
+        });
+
+        return totalHeight;
     };
 
-    const secTitle = (title,yy,color=C.blue) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+    const secTitle = (title, yy, color = C.blue) => {
+        const titleContent = [
+            { type: 'text', text: title, fontSize: 11, style: 'bold', color: C.text, x: m, lineHeight: 7 },
+            { type: 'space', height: 3 },
+            { type: 'rect', x: m, width: 20, height: 1.5, color: color }
+        ];
+        const titleHeight = measureContent(titleContent);
+        cp(titleHeight);
+        
+        txt(title, 11, 'bold', C.text); 
+        doc.text(title, m, yy + 6);
+        fill(color); 
+        doc.rect(m, yy + 9, 20, 1.5, 'F');
+        return yy + 15;
     };
 
     // =============================
     // PAGE 1: COVER
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,95,0,0,'FD');
-    fill(C.blue); doc.circle(pw/2,22,8,'F');
-    txt('A',12,'bold',C.white); doc.text('A',pw/2,25.5,{align:'center'});
+    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD');
+    fill(C.blue); doc.circle(pw/2,18,6,'F');
+    txt('🏢',10,'bold',C.white); doc.text('🏢',pw/2,21,{align:'center'});
 
-    txt('BUSINESS DEPENDENCY REPORT',20,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,48,{align:'center'});
-    txt('What If You Left Tomorrow?',11,'normal',C.textMid); doc.text('What If You Left Tomorrow?',pw/2,58,{align:'center'});
+    txt('BUSINESS DEPENDENCY REPORT',17,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,38,{align:'center'});
+    txt('What If You Left Tomorrow?',9,'normal',C.textMid);
+    doc.text('What If You Left Tomorrow?',pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-50,68,100,10,5,5,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,74.5,{align:'center'});
+    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F');
+    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
-    y = 105;
+    y = 75;
 
-    // Score visualization card
-    const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : C.green;
-    card(m,y,cw,52,{accent:scoreCol});
-    txt('OWNER DEPENDENCY INDEX',9,'bold',scoreCol); doc.text('OWNER DEPENDENCY INDEX',m+cw/2,y+15,{align:'center'});
-
-    fill(scoreCol); doc.circle(m+cw/2,y+30,12,'F');
-    txt(d.totalScore.toString(),18,'bold',C.white); doc.text(d.totalScore.toString(),m+cw/2,y+34,{align:'center'});
+    // Table of Contents - Dynamic
+    const tocContent = [
+        { type: 'text', text: "WHAT'S IN THIS REPORT:", fontSize: 8, style: 'bold', color: C.blue, x: m+8, lineHeight: 6 },
+        { type: 'space', height: 6 }
+    ];
     
-    txt(d.verdict,9,'normal',C.textMid); doc.text(d.verdict,m+cw/2,y+46,{align:'center'});
-    y += 70;
+    const toc = [
+        'Page 1: Owner Dependency Index & Risk Assessment',
+        'Page 2: Independence Roadmap & Valuation Impact', 
+        'Page 3: Implementation Framework'
+    ];
+    
+    toc.forEach(item => {
+        const fitted = fitText(doc, item, cw-25, 7.5, 6);
+        tocContent.push({ 
+            type: 'circle', 
+            x: m+10, 
+            radius: 0.8, 
+            color: C.blue 
+        });
+        tocContent.push({ 
+            type: 'text', 
+            text: item, 
+            fontSize: fitted.fontSize, 
+            x: m+14, 
+            lineHeight: 5,
+            maxWidth: cw-25
+        });
+    });
 
-    // Risk summary
+    const tocHeight = dynamicCard(m, y, cw, tocContent, {accent: C.blue});
+    y += tocHeight + 8;
+
+    // Score visualization card - Dynamic
+    const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : C.green;
+    const scoreContent = [
+        { type: 'text', text: 'OWNER DEPENDENCY INDEX', fontSize: 9, style: 'bold', color: scoreCol, x: m+cw/2, lineHeight: 8 },
+        { type: 'space', height: 4 },
+        { type: 'circle', x: m+cw/2, radius: 10, color: scoreCol },
+        { type: 'text', text: d.totalScore.toString(), fontSize: 16, style: 'bold', color: C.white, x: m+cw/2, lineHeight: 8 },
+        { type: 'space', height: 3 },
+        { type: 'text', text: d.verdict, fontSize: 8, color: C.textMid, x: m+cw/2, lineHeight: 6, maxWidth: cw-20 }
+    ];
+    
+    const scoreHeight = dynamicCard(m, y, cw, scoreContent, {accent: scoreCol});
+    y += scoreHeight + 8;
+
+    // Risk summary - Dynamic
     const critical = d.answers.filter(a=>a.score>=8).length;
     const atRisk = d.answers.filter(a=>a.score>=4&&a.score<8).length;
     const healthy = d.answers.filter(a=>a.score<4).length;
     const metW = (cw-10)/3;
+    
     [{val:critical,label:'CRITICAL',color:C.red},{val:atRisk,label:'AT RISK',color:C.amber},{val:healthy,label:'HEALTHY',color:C.green}].forEach((mt,i) => {
         const x = m + i*(metW+5);
-        card(x,y,metW,34,{accent:mt.color});
-        txt(mt.val.toString(),18,'bold',mt.color); doc.text(mt.val.toString(),x+metW/2,y+16,{align:'center'});
-        txt(mt.label+' AREAS',7,'bold',C.text); doc.text(mt.label+' AREAS',x+metW/2,y+25,{align:'center'});
+        const metricContent = [
+            { type: 'text', text: mt.val.toString(), fontSize: 16, style: 'bold', color: mt.color, x: x+metW/2, lineHeight: 8 },
+            { type: 'space', height: 2 },
+            { type: 'text', text: mt.label+' AREAS', fontSize: 6, style: 'bold', color: C.text, x: x+metW/2, lineHeight: 6 }
+        ];
+        
+        cp(measureContent(metricContent) + 16);
+        dynamicCard(x, y, metW, metricContent, {accent: mt.color});
     });
-    y += 55;
+    y += measureContent([{ type: 'text', text: 'Sample', fontSize: 16, lineHeight: 8 }, { type: 'space', height: 2 }, { type: 'text', text: 'Sample', fontSize: 6, lineHeight: 6 }]) + 24;
 
-    // Risk assessment breakdown
+    // Risk assessment breakdown - Dynamic
     y = secTitle('RISK ASSESSMENT BY AREA', y);
+    
     d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
-        cp(28);
         const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
-        card(m,y,cw,18);
-        fill(rColor); doc.circle(m+12,y+9,2,'F');
-        txt(a.category.toUpperCase(),9,'bold',C.text); doc.text(a.category.toUpperCase(),m+18,y+8);
-        
-        const barX = m+70, barW = cw-100;
-        fill(C.bg); doc.roundedRect(barX,y+6,barW,4,1,1,'F');
-        fill(rColor); doc.roundedRect(barX,y+6,(a.score/10)*barW,4,1,1,'F');
-        
         const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
-        txt(level,8,'bold',rColor); doc.text(level,pw-m-12,y+10,{align:'right'});
-        y += 24;
+        
+        const riskContent = [
+            { type: 'circle', x: m+10, radius: 1.5, color: rColor },
+            { type: 'text', text: a.category.toUpperCase(), fontSize: 8, style: 'bold', color: C.text, x: m+16, lineHeight: 6 },
+            { type: 'space', height: 2 }
+        ];
+        
+        const riskHeight = dynamicCard(m, y, cw, riskContent);
+        
+        // Draw progress bar after card
+        const barX = m+60, barW = cw-90;
+        fill(C.bg); doc.roundedRect(barX, y+5, barW, 3, 1, 1, 'F');
+        fill(rColor); doc.roundedRect(barX, y+5, (a.score/10)*barW, 3, 1, 1, 'F');
+        
+        txt(level, 7, 'bold', rColor); 
+        doc.text(level, pw-m-10, y+8, {align:'right'});
+        
+        y += riskHeight + 8;
     });
 
     // =============================
@@ -526,101 +658,89 @@ function generatePDF(email) {
     // =============================
     newPage();
     y = secTitle('INDEPENDENCE ROADMAP', y);
+    
     const roadmap = {
-        Operations: {title:"Automate Order Processing",steps:["Pull ERP override logs from last 6 months to identify manual intervention patterns","Map customer PO formats and create automated parsing rules for your top 20 accounts","Build warehouse pick efficiency dashboards showing pick time by operator and product location","Implement auto-approval limits: <$500 orders ship without review, >$10K orders require manager sign-off","Create exception handling playbook: when system flags orders, who approves what by value tier"]},
-        Pricing: {title:"Systematize Pricing Decisions",steps:["Export pricing history by customer: identify who gets custom pricing and document the business logic","Build pricing matrix in your ERP: product category + customer tier + volume = automatic price","Create override approval workflows: reps can discount 5%, managers 15%, you approve >15%","Audit 'tribal knowledge' pricing: when your pricing person leaves, companies lose 1-3% margin for months","Track pricing variance by rep: who deviates from standard pricing and what's the margin impact"]},
-        Knowledge: {title:"Capture Institutional Memory",steps:["Record vendor negotiation playbooks: payment terms, volume rebates, and relationship history by supplier","Document customer quirks: special shipping instructions, PO requirements, and contact preferences","Create troubleshooting guides: when ERP crashes, when key supplier is out of stock, when major customer complains","Build route optimization knowledge base: delivery schedules, driver preferences, traffic patterns","Capture 'tribal knowledge': if you were hit by a bus, what would your team NOT know how to handle"]},
-        Decisions: {title:"Build Decision-Making Systems",steps:["Audit your daily decisions: pricing overrides, vendor selections, hiring choices, customer complaints","Create decision trees: IF customer wants 2% discount AND order >$5K THEN auto-approve","Document escalation paths: rep handles routine, manager handles exceptions, you handle strategic","Implement approval limits by role: who can approve what dollar amounts without escalation","Track decision outcomes: measure the results of delegated decisions vs. your personal choices"]},
-        Relationships: {title:"Multi-Thread Key Accounts",steps:["Pull your top 10 accounts by revenue: who else at your company has a relationship with them?","Conduct quarterly business reviews with your largest customers: bring operations manager or sales rep","Create account handoff protocols: if customer calls you directly, how do you transfer to team member?","Map customer org charts: who makes buying decisions, who influences, who uses the product daily","Systematize relationship building: monthly check-ins, annual strategy sessions, proactive problem-solving"]}
+        Operations: {title:"Systematize Operations",steps:["Document order handling step by step.","Create tiered approvals: <$X auto.","Train team leads on key accounts.","Implement tracking dashboards."]},
+        Pricing: {title:"Codify Pricing Knowledge",steps:["Centralize special arrangements.","Create logic-based pricing matrix.","Train team on margin rules.","Implement ERP approval workflows."]},
+        Knowledge: {title:"Transfer Knowledge",steps:["Record key process screencasts.","Create emergency handbook.","Build company wiki (SOPs).","Host weekly knowledge sessions."]},
+        Decisions: {title:"Delegate Authority",steps:["List recurring decisions.","Write clear decision frameworks.","Formally authorize team leads.","Monitor outcomes, provide feedback."]},
+        Relationships: {title:"Multi-Thread Relationships",steps:["Introduce leads to top clients.","Conduct joint business reviews.","Transition routine comms to team.","Systematize relationship management."]}
     };
 
     d.answers.filter(a=>a.score>=4).slice(0,4).forEach((a,idx) => {
         const plan = roadmap[a.category] || {title:a.category, steps:["Document current process.","Delegate small tasks.","Monitor performance.","Review outcomes." ]};
         
-        // Calculate dynamic height using splitTextToSize
-        let totalHeight = 35; // Base height for title and padding
-        plan.steps.forEach(s => {
-            const lines = doc.splitTextToSize(s, cw-35);
-            totalHeight += lines.length * 6 + 2; // 6pt line height + 2pt spacing
-        });
+        const planContent = [
+            { type: 'text', text: `${idx+1}. ${plan.title.toUpperCase()}`, fontSize: 9, style: 'bold', color: C.blue, x: m+10, lineHeight: 8 },
+            { type: 'space', height: 4 }
+        ];
         
-        cp(totalHeight + 10);
-        const rColor = a.score>=8 ? C.red : C.amber;
-        card(m,y,cw,totalHeight,{accent:C.blue});
-        txt(`${idx+1}. ${plan.title.toUpperCase()}`,10,'bold',C.blue); doc.text(`${idx+1}. ${plan.title.toUpperCase()}`,m+12,y+12);
-        
-        let sY = y+25;
-        plan.steps.forEach(s => {
-            fill(C.blue); doc.circle(m+15,sY,1, 'F');
-            txt(s,9,'normal',C.text); 
-            const lines = doc.splitTextToSize(s, cw-35);
-            lines.forEach((line, lineIdx) => {
-                doc.text(line, m+20, sY+2+(lineIdx*6));
+        plan.steps.slice(0,3).forEach(s => {
+            const fitted = fitText(doc, s, cw-25, 8, 7);
+            planContent.push({ type: 'circle', x: m+12, radius: 1, color: C.blue });
+            planContent.push({ 
+                type: 'text', 
+                text: s, 
+                fontSize: fitted.fontSize, 
+                x: m+16, 
+                lineHeight: 7,
+                maxWidth: cw-25
             });
-            sY += lines.length * 6 + 2;
         });
-        y += totalHeight + 10;
+
+        const planHeight = dynamicCard(m, y, cw, planContent, {accent: C.blue});
+        y += planHeight + 8;
     });
 
-    // Dollar Impact Callout
-    cp(85);
-    y = secTitle('DOLLAR IMPACT', y);
-    card(m,y,cw,65,{accent:C.amber});
-    fill(C.amber); doc.circle(m+15,y+15,5,'F');
-    txt('$',10,'bold',C.card); doc.text('$',m+15,y+18,{align:'center'});
-    txt('THE VALUATION GAP',11,'bold',C.amber); doc.text('THE VALUATION GAP',m+28,y+15);
-    txt('A $2M EBITDA business: $4-6M owner-dependent vs $8-12M systematized.',9,'bold',C.text);
-    doc.text('A $2M EBITDA business: $4-6M owner-dependent vs $8-12M systematized.',m+15,y+28);
-    txt("That's $4-6M you're leaving on the table.",10,'bold',C.amber);
-    doc.text("That's $4-6M you're leaving on the table.",m+15,y+40);
-    txt('Owner-dependent businesses sell for 2-3x earnings; systematized ones sell for 4-6x.',8,'normal',C.textMid);
-    doc.text('Owner-dependent businesses sell for 2-3x earnings; systematized ones sell for 4-6x.',m+15,y+50);
-    y += 75;
-
-    // Valuation comparison
-    cp(50);
+    // Valuation impact - Dynamic
+    y = secTitle('VALUATION IMPACT', y);
     const hw = (cw-6)/2;
-    card(m,y,hw,35,{accent:C.red});
-    txt('OWNER-DEPENDENT',7,'bold',C.red); doc.text('OWNER-DEPENDENT',m+10,y+10);
-    txt('2-3x',18,'bold',C.red); doc.text('2-3x',m+10,y+22);
-    txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+10,y+28);
+    
+    const leftContent = [
+        { type: 'text', text: 'OWNER-DEPENDENT', fontSize: 6, style: 'bold', color: C.red, x: m+8, lineHeight: 6 },
+        { type: 'text', text: '2-3x', fontSize: 16, style: 'bold', color: C.red, x: m+8, lineHeight: 8 },
+        { type: 'text', text: 'earnings multiple', fontSize: 7, color: C.textMid, x: m+8, lineHeight: 6 }
+    ];
+    
+    const rightContent = [
+        { type: 'text', text: 'SYSTEMATIZED', fontSize: 6, style: 'bold', color: C.green, x: m+hw+12, lineHeight: 6 },
+        { type: 'text', text: '4-6x', fontSize: 16, style: 'bold', color: C.green, x: m+hw+12, lineHeight: 8 },
+        { type: 'text', text: 'earnings multiple', fontSize: 7, color: C.textMid, x: m+hw+12, lineHeight: 6 }
+    ];
+    
+    const leftHeight = dynamicCard(m, y, hw, leftContent, {accent: C.red});
+    dynamicCard(m+hw+6, y, hw, rightContent, {accent: C.green});
+    y += leftHeight + 8;
 
-    card(m+hw+6,y,hw,35,{accent:C.green});
-    txt('SYSTEMATIZED',7,'bold',C.green); doc.text('SYSTEMATIZED',m+hw+16,y+10);
-    txt('4-6x',18,'bold',C.green); doc.text('4-6x',m+hw+16,y+22);
-    txt('earnings multiple',8,'normal',C.textMid); doc.text('earnings multiple',m+hw+16,y+28);
-    y += 55;
-
-    // Disclaimer
-    cp(70);
-    card(m,y,cw,55,{accent:C.purple});
-    txt('THIS IS NOT AN ERP PITCH',12,'bold',C.purple); doc.text('THIS IS NOT AN ERP PITCH',pw/2,y+18,{align:'center'});
-    txt('We build lightweight automation on top of your existing systems.',9,'bold',C.text);
-    doc.text('We build lightweight automation on top of your existing systems.',pw/2,y+30,{align:'center'});
-    txt('No rip-and-replace. No 14-month projects.',9,'normal',C.textMid);
-    doc.text('No rip-and-replace. No 14-month projects.',pw/2,y+38,{align:'center'});
-    txt('Your ERP stays. We just make it work harder for you.',9,'normal',C.textMid);
-    doc.text('Your ERP stays. We just make it work harder for you.',pw/2,y+46,{align:'center'});
-    y += 70;
-
-    // CTA
-    cp(65);
+    // CTA - Dynamic
+    const ctaContent = [
+        { type: 'text', text: "BUILD A BUSINESS THAT RUNS WITHOUT YOU", fontSize: 11, style: 'bold', color: C.text, x: pw/2, lineHeight: 8 },
+        { type: 'text', text: "Let's create the systems and automation that set you free.", fontSize: 8, color: C.textMid, x: pw/2, lineHeight: 6 },
+        { type: 'text', text: 'mo@deeplineop.ai', fontSize: 11, style: 'bold', color: C.blue, x: pw/2, lineHeight: 8 }
+    ];
+    
+    const ctaHeight = measureContent(ctaContent) + 16;
+    cp(ctaHeight);
+    
     stroke(C.blue); doc.setLineWidth(1);
-    fill(C.card); doc.roundedRect(m,y,cw,45,3,3,'FD');
-    txt("BUILD A BUSINESS THAT RUNS WITHOUT YOU",12,'bold',C.text); doc.text("BUILD A BUSINESS THAT RUNS WITHOUT YOU",pw/2,y+15,{align:'center'});
-    txt("Let's create the systems and automation that set you free.",9,'normal',C.textMid);
-    doc.text("Let's create the systems and automation that set you free.",pw/2,y+24,{align:'center'});
-    txt('mo@deeplineop.ai',12,'bold',C.blue); doc.text('mo@deeplineop.ai',pw/2,y+36,{align:'center'});
+    fill(C.white); doc.roundedRect(m, y, cw, ctaHeight, 3, 3, 'FD');
+    
+    let ctaY = y + 8;
+    ctaContent.forEach(item => {
+        txt(item.text, item.fontSize, item.style, item.color);
+        doc.text(item.text, item.x, ctaY + item.lineHeight, {align: 'center'});
+        ctaY += item.lineHeight + 2;
+    });
 
     // Footer
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
-        txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
-        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
-        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
+        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD');
+        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
+        doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
+        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
     doc.save('Business-Dependency-Report.pdf');
 }
@@ -639,21 +759,21 @@ init();
             <strong>All Tools</strong>
         </a>
         <div style="height:1px;background:#2a2a3a;margin:6px 4px;"></div>
-        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
-            AI Readiness Scorecard
-        </a>
-        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Profit Leak Diagnostic
+        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
+            Business Dependency
         </a>
         <a href="ceo-time-audit.html" class="nav-link" data-color="#f59e0b" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5"/><path d="M2 7h14M6 3v-1M12 3v-1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><rect x="5" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/><rect x="8" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/></svg>
             CEO Time Audit
         </a>
-        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
-            Business Dependency
+        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Profit Leak Diagnostic
+        </a>
+        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
+            AI Readiness Scorecard
         </a>
         <a href="rfq-parser.html" class="nav-link" data-color="#06b6d4" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="1" width="12" height="16" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M6 5h6M6 8h6M6 11h4" stroke="#06b6d4" stroke-width="1.2" stroke-linecap="round"/></svg>

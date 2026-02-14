@@ -408,11 +408,11 @@ function generatePDF(email) {
 
     // Design system - Material Design
     const C = {
-        bg: [10, 10, 15], card: [18, 18, 26], cell: [26, 26, 37],
-        border: [42, 42, 58], text: [241, 245, 249], textMid: [148, 163, 184],
-        textLight: [100, 116, 139], white: [255, 255, 255], shadow: [6, 6, 10],
-        blue: [59, 130, 246], red: [239, 68, 68], yellow: [250, 204, 21],
-        green: [34, 197, 94], purple: [168, 85, 247], amber: [245, 158, 11]
+        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
+        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
+        white: [255, 255, 255], shadow: [232, 234, 237],
+        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
+        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
@@ -511,7 +511,7 @@ function generatePDF(email) {
     y = sY + 8;
 
     // What's In This Report
-    card(m,y,cw,38);
+    card(m,y,cw,32);
     txt("WHAT'S IN THIS REPORT",8,'bold',C.amber); doc.text("WHAT'S IN THIS REPORT",m+10,y+10);
     const reportItems = [
         ['Time Allocation Analysis','Where your hours go'],
@@ -519,15 +519,15 @@ function generatePDF(email) {
         ['90-Day Roadmap','Week-by-week implementation plan'],
         ['Next Steps','How to start reclaiming time immediately']
     ];
-    let rY = y + 16;
+    let rY = y + 17;
     reportItems.forEach(function(item) {
         fill(C.blue); doc.circle(m+12,rY-1,1.2,'F');
         txt(item[0],8,'bold',C.text); doc.text(item[0],m+16,rY);
         var labelW = doc.getTextWidth(item[0]);
         txt(' - '+item[1],8,'normal',C.textMid); doc.text(' - '+item[1],m+16+labelW,rY);
-        rY += 5;
+        rY += 4.5;
     });
-    y = rY + 10;
+    y = rY + 4;
 
     // Dollar Impact callout
     if(dollarImpact > 0) {
@@ -698,7 +698,7 @@ function generatePDF(email) {
     y += 10;
     cp(60);
     stroke(C.amber); doc.setLineWidth(1);
-    fill(C.card); doc.roundedRect(m,y,cw,55,3,3,'FD');
+    fill(C.white); doc.roundedRect(m,y,cw,55,3,3,'FD');
     
     txt("LET'S RECLAIM YOUR TIME",14,'bold',C.text); doc.text("LET'S RECLAIM YOUR TIME",pw/2,y+15,{align:'center'});
 
@@ -716,7 +716,7 @@ function generatePDF(email) {
     const pc = doc.internal.getNumberOfPages();
     for(var i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
         txt('Page '+i+' of '+pc,7,'normal',C.textMid);
@@ -739,21 +739,21 @@ init();
             <strong>All Tools</strong>
         </a>
         <div style="height:1px;background:#2a2a3a;margin:6px 4px;"></div>
-        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
-            AI Readiness Scorecard
-        </a>
-        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Profit Leak Diagnostic
+        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
+            Business Dependency
         </a>
         <a href="ceo-time-audit.html" class="nav-link" data-color="#f59e0b" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5"/><path d="M2 7h14M6 3v-1M12 3v-1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><rect x="5" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/><rect x="8" y="9" width="2" height="2" rx=".5" fill="#f59e0b"/></svg>
             CEO Time Audit
         </a>
-        <a href="business-dependency.html" class="nav-link" data-color="#3b82f6" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2l6 4v6l-6 4-6-4V6l6-4z" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="9" r="2" fill="#3b82f6"/></svg>
-            Business Dependency
+        <a href="profit-leak-diagnostic.html" class="nav-link" data-color="#ef4444" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="#ef4444" stroke-width="1.5"/><path d="M9 5v5l3 2" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3l2-1M6 3L4 2" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Profit Leak Diagnostic
+        </a>
+        <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
+            AI Readiness Scorecard
         </a>
         <a href="rfq-parser.html" class="nav-link" data-color="#06b6d4" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="1" width="12" height="16" rx="2" stroke="#06b6d4" stroke-width="1.5"/><path d="M6 5h6M6 8h6M6 11h4" stroke="#06b6d4" stroke-width="1.2" stroke-linecap="round"/></svg>
