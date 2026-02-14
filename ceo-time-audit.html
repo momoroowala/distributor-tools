@@ -500,8 +500,8 @@ function generatePDF(email) {
 
         const cardHeight = totalContentHeight + 20; // 10px top + 10px bottom padding
 
-        // Check page break with actual calculated height
-        if (yPos + cardHeight > 265) {
+        // Check page break with actual calculated height (unless caller handles it)
+        if (!opts.noPageBreak && yPos + cardHeight > 265) {
             newPage();
             yPos = y;
         }
@@ -866,42 +866,28 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p) => {
-        const phaseContent = [];
-        
-        p.items.forEach(item => {
-            phaseContent.push({
-                type: 'bullet',
-                text: item,
-                fontSize: 9,
-                bulletColor: p.c,
-                maxWidth: cw-30
-            });
-        });
-        phaseContent.push({ type: 'space', height: 8 });
-
-        // Pre-measure card content to check if header+card fit together
-        let estHeight = 20; // 10 header bar + 10 padding
-        phaseContent.forEach(item => {
-            if (item.type === 'bullet') {
-                doc.setFontSize(item.fontSize || 9);
-                const lines = doc.splitTextToSize(item.text, item.maxWidth || cw-30);
-                estHeight += lines.length * (item.fontSize * 0.55) + 2;
-            } else if (item.type === 'space') {
-                estHeight += item.height;
-            }
-        });
-
-        // If header + at least some content won't fit, page break first
-        if (y + 50 > 265) { newPage(); }
+        // Ensure header + at least first bullet fit together
+        doc.setFontSize(9);
+        const firstBulletLines = doc.splitTextToSize(p.items[0], cw-30);
+        const firstBulletH = firstBulletLines.length * (9 * 0.55) + 12; // bullet + card padding
+        const headerH = 13;
+        if (y + headerH + firstBulletH > 265) { newPage(); }
 
         // Header bar
         fill(p.c); doc.roundedRect(m, y, cw, 10, 2, 2, 'F');
         txt(p.t, 9, 'bold', C.white); doc.text(p.t, m+cw/2, y+7, {align:'center'});
-        y += 13;
+        y += headerH;
 
-        // Phase content
-        const phaseHeight = dynamicCard(m, y, cw, phaseContent);
-        y += phaseHeight + 8;
+        // Render each bullet as its own card so page breaks work naturally
+        p.items.forEach(item => {
+            const bulletContent = [
+                { type: 'bullet', text: item, fontSize: 9, bulletColor: p.c, maxWidth: cw-30 },
+                { type: 'space', height: 2 }
+            ];
+            const bh = dynamicCard(m, y, cw, bulletContent);
+            y += bh + 3;
+        });
+        y += 5;
     });
 
     // Disclaimer - Dynamic
