@@ -1118,15 +1118,20 @@
     const stroke = (c) => doc.setDrawColor(...c);
 
     // Fit text helper for dynamic sizing
-    const fitText = (doc, text, maxWidth, startSize, minSize = 7.5) => {
+    const fitText = (doc, text, maxWidth, startSize, minSize = 7.5, maxLines = 0) => {
         let sz = startSize;
         let lines;
+        // For long text, allow more lines instead of shrinking to unreadable sizes
+        const targetLines = maxLines > 0 ? maxLines : Math.max(3, Math.ceil(text.length / 60));
         while (sz >= minSize) {
             doc.setFontSize(sz);
             lines = doc.splitTextToSize(text, maxWidth);
-            if (lines.length <= 3) break;
+            if (lines.length <= targetLines) break;
             sz -= 0.5;
         }
+        if (sz < minSize) sz = minSize;
+        doc.setFontSize(sz);
+        lines = doc.splitTextToSize(text, maxWidth);
         return { lines, fontSize: sz };
     };
 
@@ -1277,7 +1282,7 @@
         
         // Measure all text content first
         const headerFit = fitText(doc, `${idx+1}. ${rec.category.toUpperCase()}: ${rec.title}`, cw-20, 9, 7);
-        const quickWinFit = fitText(doc, rec.quickWin, cw-25, 8, 7);
+        const quickWinFit = fitText(doc, rec.quickWin, cw-25, 8.5, 7.5);
         
         // Calculate total height needed
         let totalHeight = 10; // top padding
@@ -1287,9 +1292,9 @@
         totalHeight += 5; // ACTION PLAN label
         
         const actionSlice = rec.actions.slice(0,3);
-        const actionFits = actionSlice.map(a => fitText(doc, a, cw-30, 8, 7));
+        const actionFits = actionSlice.map(a => fitText(doc, a, cw-30, 8.5, 7.5));
         actionFits.forEach(af => {
-            totalHeight += af.lines.length * 5 + 3; // action text + gap
+            totalHeight += af.lines.length * (af.fontSize * 0.55) + 4; // action text + gap
         });
         totalHeight += 8; // bottom padding
         
@@ -1317,7 +1322,7 @@
             fill(col); doc.circle(m+12,currentY,1,'F');
             txt('',af.fontSize,'normal',C.text);
             doc.text(af.lines,m+16,currentY+1);
-            currentY += af.lines.length * 5 + 3;
+            currentY += af.lines.length * (af.fontSize * 0.55) + 4;
         });
         
         y += totalHeight + 5;
@@ -1472,8 +1477,8 @@
 
         // Items
         phase.items.forEach((item) => {
-            const itemFit = fitText(doc, item, cw - 25, 7.5, 7);
-            const itemHeight = itemFit.lines.length * 4.5 + 8;
+            const itemFit = fitText(doc, item, cw - 25, 8.5, 7.5);
+            const itemHeight = itemFit.lines.length * (itemFit.fontSize * 0.55) + 10;
             cp(itemHeight);
             card(m, y, cw, itemHeight);
             
