@@ -447,11 +447,21 @@ function generatePDF(email) {
 
     // Design system
     const C = {
-        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
-        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
-        white: [255, 255, 255], shadow: [232, 234, 237],
-        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0],
-        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
+        bg: [15, 15, 20],           // Dark background
+        card: [25, 25, 35],         // Dark card
+        cell: [35, 35, 45],         // Slightly lighter for nested elements
+        border: [50, 50, 65],       // Subtle border
+        text: [241, 245, 249],      // Light text
+        textMid: [148, 163, 184],   // Muted text
+        textLight: [100, 116, 139], // Dimmer text
+        white: [255, 255, 255],
+        shadow: [10, 10, 15],       // Dark shadow
+        blue: [96, 165, 250],       // Brighter blue for dark bg
+        red: [248, 113, 113],       // Brighter red
+        yellow: [251, 191, 36],
+        green: [74, 222, 128],      // Brighter green
+        purple: [192, 132, 252],    // Brighter purple
+        amber: [251, 191, 36]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
@@ -459,7 +469,7 @@ function generatePDF(email) {
     const stroke = (c) => doc.setDrawColor(...c);
 
     // Fit text helper for dynamic sizing
-    const fitText = (doc, text, maxWidth, startSize, minSize = 6) => {
+    const fitText = (doc, text, maxWidth, startSize, minSize = 7.5) => {
         let sz = startSize;
         let lines;
         while (sz >= minSize) {
@@ -610,7 +620,7 @@ function generatePDF(email) {
     }
 
     // Report outline card - dynamic
-    const outlineItems = ['Leak Breakdown - where your profit is going','Recovery Plans - step-by-step fixes for each leak','90-Day Roadmap - phased implementation plan','Next Steps - how to start recovering profit'];
+    const outlineItems = ['Leak Breakdown: where your profit is going, ranked by impact','Detailed Recovery Plans: step-by-step fixes with real metrics and timelines for each leak','Industry Benchmarks: how your leakage compares to distribution averages','90-Day Recovery Roadmap: phased plan with specific deliverables, milestones, and expected dollar recovery'];
     const outlineHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT", cw-20, 10, 8);
     let outlineContentHeight = 12 + outlineHeaderFit.lines.length * 5 + 8;
     const outlineItemFits = outlineItems.map((item, i) => {
@@ -683,71 +693,71 @@ function generatePDF(email) {
         "Pricing Inconsistency": {
             priority:"CRITICAL", impact:"1-3% revenue recovery",
             steps:[
-                "Pull ERP price override logs for last 90 days.",
-                "Identify top 10 SKUs with most overrides, these need matrix rules first.",
-                "Set margin floors by category: pipes 18%, fittings 22%, equipment 12%.",
-                "Implement approval workflow: overrides above $X require manager sign-off with reason code.",
-                "Deploy automated price update from vendor feeds within 48 hours of change."
+                "Pull your ERP's price override report for the last 90 days. Sort by rep. You will likely find 2-3 reps responsible for 60% of all overrides. Meet with them individually. Common finding: they are discounting to match a competitor they heard about secondhand. Fix: create a competitive price match workflow requiring the actual competitor quote. (Source: B2B distributors lose 2% to 11.7% of profit annually from inconsistent pricing, per SAP/Zilliant benchmark data.)",
+                "Identify your top 10 SKUs by override frequency. These are the items where reps feel least confident in your pricing. Build a pricing matrix for these SKUs first: by customer tier, order volume, and contract status. At 18% gross margin, a 1% price improvement eliminates the need for a 6% sales increase to hit the same profit (McKinsey). Implementation time: 1 week.",
+                "Set hard margin floors by product category in your ERP (e.g., commodity items 15%, specialty 25%, equipment 10%). Any order below the floor triggers a hold for manager review with a mandatory reason code. This single change typically recovers 0.5-1% of revenue within 30 days.",
+                "Audit your customer-specific pricing agreements. Pull every contract with a custom price list. Check: are those agreements still active? Many distributors carry 200+ expired or outdated price agreements that reps default to. Cleaning these up alone recovers $50K-$150K annually for a $25M distributor.",
+                "Deploy automated price updates from vendor cost feeds. Every day you sell at old cost while new cost is higher, you lose margin. Target: price updates within 48 hours of vendor notification, not the industry average of 2-4 weeks. Expected recovery: 0.3-0.8% of revenue."
             ]
         },
         "Order Processing Waste": {
-            priority:"HIGH", impact:"50% labor reduction",
+            priority:"HIGH", impact:"50-70% labor cost reduction",
             steps:[
-                "Time-study 20 orders end-to-end: email receipt to ERP entry to confirmation.",
-                "Identify top 3 error patterns (wrong SKU, wrong quantity, wrong ship-to).",
-                "Deploy order validation rules: flag orders that deviate >20% from customer history.",
-                "Launch customer self-service portal for repeat orders (60-70% of orders are reorders).",
-                "Implement email-to-order parsing for standard PO formats."
+                "Time-study 20 orders end-to-end: from email/phone receipt to ERP entry to pick ticket to shipping confirmation. For a distributor processing 15,000 orders annually, manual entry typically costs $200,000-$350,000 per year in direct labor alone (Bizowie, 2025). Time each step. You will find the bottleneck in 30 minutes.",
+                "Categorize your last 100 order errors by type: wrong SKU, wrong quantity, wrong ship-to, wrong pricing. Each error costs $120-$250 to resolve when you factor in return freight, restocking labor, replacement shipping, and customer goodwill credits. The top 3 error types will account for 80% of total error cost.",
+                "Identify your reorder patterns. In most distributorships, 60-70% of orders are repeat purchases from existing customers. These are prime automation candidates. Deploy an order validation engine that flags orders deviating more than 20% from the customer's 90-day purchase history.",
+                "Launch a customer self-service portal for repeat orders. Start with your top 20 accounts by order frequency. Give them access to their order history, saved carts, and real-time inventory. Target: move 30% of manual orders to self-service within 60 days. That alone saves 1-2 FTE equivalents.",
+                "Implement email-to-order parsing for standard PO formats. Modern AI tools can extract line items from emailed POs with 95%+ accuracy. Your CSRs shift from data entry to exception handling only. Manual invoices take 15 minutes each; automated processing takes under 2 minutes (ResolvePay, 2025). Implementation time: 2-4 weeks."
             ]
         },
         "Slow Quote Response": {
-            priority:"HIGH", impact:"20% higher win rate",
+            priority:"HIGH", impact:"20-35% higher win rate",
             steps:[
-                "Measure current turnaround: timestamp every quote request and response.",
-                "Create templates for top 20 quote scenarios (covers 80% of requests).",
-                "Enable auto-pricing for standard items: rep selects customer + SKUs, price populates.",
-                "Set 4-hour response target for standard quotes, 24-hour for custom.",
-                "Track quote-to-win ratio weekly, the fastest shop wins 78% of the time."
+                "Measure your actual quote turnaround time. Timestamp every quote request and every response for 2 weeks. The average B2B response time is 42 hours (Harvard Business Review). If you are anywhere near that, you are losing deals before you even compete. The first business to respond wins 78% of the time (Oldroyd/MIT).",
+                "Create pricing templates for your top 20 quote scenarios. In most distributorships, 80% of quote requests fall into repeatable patterns: same product categories, similar volumes, familiar customer types. Pre-build these with approved margin ranges so reps can send quotes in minutes, not hours.",
+                "Enable auto-pricing for standard catalog items. When a rep selects customer tier + SKUs + quantity, the price should populate automatically from your matrix. No manager approval needed for standard pricing. Reserve human judgment for custom or high-value quotes only.",
+                "Set a 2-hour response target for standard quotes and same-day for complex/custom. Responding within 5 minutes makes prospects 21x more likely to engage versus a 30-minute delay (HBR). Even in B2B distribution, speed signals competence and reliability.",
+                "Track your quote-to-win ratio weekly by rep and by response time. You will see a direct correlation: quotes returned within 2 hours close at 2-3x the rate of next-day responses. Share this data with your team. Expected recovery: 15-25% improvement in quote conversion within 60 days."
             ]
         },
         "Inventory Mismanagement": {
-            priority:"HIGH", impact:"30% less dead stock",
+            priority:"HIGH", impact:"25-35% carrying cost reduction",
             steps:[
-                "Run ABC analysis: A-items (top 20% of revenue) get daily monitoring.",
-                "Set automated reorder points for A-items based on 90-day velocity + lead time.",
-                "Identify and liquidate dead stock: anything with zero movement in 12 months.",
-                "Implement cycle counting: A-items monthly, B quarterly, C annually.",
-                "Deploy demand sensing for seasonal items using 3-year historical patterns."
+                "Run an ABC analysis immediately. A-items (top 20% by revenue contribution) get daily monitoring and automated reorder triggers. B-items get weekly review. C-items get monthly review. The average business holds $142,000 in excess inventory above actual demand (Unleashed Software, 2025). For distributors, this number is often 3-5x higher.",
+                "Check your inventory accuracy. The industry average is only 83% (Opensend, 2025). World-class operations hit 95%. If you are below 90%, every purchasing decision you make is based on flawed data. Start cycle counting A-items weekly, B-items monthly, C-items quarterly. Do not rely on annual physical counts.",
+                "Pull your dead stock report: items with zero movement in 12+ months. In 2024, excess stock grew to 38% of SMB inventory (Unleashed). Price dead stock aggressively (50-70% off) and move it. The carrying cost alone (storage, insurance, capital) runs 20-30% of inventory value per year. A $100K pile of dead stock costs you $25K annually just to keep it.",
+                "Set automated reorder points for A-items using this formula: (average daily sales x lead time in days) + safety stock. Pull 90-day velocity data from your ERP. Top-performing distributors maintain 18.7-day lead times versus 63.1 days for lagging operations (Anchor Group, 2025). Close that gap and you free up cash while improving fill rates.",
+                "Deploy demand sensing for seasonal and promotional items. Use 3-year sales history by month to identify seasonal curves. Pre-position inventory 30 days before demand spikes. Stockouts cause 43% of B2B buyers to switch to a competitor (Orlio, 2025). Every stockout is a customer retention risk, not just a missed sale."
             ]
         },
         "Preventable Customer Churn": {
-            priority:"MEDIUM", impact:"25-95% more profit",
+            priority:"MEDIUM", impact:"5-15% revenue protection",
             steps:[
-                "Generate declining customer report: accounts with >20% volume drop in 6 months.",
-                "Call top 10 declining accounts this week. Ask one question: what changed?",
-                "Set automated alerts for accounts with no orders in 30/60/90 days.",
-                "Quarterly business reviews for top 20% of accounts by revenue.",
-                "Track NPS or CSAT score, even a simple 1-question email survey works."
+                "Generate a declining customer report right now. Pull every account with a volume drop greater than 20% over the past 6 months. B2B distributors lose up to 15% of annual revenue to customer churn (SAP, 2024). Of that, roughly 30% is preventable with proactive intervention. For a $25M distributor, that is $1.1M in recoverable revenue.",
+                "Call your top 10 declining accounts this week. Not an email. A phone call. Ask one question: 'We noticed your orders have slowed down. What changed?' Common answers: a competitor offered better pricing on 2-3 items (fixable), your delivery times slipped (fixable), they could not get a quote fast enough (fixable). You cannot fix what you do not know about.",
+                "Set automated alerts in your ERP or CRM for accounts with no orders in 30, 60, and 90 days. At 30 days, trigger a rep notification. At 60 days, trigger a manager alert. At 90 days, flag for executive review. Acquiring a new customer costs 5-7x more than retaining an existing one. The math demands proactive monitoring.",
+                "Institute quarterly business reviews for your top 20% of accounts by revenue. Bring data: their order trends, fill rate on their orders, average quote turnaround time. Show them you are paying attention. A 5% increase in retention can boost profits 25-95% (Bain & Company). These reviews take 30 minutes and protect your highest-value relationships.",
+                "Launch a simple post-delivery survey: one question, one click. 'How was your last order experience? Great / OK / Problem.' Route 'Problem' responses to a manager within 1 hour. This costs almost nothing to implement and catches service failures before they become churn events. Track your Net Promoter Score monthly."
             ]
         },
         "Wasted Labor Hours": {
-            priority:"MEDIUM", impact:"20% more efficiency",
+            priority:"MEDIUM", impact:"20-40% efficiency gain",
             steps:[
-                "Survey team: what do you do every day that feels like a waste of time?",
-                "Map the top 5 time-wasting processes end to end.",
-                "Deploy RPA or scripts for data re-entry between systems.",
-                "Automate report generation: if someone copy-pastes from ERP to Excel weekly, automate it.",
-                "Reallocate saved hours to customer-facing or revenue-generating work."
+                "Survey your team with one question: 'What do you do every day that feels like a waste of time?' You will get 5-10 answers immediately. The average distributor employee spends 35-40% of their time on repetitive manual tasks. At $55K average salary, that is $45,000 per year per employee in manual process waste (2WTech, 2025). For a 12-person office, that is $540K annually.",
+                "Map your top 5 time-wasting processes end to end. Common culprits in distribution: re-keying orders from email into ERP, manually creating invoices, copying data between systems for reporting, chasing approvals via email chains, and manually updating inventory counts after receiving. Time each one. You need the numbers to justify automation.",
+                "Deploy automation for data re-entry between systems first. If your team copies data from your ERP to Excel for weekly reports, automate it. If they re-key PO data from emails into your order system, automate it. Each of these saves 5-15 hours per week. Only 23% of SMBs have invested in AI for operations (Anchor Group, 2025), so this is a competitive advantage.",
+                "Automate your report generation. If anyone on your team spends more than 30 minutes per week building recurring reports (sales reports, inventory reports, AR aging), that should be automated and delivered to their inbox. Modern BI tools connect directly to your ERP. Setup time: 1-2 days per report. Payback: immediate.",
+                "Reallocate saved hours explicitly. Do not just let people fill freed time with busywork. Assign recovered hours to customer-facing activities: proactive outreach to declining accounts, faster quote responses, quarterly business reviews. Every hour moved from data entry to customer service has a 3-5x ROI multiplier."
             ]
         },
         "Slow Price Pass-Through": {
-            priority:"MEDIUM", impact:"Margin protection",
+            priority:"MEDIUM", impact:"0.3-1.2% margin protection",
             steps:[
-                "Create vendor price change tracking spreadsheet with date received and date updated.",
-                "Set 48-hour SLA for price updates on A-items, 5 business days for B/C.",
-                "Automate price feed integration where vendors provide electronic updates.",
-                "Send proactive customer notification when prices change (builds trust).",
-                "Calculate monthly margin erosion from delayed pass-throughs."
+                "Create a price change tracking log immediately. For every vendor price change, record: date received, date updated in your system, number of orders shipped at old margin during the gap. Most distributors take 2-4 weeks to pass through increases. At 18% gross margin, every day of delay on a 3% cost increase erodes your margin by roughly 0.05% of affected revenue. On $100K of daily volume, that is $50/day per vendor change.",
+                "Set a 48-hour SLA for price updates on A-items (your top revenue drivers). These are the items where delay costs the most. For B and C items, allow 5 business days maximum. Assign one person as the price update owner. Do not spread this across the team; it falls through the cracks every time.",
+                "Automate price feed integration wherever vendors offer electronic updates. Many major manufacturers now provide EDI or API-based price feeds. Connect these directly to your ERP pricing tables with a review-and-approve workflow. This eliminates the manual spreadsheet comparison that eats 4-8 hours per vendor change.",
+                "Send proactive customer notifications when prices change. This sounds counterintuitive, but it builds trust and actually reduces customer churn. Frame it as: 'Heads up, costs on [category] are increasing [X%] effective [date]. Lock in current pricing on your next order.' This drives order volume in the short term and positions you as a transparent partner.",
+                "Calculate your monthly margin erosion from delayed pass-throughs. Pull vendor cost change dates from your AP records, compare to the date you updated sell prices. Multiply the gap days by daily volume on affected SKUs by the margin delta. For most distributors, this number is $30K-$80K per year in pure margin loss. Closing that gap to 48 hours recovers 70-80% of it."
             ]
         }
     };
@@ -810,10 +820,37 @@ function generatePDF(email) {
     y = secTitle('90-DAY PROFIT RECOVERY ROADMAP', y);
     
     const phases = [
-        { t:'DAYS 1-14: AUDIT AND DISCOVER', c:C.green, items:['Audit ERP price override logs.','Pull declining customer report.','Time-study 20 orders.'] },
-        { t:'DAYS 15-30: SET THE FLOOR', c:C.amber, items:['Set margin floors for top 50 SKUs.','Run ABC inventory analysis.','Create top 20 quote templates.'] },
-        { t:'DAYS 31-60: DEPLOY AUTOMATION', c:C.blue, items:['Deploy order validation rules.','Set automated reorder points for A-items.','Implement price change SLA.'] },
-        { t:'DAYS 61-90: MEASURE AND EXPAND', c:C.purple, items:['Launch customer self-service portal.','Calculate recovered profit vs baseline.','Plan phase 2 automation.'] }
+        { t:'DAYS 1-14: AUDIT AND DISCOVER', c:C.green, items:[
+            'Week 1: Pull ERP price override logs for 90 days. Sort by rep and SKU. Identify your top 3 override offenders and top 10 overridden SKUs. This takes 2 hours and reveals where 60%+ of margin erosion lives.',
+            'Week 1: Generate your declining customer report (accounts down >20% in 6 months). Call the top 10 this week. One question: "What changed?" You will learn more in these calls than in any dashboard.',
+            'Week 2: Block 3 hours on Monday to sit with your best CSR and watch them process 10 orders. Time each step with a stopwatch. You will find the bottleneck in 30 minutes. Common finding: 40% of time is spent re-keying data that already exists digitally.',
+            'Week 2: Run your dead stock report (zero movement in 12+ months). Calculate carrying cost at 25% of value. This number will surprise you. Tag everything for liquidation.',
+            'Deliverables: Price override audit, customer churn list, order process map with timestamps, dead stock inventory with carrying costs. Expected finding: $50K-$200K in immediately addressable leakage.'
+        ]},
+        { t:'DAYS 15-30: QUICK WINS', c:C.amber, items:[
+            'Set hard margin floors in your ERP for top 50 SKUs by category. Any order below the floor requires manager approval with a reason code. This single change typically recovers 0.5-1% of revenue within 30 days. Your sales team will resist this. Show them the data: they are leaving money on the table, not the other way around.',
+            'Create pricing templates for your top 20 quote scenarios. Pre-load approved margin ranges. Target: reps can send standard quotes in under 15 minutes instead of 4+ hours. The first responder wins 78% of deals (MIT/Oldroyd).',
+            'Run ABC inventory analysis and set automated reorder points for A-items. Formula: (avg daily sales x lead time) + safety stock. Pull 90-day velocity from your ERP. This prevents both stockouts (43% of buyers switch to competitors) and overstocking.',
+            'Liquidate dead stock aggressively: 50-70% off, bulk deals, clearance to loyal customers first. Every $100K of dead stock costs $25K/year just to hold.',
+            'Roadblock warning: Your sales team will push back on pricing controls. Response: pull their personal override history and show them the margin they gave away. Frame it as "here is $X you could have earned in commission if you held price." That changes the conversation.',
+            'Deliverables: Margin floors active, 20 quote templates live, A-item reorder points set, dead stock liquidation launched. Expected recovery: $30K-$80K annualized within 30 days.'
+        ]},
+        { t:'DAYS 31-60: SYSTEMS AND AUTOMATION', c:C.blue, items:[
+            'Deploy order validation rules: flag any order deviating >20% from customer 90-day history. This catches wrong quantities, duplicate orders, and pricing errors before they ship. Error cost: $120-$250 per incident.',
+            'Implement 48-hour SLA for vendor price pass-throughs on A-items. Assign one owner. Connect vendor EDI/API feeds where available. Every day of delay at 18% gross margin erodes profit on affected SKUs.',
+            'Set up automated churn alerts: no-order triggers at 30, 60, and 90 days. Route to rep at 30 days, manager at 60, executive at 90. Acquiring a new customer costs 5-7x more than keeping one.',
+            'Automate your top 3 time-wasting processes identified in the audit. Typical targets: ERP-to-Excel reporting, email PO parsing, and approval routing. Each saves 5-15 hours per week.',
+            'Begin customer self-service portal pilot with your top 20 accounts by order frequency. Start with order history and reorder capability. Target: 30% of their orders move to self-service.',
+            'Deliverables: Validation rules live, price SLA enforced, churn alerts active, 3 processes automated, portal pilot launched. Expected recovery: $80K-$150K annualized.'
+        ]},
+        { t:'DAYS 61-90: SCALE AND MEASURE', c:C.purple, items:[
+            'Expand self-service portal to next 50 accounts. Each account moved to self-service saves 15-20 minutes per order in CSR time. At 3 orders/week per account, that is 37-50 hours/week freed up across 50 accounts.',
+            'Calculate actual recovered profit vs. your Day 1 baseline. Pull: margin improvement from pricing controls, error reduction savings, quote win rate change, carrying cost reduction from inventory cleanup. Build a one-page scorecard.',
+            'Institute quarterly business reviews for top 20% of accounts. Bring their data: order trends, fill rates, quote turnaround times. A 5% improvement in retention can boost profits 25-95% (Bain & Company). These 30-minute meetings protect your most valuable revenue.',
+            'Reallocate freed labor hours explicitly. Move recovered time from data entry to customer-facing activities: proactive outreach, faster quotes, relationship building. Every hour shifted from admin to customer service has 3-5x ROI.',
+            'Plan Phase 2: demand forecasting, dynamic pricing by customer segment, automated AP/AR matching, warehouse optimization. Phase 1 funds Phase 2.',
+            'Deliverables: Full scorecard with dollar recovery, expanded portal, QBR program launched, labor reallocation plan. Expected total 90-day recovery: $150K-$400K annualized depending on revenue size.'
+        ]}
     ];
 
     phases.forEach((p) => {
@@ -842,6 +879,51 @@ function generatePDF(email) {
         y += 8;
     });
 
+    // =============================
+    // INDUSTRY METRICS SECTION
+    // =============================
+    y += 5;
+    y = secTitle('DISTRIBUTION PROFIT LEAK BENCHMARKS', y);
+
+    const benchmarks = [
+        { stat: '2-4%', desc: 'Average distributor net profit margin. At $25M revenue, your entire profit is $500K-$1M. A 1% pricing improvement = $250K straight to the bottom line.', src: 'NAW / McKinsey' },
+        { stat: '2-11.7%', desc: 'Percentage of profit lost annually to inconsistent and misaligned pricing. At 18% gross margin, a 1% price gap requires 6% more sales volume to compensate.', src: 'SAP / Zilliant Benchmark Data' },
+        { stat: '83%', desc: 'Average inventory accuracy across distribution businesses. World-class is 95%. That 12-point gap drives stockouts, over-ordering, and $142K in average excess inventory per business.', src: 'Opensend / Unleashed Software, 2025' },
+        { stat: '78%', desc: 'Percentage of deals won by the first business to respond with a quote. Average B2B response time is 42 hours. Responding in 5 minutes makes prospects 21x more likely to engage.', src: 'MIT / Harvard Business Review' },
+        { stat: '$200-350K', desc: 'Annual cost of manual order entry for a distributor processing 15,000 orders per year. Each order error costs $120-$250 to resolve including freight, restocking, and customer credits.', src: 'Bizowie / NAW, 2025' },
+        { stat: '15%', desc: 'Annual revenue lost to customer churn in B2B distribution. Roughly 30% is preventable. A 5% improvement in retention can increase profits by 25-95%.', src: 'SAP / Bain & Company' }
+    ];
+
+    benchmarks.forEach((bm) => {
+        const statFit = fitText(doc, bm.stat, 35, 16, 10);
+        const descFit = fitText(doc, bm.desc, cw - 55, 8, 6);
+        const srcFit = fitText(doc, 'Source: ' + bm.src, cw - 55, 6, 5);
+        const bmHeight = Math.max(
+            statFit.lines.length * 8 + 10,
+            12 + descFit.lines.length * 4.5 + srcFit.lines.length * 3.5 + 8
+        );
+
+        cp(bmHeight);
+        card(m, y, cw, bmHeight);
+
+        // Stat on the left
+        fill(C.red); doc.roundedRect(m + 6, y + 6, 38, bmHeight - 12, 3, 3, 'F');
+        txt('', statFit.fontSize, 'bold', C.white);
+        doc.text(statFit.lines, m + 25, y + bmHeight / 2 + 2, { align: 'center' });
+
+        // Description on the right
+        let bmY = y + 10;
+        txt('', descFit.fontSize, 'normal', C.text);
+        doc.text(descFit.lines, m + 50, bmY);
+        bmY += descFit.lines.length * 4.5 + 2;
+        txt('', srcFit.fontSize, 'italic', C.textLight);
+        doc.text(srcFit.lines, m + 50, bmY);
+
+        y += bmHeight + 5;
+    });
+
+    y += 5;
+
     // NOT AN ERP card - dynamic
     const notErpTitleFit = fitText(doc, 'THIS IS NOT AN ERP IMPLEMENTATION', cw-20, 10, 8);
     const notErpMsg = 'We build targeted automation on top of your existing systems. No 14-month projects. No rip-and-replace. Start seeing results in weeks, not years.';
@@ -869,7 +951,7 @@ function generatePDF(email) {
     
     cp(ctaHeight);
     stroke(C.red); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,ctaHeight,3,3,'FD');
+    fill(C.card); doc.roundedRect(m,y,cw,ctaHeight,3,3,'FD');
     
     let ctaY = y + 15;
     txt('',ctaTitleFit.fontSize,'bold',C.text);
@@ -887,7 +969,7 @@ function generatePDF(email) {
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
         txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);

@@ -424,273 +424,288 @@ function generatePDF(email) {
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
     const m = 15, cw = pw - 2*m;
-    let y = 0;
+    let y = 20;
 
-    // Design system - Material Design
+    // Dark mode design system
     const C = {
-        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
-        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
-        white: [255, 255, 255], shadow: [232, 234, 237],
-        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
-        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
+        bg: [15, 15, 20],
+        card: [25, 25, 35],
+        cell: [35, 35, 45],
+        border: [50, 50, 65],
+        text: [241, 245, 249],
+        textMid: [148, 163, 184],
+        textLight: [100, 116, 139],
+        white: [255, 255, 255],
+        shadow: [10, 10, 15],
+        blue: [96, 165, 250],
+        red: [248, 113, 113],
+        yellow: [251, 191, 36],
+        green: [74, 222, 128],
+        purple: [192, 132, 252],
+        amber: [251, 191, 36]
     };
 
-    const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
+    const txt = (sz, st='normal', c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
-
-    // Dynamic text fitting helper
-    const fitText = (doc, text, maxWidth, startSize, minSize = 6) => {
-        let sz = startSize;
-        let lines;
-        while (sz >= minSize) {
-            doc.setFontSize(sz);
-            lines = doc.splitTextToSize(text, maxWidth);
-            if (lines.length <= 3) break;
-            sz -= 0.5;
-        }
-        return { lines, fontSize: sz };
-    };
-
-    // Measure text height precisely
-    const measureText = (text, fontSize, maxWidth) => {
-        doc.setFontSize(fontSize);
-        const lines = doc.splitTextToSize(text, maxWidth);
-        return lines.length * (fontSize * 0.4);
-    };
-
-    // Dynamic page break checking with actual content height
-    const cp = (contentHeight) => { 
-        if (y + contentHeight > 270) {
-            newPage(); 
-            return true;
-        } 
-        return false; 
-    };
 
     const newPage = () => {
         doc.addPage();
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
         fill(C.blue); doc.rect(0,0,pw,1.5,'F');
-        y = 15;
+        y = 20;
     };
 
-    // Dynamic card with measured content height
-    const dynamicCard = (x, yPos, w, content, opts = {}) => {
-        // First pass: measure all content to get exact height
-        let totalContentHeight = 0;
-        let measuredContent = [];
+    // Simple card drawing
+    const card = (x, yc, w, h, opts={}) => {
+        const r = opts.radius || 3;
+        fill(C.card); doc.roundedRect(x, yc, w, h, r, r, 'F');
+        stroke(C.border); doc.setLineWidth(0.3);
+        doc.roundedRect(x, yc, w, h, r, r, 'S');
+        if(opts.accent) {
+            fill(opts.accent);
+            doc.roundedRect(x, yc, 3, h, r, 0, 'F');
+        }
+    };
 
-        content.forEach(item => {
-            let itemHeight = 0;
-            if (item.type === 'title') {
-                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
-                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
-                measuredContent.push({...item, fitted, height: itemHeight});
-            } else if (item.type === 'text') {
-                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
-                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
-                measuredContent.push({...item, fitted, height: itemHeight});
+    // Get wrapped lines
+    const wrap = (text, fontSize, maxWidth) => {
+        doc.setFontSize(fontSize);
+        return doc.splitTextToSize(text, maxWidth);
+    };
+
+    // Line heights
+    const lh = (fontSize) => fontSize * 0.5;
+    const lhBody = (fontSize) => fontSize * 0.45;
+
+    // Check page break - only if content actually won't fit
+    const ensureFit = (neededHeight) => {
+        if (y + neededHeight > 260) { newPage(); }
+    };
+
+    // Measure a content block's height
+    const measureBlock = (items, w) => {
+        let h = 20; // 10 top + 10 bottom padding
+        items.forEach(item => {
+            if (item.type === 'space') { h += item.h; return; }
+            const fs = item.fontSize || 8;
+            const mw = item.maxWidth || w - 20;
+            if (item.type === 'metric') {
+                h += fs * 0.5 + 2;
             } else if (item.type === 'bullet') {
-                const fitted = fitText(doc, item.text, item.maxWidth || w - 30, item.fontSize || 8, 6);
-                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 1;
-                measuredContent.push({...item, fitted, height: itemHeight});
-            } else if (item.type === 'metric') {
-                itemHeight = (item.fontSize || 16) * 0.4 + 8;
-                measuredContent.push({...item, height: itemHeight});
-            } else if (item.type === 'space') {
-                itemHeight = item.height;
-                measuredContent.push({...item, height: itemHeight});
+                const lines = wrap(item.text, fs, mw);
+                h += lines.length * lhBody(fs) + 2;
+            } else {
+                const lines = wrap(item.text, fs, mw);
+                const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
+                h += lines.length * lineH + 2;
             }
-            totalContentHeight += itemHeight;
         });
+        return h;
+    };
 
-        const cardHeight = totalContentHeight + 16; // 8px top + 8px bottom padding
+    // Render a card with content items
+    const renderCard = (x, w, items, opts={}) => {
+        const cardH = measureBlock(items, w);
+        ensureFit(cardH);
+        card(x, y, w, cardH, opts);
 
-        // Check page break with actual calculated height
-        cp(cardHeight);
-        if (yPos + cardHeight > 270) {
-            newPage();
-            yPos = y;
-        }
+        let cy = y + 10; // 10px top padding
+        items.forEach(item => {
+            if (item.type === 'space') { cy += item.h; return; }
+            const fs = item.fontSize || 8;
+            const mw = item.maxWidth || w - 20;
+            const col = item.color || C.text;
+            const style = item.style || (item.type === 'title' ? 'bold' : 'normal');
 
-        // Draw card background
-        const r = opts.radius || 2;
-        fill(C.shadow); doc.roundedRect(x+0.5, yPos+0.5, w, cardHeight, r, r, 'F');
-        stroke(C.border); doc.setLineWidth(0.2);
-        fill(C.card); doc.roundedRect(x, yPos, w, cardHeight, r, r, 'FD');
-        if(opts.accent) { 
-            fill(opts.accent); 
-            doc.roundedRect(x, yPos, 3, cardHeight, r, 0, 'F'); 
-            doc.rect(x+1.5, yPos, 1.5, cardHeight, 'F'); 
-        }
-
-        // Render content with measured positions
-        let currentY = yPos + 8;
-        measuredContent.forEach(item => {
-            if (item.type === 'title') {
-                txt(item.text, item.fitted.fontSize, item.style || 'bold', item.color || C.text);
+            if (item.type === 'metric') {
+                txt(fs, item.style || 'bold', col);
                 if (item.align === 'center') {
-                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                    doc.text(item.text, x + w/2, cy + fs * 0.35, {align:'center'});
                 } else {
-                    item.fitted.lines.forEach(line => {
-                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
-                        currentY += item.fitted.fontSize * 0.4;
-                    });
-                    currentY -= item.fitted.fontSize * 0.4;
+                    doc.text(item.text, x + 10, cy + fs * 0.35);
                 }
-            } else if (item.type === 'text') {
-                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
-                if (item.align === 'center') {
-                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
-                } else {
-                    item.fitted.lines.forEach(line => {
-                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
-                        currentY += item.fitted.fontSize * 0.4;
-                    });
-                    currentY -= item.fitted.fontSize * 0.4;
-                }
+                cy += fs * 0.5 + 2;
             } else if (item.type === 'bullet') {
                 fill(item.bulletColor || C.blue);
-                doc.circle(x + 12, currentY + 2, 1, 'F');
-                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
-                item.fitted.lines.forEach(line => {
-                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.3);
-                    currentY += item.fitted.fontSize * 0.4;
+                doc.circle(x + 12, cy + 1.5, 1, 'F');
+                txt(fs, style, col);
+                const lines = wrap(item.text, fs, mw);
+                lines.forEach(line => {
+                    doc.text(line, x + 16, cy + fs * 0.35);
+                    cy += lhBody(fs);
                 });
-                currentY -= item.fitted.fontSize * 0.4;
-            } else if (item.type === 'metric') {
-                txt(item.text, item.fontSize || 16, item.style || 'bold', item.color || C.text);
+                cy += 2;
+            } else {
+                // title or text
+                txt(fs, style, col);
+                const lines = wrap(item.text, fs, mw);
+                const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
                 if (item.align === 'center') {
-                    doc.text(item.text, x + w/2, currentY + (item.fontSize || 16) * 0.3, {align: 'center'});
+                    lines.forEach(line => {
+                        doc.text(line, x + w/2, cy + fs * 0.35, {align:'center'});
+                        cy += lineH;
+                    });
                 } else {
-                    doc.text(item.text, x + 10, currentY + (item.fontSize || 16) * 0.3);
+                    lines.forEach(line => {
+                        doc.text(line, x + 10, cy + fs * 0.35);
+                        cy += lineH;
+                    });
                 }
+                cy += 2;
             }
-            currentY += item.height;
         });
 
-        return cardHeight;
+        y += cardH + 8;
+        return cardH;
     };
 
-    const secTitle = (title, yy, color = C.blue) => {
-        const titleHeight = measureText(title, 11, cw - 30) + 15;
-        cp(titleHeight);
-        
-        txt(title, 11, 'bold', C.text); 
-        doc.text(title, m, yy + 7);
-        fill(color); 
-        doc.rect(m, yy + 10, 20, 1.5, 'F');
-        return yy + titleHeight;
+    // Render card at specific position (doesn't advance y)
+    const renderCardAt = (x, yPos, w, items, opts={}) => {
+        const cardH = measureBlock(items, w);
+        card(x, yPos, w, cardH, opts);
+
+        let cy = yPos + 10;
+        items.forEach(item => {
+            if (item.type === 'space') { cy += item.h; return; }
+            const fs = item.fontSize || 8;
+            const mw = item.maxWidth || w - 20;
+            const col = item.color || C.text;
+            const style = item.style || (item.type === 'title' ? 'bold' : 'normal');
+
+            if (item.type === 'metric') {
+                txt(fs, item.style || 'bold', col);
+                if (item.align === 'center') doc.text(item.text, x + w/2, cy + fs * 0.35, {align:'center'});
+                else doc.text(item.text, x + 10, cy + fs * 0.35);
+                cy += fs * 0.5 + 2;
+            } else if (item.type === 'bullet') {
+                fill(item.bulletColor || C.blue);
+                doc.circle(x + 12, cy + 1.5, 1, 'F');
+                txt(fs, style, col);
+                wrap(item.text, fs, mw).forEach(line => {
+                    doc.text(line, x + 16, cy + fs * 0.35);
+                    cy += lhBody(fs);
+                });
+                cy += 2;
+            } else {
+                txt(fs, style, col);
+                const lines = wrap(item.text, fs, mw);
+                const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
+                if (item.align === 'center') {
+                    lines.forEach(line => { doc.text(line, x + w/2, cy + fs * 0.35, {align:'center'}); cy += lineH; });
+                } else {
+                    lines.forEach(line => { doc.text(line, x + 10, cy + fs * 0.35); cy += lineH; });
+                }
+                cy += 2;
+            }
+        });
+        return cardH;
+    };
+
+    const secTitle = (title, color = C.blue) => {
+        ensureFit(15);
+        txt(11, 'bold', C.text);
+        doc.text(title, m, y + 7);
+        fill(color);
+        doc.rect(m, y + 10, 20, 1.5, 'F');
+        y += 18;
     };
 
     // =============================
     // PAGE 1: COVER
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
-    fill(C.card); stroke(C.border); doc.roundedRect(0,-5,pw,70,0,0,'FD');
+    fill(C.card); stroke(C.border); doc.setLineWidth(0.3);
+    doc.roundedRect(0,-5,pw,70,0,0,'FD');
     fill(C.blue); doc.circle(pw/2,18,6,'F');
-    txt('🏢',10,'bold',C.white); doc.text('🏢',pw/2,21,{align:'center'});
+    txt(10,'bold',C.white); doc.text('B',pw/2,21,{align:'center'});
 
-    txt('BUSINESS DEPENDENCY REPORT',17,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,38,{align:'center'});
-    txt('What If You Left Tomorrow?',9,'normal',C.textMid);
+    txt(17,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,38,{align:'center'});
+    txt(9,'normal',C.textMid);
     doc.text('What If You Left Tomorrow?',pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F');
-    txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
+    fill(C.cell); doc.roundedRect(pw/2-40,54,80,8,4,4,'F');
+    txt(7,'bold',C.textMid);
     doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59,{align:'center'});
 
     y = 75;
 
-    // Table of Contents - Dynamic
-    const tocContent = [
-        { type: 'title', text: "WHAT'S IN THIS REPORT:", fontSize: 8, style: 'bold', color: C.blue },
-        { type: 'space', height: 4 },
+    // Table of Contents
+    renderCard(m, cw, [
+        { type: 'title', text: "WHAT'S IN THIS REPORT:", fontSize: 8, color: C.blue },
+        { type: 'space', h: 4 },
         { type: 'bullet', text: 'Page 1: Owner Dependency Index and Risk Assessment', fontSize: 7.5, bulletColor: C.blue },
         { type: 'bullet', text: 'Pages 2-3: Actionable Independence Roadmap by Category', fontSize: 7.5, bulletColor: C.blue },
         { type: 'bullet', text: 'Page 4: Industry Benchmarks with Sourced Metrics (2024-2025)', fontSize: 7.5, bulletColor: C.blue },
         { type: 'bullet', text: 'Pages 5-6: 90-Day Independence Roadmap (4 Phases)', fontSize: 7.5, bulletColor: C.blue },
-        { type: 'bullet', text: 'Page 7: Valuation Impact Analysis', fontSize: 7.5, bulletColor: C.blue },
-        { type: 'space', height: 8 }
-    ];
-    
-    const tocHeight = dynamicCard(m, y, cw, tocContent, {accent: C.blue});
-    y += tocHeight + 8;
+        { type: 'bullet', text: 'Page 7: Valuation Impact Analysis', fontSize: 7.5, bulletColor: C.blue }
+    ], {accent: C.blue});
 
-    // Score visualization card - Dynamic
+    // Score visualization
     const scoreCol = d.totalScore >= 80 ? C.red : d.totalScore >= 50 ? C.amber : C.green;
-    const scoreContent = [
-        { type: 'title', text: 'OWNER DEPENDENCY INDEX', fontSize: 9, style: 'bold', color: scoreCol, align: 'center' },
-        { type: 'space', height: 6 },
-        { type: 'metric', text: d.totalScore.toString(), fontSize: 20, style: 'bold', color: scoreCol, align: 'center' },
-        { type: 'space', height: 4 },
-        { type: 'text', text: d.verdict, fontSize: 8, color: C.textMid, align: 'center', maxWidth: cw-30 },
-        { type: 'space', height: 8 }
-    ];
-    
-    const scoreHeight = dynamicCard(m, y, cw, scoreContent, {accent: scoreCol});
-    y += scoreHeight + 8;
+    renderCard(m, cw, [
+        { type: 'title', text: 'OWNER DEPENDENCY INDEX', fontSize: 9, color: scoreCol, align: 'center' },
+        { type: 'space', h: 6 },
+        { type: 'metric', text: d.totalScore.toString(), fontSize: 20, color: scoreCol, align: 'center' },
+        { type: 'space', h: 4 },
+        { type: 'text', text: d.verdict, fontSize: 8, color: C.textMid, align: 'center', maxWidth: cw-30 }
+    ], {accent: scoreCol});
 
-    // Risk summary - Dynamic
+    // Risk summary - 3 metric cards side by side
     const critical = d.answers.filter(a=>a.score>=8).length;
     const atRisk = d.answers.filter(a=>a.score>=4&&a.score<8).length;
     const healthy = d.answers.filter(a=>a.score<4).length;
     const metW = (cw-10)/3;
-    
-    [{val:critical,label:'CRITICAL',color:C.red},{val:atRisk,label:'AT RISK',color:C.amber},{val:healthy,label:'HEALTHY',color:C.green}].forEach((mt,i) => {
-        const x = m + i*(metW+5);
-        const metricContent = [
-            { type: 'metric', text: mt.val.toString(), fontSize: 16, style: 'bold', color: mt.color, align: 'center' },
-            { type: 'space', height: 2 },
-            { type: 'text', text: mt.label + ' AREAS', fontSize: 6, style: 'bold', color: C.text, align: 'center' },
-            { type: 'space', height: 8 }
-        ];
-        
-        const cardHeight = dynamicCard(x, y, metW, metricContent, {accent: mt.color});
-    });
-    
-    // Calculate max height of metric cards for consistent spacing
-    const sampleMetricContent = [
-        { type: 'metric', text: '0', fontSize: 16, style: 'bold', color: C.red, align: 'center' },
-        { type: 'space', height: 2 },
-        { type: 'text', text: 'SAMPLE AREAS', fontSize: 6, style: 'bold', color: C.text, align: 'center' },
-        { type: 'space', height: 8 }
-    ];
-    let testY = y;
-    const metricCardHeight = dynamicCard(0, 0, metW, sampleMetricContent, {accent: C.red}) - 16;
-    y += metricCardHeight + 24;
 
-    // Risk assessment breakdown - Dynamic
-    y = secTitle('RISK ASSESSMENT BY AREA', y);
-    
+    const metricItems = [
+        {val:critical,label:'CRITICAL',color:C.red},
+        {val:atRisk,label:'AT RISK',color:C.amber},
+        {val:healthy,label:'HEALTHY',color:C.green}
+    ];
+    const metricContent = [{type:'metric',text:'0',fontSize:16,color:C.red,align:'center'},{type:'space',h:2},{type:'text',text:'SAMPLE',fontSize:6,style:'bold',color:C.text,align:'center'}];
+    const metricH = measureBlock(metricContent, metW);
+    ensureFit(metricH);
+
+    metricItems.forEach((mt,i) => {
+        const x = m + i*(metW+5);
+        renderCardAt(x, y, metW, [
+            { type: 'metric', text: mt.val.toString(), fontSize: 16, color: mt.color, align: 'center' },
+            { type: 'space', h: 2 },
+            { type: 'text', text: mt.label + ' AREAS', fontSize: 6, style: 'bold', color: C.text, align: 'center' }
+        ], {accent: mt.color});
+    });
+    y += metricH + 8;
+
+    // Risk assessment breakdown
+    secTitle('RISK ASSESSMENT BY AREA');
+
     d.answers.sort((a,b)=>b.score-a.score).forEach(a => {
         const rColor = a.score>=8 ? C.red : a.score>=4 ? C.amber : C.green;
         const level = a.score>=8 ? 'CRITICAL' : a.score>=4 ? 'AT RISK' : 'HEALTHY';
-        
-        const riskContent = [
-            { type: 'text', text: a.category.toUpperCase(), fontSize: 8, style: 'bold', color: C.text },
-            { type: 'space', height: 8 }
-        ];
-        
-        const riskHeight = dynamicCard(m, y, cw-100, riskContent);
-        
-        // Draw progress bar after card (positioned relative to card)
-        const barX = m + cw - 90, barW = 80;
-        fill(C.bg); doc.roundedRect(barX, y + 5, barW, 3, 1, 1, 'F');
-        fill(rColor); doc.roundedRect(barX, y + 5, (a.score/10)*barW, 3, 1, 1, 'F');
-        
-        txt(level, 7, 'bold', rColor); 
-        doc.text(level, pw-m-5, y + 8, {align:'right'});
-        
-        y += riskHeight + 8;
+        const rowH = 14;
+        ensureFit(rowH);
+
+        card(m, y, cw, rowH, {accent: rColor});
+        txt(8, 'bold', C.text);
+        doc.text(a.category.toUpperCase(), m + 10, y + 8.5);
+
+        // Progress bar
+        const barX = m + cw - 95, barW = 55;
+        fill(C.cell); doc.roundedRect(barX, y + 5, barW, 3.5, 1.5, 1.5, 'F');
+        fill(rColor); doc.roundedRect(barX, y + 5, (a.score/10)*barW, 3.5, 1.5, 1.5, 'F');
+
+        txt(7, 'bold', rColor);
+        doc.text(level, pw-m-5, y + 9, {align:'right'});
+
+        y += rowH + 4;
     });
 
     // =============================
     // INDEPENDENCE ROADMAP
     // =============================
     newPage();
-    y = secTitle('INDEPENDENCE ROADMAP', y);
-    
+    secTitle('INDEPENDENCE ROADMAP');
+
     const roadmap = {
         Operations: {title:"Systematize Order Flow and Fulfillment",steps:[
             "Week 1: Shadow yourself for 5 days. Every time you touch an order, log it: customer name, what you did, why only you could do it. Be honest. You will find that 60-70% of your interventions follow a pattern someone else could learn. The other 30% are genuine exceptions; those get documented in Week 3.",
@@ -756,33 +771,22 @@ function generatePDF(email) {
 
     d.answers.filter(a=>a.score>=4).slice(0,5).forEach((a,idx) => {
         const plan = roadmap[a.category] || {title:a.category, steps:["Document current process step by step using screen recordings.","Identify and train the team member best suited to own this area.","Create a decision framework so they can handle 80% of cases without you.","Monitor outcomes weekly for 30 days, then shift to monthly reviews." ]};
-        
-        const planContent = [
-            { type: 'title', text: `${idx+1}. ${plan.title.toUpperCase()}`, fontSize: 9, style: 'bold', color: C.blue },
-            { type: 'space', height: 4 }
-        ];
-        
-        plan.steps.slice(0,3).forEach(s => {
-            planContent.push({ 
-                type: 'bullet', 
-                text: s, 
-                fontSize: 8, 
-                bulletColor: C.blue,
-                maxWidth: cw-30
-            });
-        });
-        
-        planContent.push({ type: 'space', height: 8 });
 
-        const planHeight = dynamicCard(m, y, cw, planContent, {accent: C.blue});
-        y += planHeight + 8;
+        const items = [
+            { type: 'title', text: `${idx+1}. ${plan.title.toUpperCase()}`, fontSize: 9, color: C.blue },
+            { type: 'space', h: 4 }
+        ];
+        plan.steps.slice(0,3).forEach(s => {
+            items.push({ type: 'bullet', text: s, fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 });
+        });
+        renderCard(m, cw, items, {accent: C.blue});
     });
 
     // =============================
     // INDUSTRY BENCHMARKS
     // =============================
     newPage();
-    y = secTitle('INDUSTRY BENCHMARKS: OWNER DEPENDENCY', y);
+    secTitle('INDUSTRY BENCHMARKS: OWNER DEPENDENCY');
 
     const benchmarks = [
         { metric: '15-20%+', label: 'Key Person Valuation Discount', desc: 'Buyers discount business value by 15%, 20%, or more when critical operations depend on the owner. For firms where the owner IS the business, the discount can exceed 25%. Acquirers model this as a direct risk premium. (MarshBerry, 2024; Fiveable Business Valuation, 2025)', color: C.red },
@@ -794,174 +798,148 @@ function generatePDF(email) {
     ];
 
     benchmarks.forEach(b => {
-        const bContent = [
-            { type: 'metric', text: b.metric, fontSize: 14, style: 'bold', color: b.color, align: 'center' },
-            { type: 'space', height: 2 },
-            { type: 'title', text: b.label, fontSize: 9, style: 'bold', color: C.text, align: 'center' },
-            { type: 'space', height: 2 },
-            { type: 'text', text: b.desc, fontSize: 7.5, color: C.textMid, maxWidth: cw-30 },
-            { type: 'space', height: 8 }
-        ];
-        const bHeight = dynamicCard(m, y, cw, bContent, {accent: b.color});
-        y += bHeight + 6;
+        renderCard(m, cw, [
+            { type: 'metric', text: b.metric, fontSize: 14, color: b.color, align: 'center' },
+            { type: 'space', h: 2 },
+            { type: 'title', text: b.label, fontSize: 9, color: C.text, align: 'center' },
+            { type: 'space', h: 2 },
+            { type: 'text', text: b.desc, fontSize: 7.5, color: C.textMid, maxWidth: cw-30 }
+        ], {accent: b.color});
     });
 
     // =============================
     // 90-DAY INDEPENDENCE ROADMAP
     // =============================
     newPage();
-    y = secTitle('YOUR 90-DAY INDEPENDENCE ROADMAP', y);
+    secTitle('YOUR 90-DAY INDEPENDENCE ROADMAP');
 
-    const introContent = [
-        { type: 'text', text: 'This roadmap sequences your independence steps logically: audit first, then document, then delegate, then verify. Each phase has clear deliverables and a target improvement to your dependency score. The goal is not perfection; it is progress. Every task you remove from your plate is a chain you break.', fontSize: 8, color: C.textMid, maxWidth: cw-20 },
-        { type: 'space', height: 8 }
-    ];
-    const introH = dynamicCard(m, y, cw, introContent, {accent: C.blue});
-    y += introH + 8;
+    renderCard(m, cw, [
+        { type: 'text', text: 'This roadmap sequences your independence steps logically: audit first, then document, then delegate, then verify. Each phase has clear deliverables and a target improvement to your dependency score. The goal is not perfection; it is progress. Every task you remove from your plate is a chain you break.', fontSize: 8, color: C.textMid, maxWidth: cw-20 }
+    ], {accent: C.blue});
 
     // Phase 1
-    const phase1Content = [
-        { type: 'title', text: 'PHASE 1: AUDIT (DAYS 1-14)', fontSize: 10, style: 'bold', color: C.red },
+    renderCard(m, cw, [
+        { type: 'title', text: 'PHASE 1: AUDIT (DAYS 1-14)', fontSize: 10, color: C.red },
         { type: 'text', text: 'Goal: See clearly where you are trapped. Target: Identify every single point of failure.', fontSize: 8, style: 'bold', color: C.textMid },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'bullet', text: 'Days 1-5: Track every decision, task, and interaction you handle personally. Use a simple notebook or spreadsheet. Columns: Time, Task, Could Someone Else Do This (Y/N), Why Not? You will fill 3-5 pages per day.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 6-7: Categorize your list into the 6 dependency areas: Operations, Pricing, Knowledge, Decisions, Relationships, and Growth. Count how many tasks fall in each. The largest category is your biggest vulnerability.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 8-10: For each category, identify the "bus factor": how many people can do this if you are gone? If the answer is zero, mark it red. If one person, mark it yellow. Two or more, green. Your goal by Day 90: no red items remain. Remember: replacing a key leader costs 200% of their salary (Gallup, 2024). For an owner, the cost is the entire business.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 11-14: Rank your red items by business impact (revenue at risk). The top 5 become your documentation priorities for Phase 2. Share your audit findings with your leadership team or key employees.', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'text', text: 'Deliverables: Complete dependency audit, risk-ranked task list, bus factor map for all critical functions.', fontSize: 7.5, style: 'bold', color: C.text },
-        { type: 'text', text: 'Expected score improvement: 0 points (this phase is measurement, not action).', fontSize: 7.5, color: C.textMid },
-        { type: 'space', height: 8 }
-    ];
-    const p1H = dynamicCard(m, y, cw, phase1Content, {accent: C.red});
-    y += p1H + 8;
+        { type: 'text', text: 'Expected score improvement: 0 points (this phase is measurement, not action).', fontSize: 7.5, color: C.textMid }
+    ], {accent: C.red});
 
     // Phase 2
-    const phase2Content = [
-        { type: 'title', text: 'PHASE 2: DOCUMENT (DAYS 15-30)', fontSize: 10, style: 'bold', color: C.amber },
+    renderCard(m, cw, [
+        { type: 'title', text: 'PHASE 2: DOCUMENT (DAYS 15-30)', fontSize: 10, color: C.amber },
         { type: 'text', text: 'Goal: Get critical knowledge out of your head and into systems. Target: 15-20 point score reduction.', fontSize: 8, style: 'bold', color: C.textMid },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'bullet', text: 'Days 15-17: Start with your #1 red item. Record a 5-10 minute video of yourself doing the task. Narrate your thinking: "I check this first because... I use this shortcut because..." Video captures nuance that written SOPs miss.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 18-21: Document your pricing arrangements. Export your top 50 customers, write their special terms, and build the pricing decision matrix. This single document can be worth $100K+ in preserved margin during a transition.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 22-25: Create your Emergency Runbook: the one document someone needs if you are unreachable for 30 days. Bank contacts, insurance, key suppliers, IT access, payroll, and the top 10 customer account briefs.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 26-30: Write decision frameworks for your top 10 recurring decisions. Format: "If [situation], then [action]. If [exception], escalate to [person]." Each framework takes 10-15 minutes to write and saves hours of bottleneck time.', fontSize: 7.5, bulletColor: C.amber, maxWidth: cw-30 },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'text', text: 'Deliverables: 5+ process videos, pricing matrix, Emergency Runbook, 10 decision frameworks.', fontSize: 7.5, style: 'bold', color: C.text },
-        { type: 'text', text: 'Common roadblock: "It is faster to just do it myself." It is, today. But every task you keep is a chain. The goal is not efficiency this week; it is freedom next year. 70% of small businesses never sell because they cannot operate without the owner. (Exit Planning Institute, 2024)', fontSize: 7.5, style: 'italic', color: C.textMid },
-        { type: 'space', height: 8 }
-    ];
-    const p2H = dynamicCard(m, y, cw, phase2Content, {accent: C.amber});
-    y += p2H + 8;
+        { type: 'text', text: 'Common roadblock: "It is faster to just do it myself." It is, today. But every task you keep is a chain. The goal is not efficiency this week; it is freedom next year. 70% of small businesses never sell because they cannot operate without the owner. (Exit Planning Institute, 2024)', fontSize: 7.5, style: 'italic', color: C.textMid }
+    ], {accent: C.amber});
 
     // Phase 3
-    const phase3Content = [
-        { type: 'title', text: 'PHASE 3: DELEGATE (DAYS 31-60)', fontSize: 10, style: 'bold', color: C.blue },
+    renderCard(m, cw, [
+        { type: 'title', text: 'PHASE 3: DELEGATE (DAYS 31-60)', fontSize: 10, color: C.blue },
         { type: 'text', text: 'Goal: Transfer ownership of tasks and decisions to your team. Target: 20-30 point score reduction.', fontSize: 8, style: 'bold', color: C.textMid },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'bullet', text: 'Days 31-35: Start with the "C" decisions from your audit (things people already know how to do). Tell each person in writing: "This is yours now. You do not need my approval." This is the easiest win and builds momentum.', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 36-42: Hand off your top 3 customer relationships. Introduce account contacts by email, then schedule joint calls where your team member leads and you observe. Frame it as better service: "You now have a dedicated contact who is available every day."', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 43-50: Delegate order approval below your threshold. Let your team run daily operations using the SOPs and decision frameworks you created. Check the dashboard once at end of day instead of monitoring all day.', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 51-60: Begin developing your #2. Assign them one owner-level responsibility per week: running a team meeting, handling a supplier negotiation, resolving a customer escalation. Debrief each one together.', fontSize: 7.5, bulletColor: C.blue, maxWidth: cw-30 },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'text', text: 'Deliverables: Formal delegation assignments in writing, customer relationship transitions started, #2 development plan in progress.', fontSize: 7.5, style: 'bold', color: C.text },
-        { type: 'text', text: 'Friday ritual (20 min): Review which decisions you made this week that someone else could have made. Write the decision framework for the top one.', fontSize: 7.5, style: 'italic', color: C.textMid },
-        { type: 'space', height: 8 }
-    ];
-    const p3H = dynamicCard(m, y, cw, phase3Content, {accent: C.blue});
-    y += p3H + 8;
+        { type: 'text', text: 'Friday ritual (20 min): Review which decisions you made this week that someone else could have made. Write the decision framework for the top one.', fontSize: 7.5, style: 'italic', color: C.textMid }
+    ], {accent: C.blue});
 
     // Phase 4
-    const phase4Content = [
-        { type: 'title', text: 'PHASE 4: VERIFY (DAYS 61-90)', fontSize: 10, style: 'bold', color: C.green },
+    renderCard(m, cw, [
+        { type: 'title', text: 'PHASE 4: VERIFY (DAYS 61-90)', fontSize: 10, color: C.green },
         { type: 'text', text: 'Goal: Prove the system works without you. Target: 10-15 point score reduction.', fontSize: 8, style: 'bold', color: C.textMid },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'bullet', text: 'Days 61-67: Take a 3-day "mini-vacation" from decision-making. Be available by phone for true emergencies only. Tell your team: "Handle everything you can. Call me only if something will cost us more than $5,000 or lose a customer." Track what happens.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 68-75: Review the results. What went well? What broke? Update your SOPs and decision frameworks based on real-world gaps. This is where your documentation goes from "theoretical" to "battle-tested."', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 76-83: Run a full "fire drill" week. Do not approve any orders, make any pricing decisions, or contact any customers directly. Let the system run. Measure: revenue maintained, customer satisfaction, error rate.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
         { type: 'bullet', text: 'Days 84-90: Retake this assessment. Compare your new score to your original. If you have dropped 30+ points, your business is meaningfully more independent. If gaps remain, you know exactly where to focus next quarter.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'text', text: 'Deliverables: 3-day absence test completed, updated SOPs, fire drill results documented, reassessment score.', fontSize: 7.5, style: 'bold', color: C.text },
-        { type: 'text', text: 'The real test of a business is simple: can it run without you for 30 days and still grow? After 90 days of this roadmap, you should be able to answer "yes" for at least 2 weeks.', fontSize: 7.5, style: 'italic', color: C.textMid },
-        { type: 'space', height: 8 }
-    ];
-    const p4H = dynamicCard(m, y, cw, phase4Content, {accent: C.green});
-    y += p4H + 8;
+        { type: 'text', text: 'The real test of a business is simple: can it run without you for 30 days and still grow? After 90 days of this roadmap, you should be able to answer "yes" for at least 2 weeks.', fontSize: 7.5, style: 'italic', color: C.textMid }
+    ], {accent: C.green});
 
     // =============================
     // VALUATION IMPACT
     // =============================
     newPage();
-    y = secTitle('VALUATION IMPACT: WHAT YOUR BUSINESS IS WORTH', y);
+    secTitle('VALUATION IMPACT: WHAT YOUR BUSINESS IS WORTH');
 
-    const valIntro = [
-        { type: 'text', text: 'Owner dependence is the single biggest valuation killer in distribution M&A. Buyers do not just pay for your current earnings; they pay for earnings they can keep after you leave. If the business depends on your relationships, decisions, or daily presence, buyers will discount the price by 15-20%+, stretch payments into earn-outs, or walk away entirely. 52% of U.S. employer businesses are owned by people aged 55+, meaning millions of transitions are coming. (MarshBerry, 2024; Gallup, 2024)', fontSize: 8, color: C.textMid, maxWidth: cw-20 },
-        { type: 'space', height: 8 }
-    ];
-    const valIntroH = dynamicCard(m, y, cw, valIntro, {accent: C.amber});
-    y += valIntroH + 8;
+    renderCard(m, cw, [
+        { type: 'text', text: 'Owner dependence is the single biggest valuation killer in distribution M&A. Buyers do not just pay for your current earnings; they pay for earnings they can keep after you leave. If the business depends on your relationships, decisions, or daily presence, buyers will discount the price by 15-20%+, stretch payments into earn-outs, or walk away entirely. 52% of U.S. employer businesses are owned by people aged 55+, meaning millions of transitions are coming. (MarshBerry, 2024; Gallup, 2024)', fontSize: 8, color: C.textMid, maxWidth: cw-20 }
+    ], {accent: C.amber});
 
+    // Side by side comparison
     const hw = (cw-6)/2;
-    
-    const leftContent = [
+    const leftItems = [
         { type: 'text', text: 'OWNER-DEPENDENT', fontSize: 6, style: 'bold', color: C.red, align: 'center' },
-        { type: 'metric', text: '2-3x', fontSize: 16, style: 'bold', color: C.red, align: 'center' },
+        { type: 'metric', text: '2-3x', fontSize: 16, color: C.red, align: 'center' },
         { type: 'text', text: 'earnings multiple', fontSize: 7, color: C.textMid, align: 'center' },
-        { type: 'space', height: 2 },
-        { type: 'text', text: 'Plus 15-20%+ key person discount applied during due diligence', fontSize: 6.5, color: C.red, align: 'center' },
-        { type: 'space', height: 8 }
+        { type: 'space', h: 2 },
+        { type: 'text', text: 'Plus 15-20%+ key person discount applied during due diligence', fontSize: 6.5, color: C.red, align: 'center' }
     ];
-    
-    const rightContent = [
+    const rightItems = [
         { type: 'text', text: 'SYSTEMATIZED', fontSize: 6, style: 'bold', color: C.green, align: 'center' },
-        { type: 'metric', text: '7-10x', fontSize: 16, style: 'bold', color: C.green, align: 'center' },
+        { type: 'metric', text: '7-10x', fontSize: 16, color: C.green, align: 'center' },
         { type: 'text', text: 'EBITDA multiple', fontSize: 7, color: C.textMid, align: 'center' },
-        { type: 'space', height: 2 },
-        { type: 'text', text: 'Documented systems, trained team, transferable value', fontSize: 6.5, color: C.green, align: 'center' },
-        { type: 'space', height: 8 }
+        { type: 'space', h: 2 },
+        { type: 'text', text: 'Documented systems, trained team, transferable value', fontSize: 6.5, color: C.green, align: 'center' }
     ];
-    
-    const leftHeight = dynamicCard(m, y, hw, leftContent, {accent: C.red});
-    const rightHeight = dynamicCard(m+hw+6, y, hw, rightContent, {accent: C.green});
-    y += Math.max(leftHeight, rightHeight) + 8;
+    const lH = measureBlock(leftItems, hw);
+    const rH = measureBlock(rightItems, hw);
+    const maxH = Math.max(lH, rH);
+    ensureFit(maxH);
+    renderCardAt(m, y, hw, leftItems, {accent: C.red});
+    renderCardAt(m+hw+6, y, hw, rightItems, {accent: C.green});
+    y += maxH + 8;
 
     // Concrete example
-    const exampleContent = [
-        { type: 'title', text: 'WHAT THIS MEANS FOR A $1M EBITDA DISTRIBUTOR', fontSize: 9, style: 'bold', color: C.text },
-        { type: 'space', height: 4 },
+    renderCard(m, cw, [
+        { type: 'title', text: 'WHAT THIS MEANS FOR A $1M EBITDA DISTRIBUTOR', fontSize: 9, color: C.text },
+        { type: 'space', h: 4 },
         { type: 'bullet', text: 'Owner-dependent: $1M x 2.5x multiple = $2.5M sale price, minus 18% key person discount = $2.05M. Plus a 2-3 year earn-out where you stay on to "transition" the business. You sell your company but keep your job. And you are one of the lucky 30% who find a buyer at all. (Exit Planning Institute, 2024)', fontSize: 7.5, bulletColor: C.red, maxWidth: cw-30 },
         { type: 'bullet', text: 'Systematized: $1M x 7.7x multiple (average for small wholesalers, First Page Sage Q1 2025) = $7.7M sale price, clean close, 6-month transition. Documented processes, trained team, and multi-threaded customer relationships give the buyer confidence. You walk away with nearly 4x more money and actual freedom.', fontSize: 7.5, bulletColor: C.green, maxWidth: cw-30 },
-        { type: 'space', height: 4 },
-        { type: 'text', text: 'The difference: $5.65 million. That is the cost of keeping everything in your head.', fontSize: 8, style: 'bold', color: C.text },
-        { type: 'space', height: 8 }
-    ];
-    const exH = dynamicCard(m, y, cw, exampleContent, {accent: C.purple});
-    y += exH + 8;
+        { type: 'space', h: 4 },
+        { type: 'text', text: 'The difference: $5.65 million. That is the cost of keeping everything in your head.', fontSize: 8, style: 'bold', color: C.text }
+    ], {accent: C.purple});
 
-    // CTA - Dynamic
-    const ctaContent = [
-        { type: 'title', text: "BUILD A BUSINESS THAT RUNS WITHOUT YOU", fontSize: 11, style: 'bold', color: C.text, align: 'center' },
-        { type: 'space', height: 4 },
+    // CTA
+    renderCard(m, cw, [
+        { type: 'title', text: "BUILD A BUSINESS THAT RUNS WITHOUT YOU", fontSize: 11, color: C.text, align: 'center' },
+        { type: 'space', h: 4 },
         { type: 'text', text: "You have seen the data: owner-dependent businesses sell for 2-3x earnings. Systematized distributors sell for 6.4x-13x EBITDA (First Page Sage, Q1 2025). The difference is not luck or industry; it is documentation, delegation, and systems.", fontSize: 8, color: C.textMid, align: 'center' },
-        { type: 'space', height: 4 },
+        { type: 'space', h: 4 },
         { type: 'text', text: "We help distributors build the systems and automation that create real independence, whether you want to sell in 2 years or just take a vacation without your phone buzzing every 10 minutes.", fontSize: 8, color: C.textMid, align: 'center' },
-        { type: 'space', height: 6 },
-        { type: 'text', text: 'mo@deeplineop.ai', fontSize: 11, style: 'bold', color: C.blue, align: 'center' },
-        { type: 'space', height: 8 }
-    ];
-    
-    const ctaHeight = dynamicCard(m, y, cw, ctaContent);
-    
+        { type: 'space', h: 6 },
+        { type: 'text', text: 'mo@deeplineop.ai', fontSize: 11, style: 'bold', color: C.blue, align: 'center' }
+    ]);
+
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD');
-        txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
+        fill(C.card); stroke(C.border); doc.setLineWidth(0.3);
+        doc.rect(0,ph-10,pw,10,'FD');
+        txt(6,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
-        txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
+        txt(6,'normal',C.textMid);
         doc.text(`Page ${i} of ${pc}`,pw-m,ph-4,{align:'right'});
     }
-    
+
     doc.save('Business-Dependency-Report.pdf');
 }
 

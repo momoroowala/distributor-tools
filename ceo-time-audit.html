@@ -408,45 +408,191 @@ function generatePDF(email) {
 
     // Design system - Material Design
     const C = {
-        bg: [241, 243, 244], card: [255, 255, 255], border: [218, 220, 224],
-        text: [32, 33, 36], textMid: [95, 99, 104], textLight: [128, 134, 139],
-        white: [255, 255, 255], shadow: [232, 234, 237],
-        blue: [26, 115, 232], red: [217, 48, 37], yellow: [249, 171, 0], 
-        green: [30, 142, 62], purple: [161, 66, 244], amber: [210, 145, 30]
+        bg: [15, 15, 20],           // Dark background
+        card: [25, 25, 35],         // Dark card
+        cell: [35, 35, 45],         // Slightly lighter for nested elements
+        border: [50, 50, 65],       // Subtle border
+        text: [241, 245, 249],      // Light text
+        textMid: [148, 163, 184],   // Muted text
+        textLight: [100, 116, 139], // Dimmer text
+        white: [255, 255, 255],
+        shadow: [10, 10, 15],       // Dark shadow
+        blue: [96, 165, 250],       // Brighter blue for dark bg
+        red: [248, 113, 113],       // Brighter red
+        yellow: [251, 191, 36],
+        green: [74, 222, 128],      // Brighter green
+        purple: [192, 132, 252],    // Brighter purple
+        amber: [251, 191, 36]
     };
 
     const txt = (t,sz,st='normal',c=C.text) => { doc.setFontSize(sz); doc.setFont('helvetica',st); doc.setTextColor(...c); };
     const fill = (c) => doc.setFillColor(...c);
     const stroke = (c) => doc.setDrawColor(...c);
+
+    // Dynamic text fitting helper
+    const fitText = (doc, text, maxWidth, startSize, minSize = 7.5) => {
+        let sz = startSize;
+        let lines;
+        while (sz >= minSize) {
+            doc.setFontSize(sz);
+            lines = doc.splitTextToSize(text, maxWidth);
+            if (lines.length <= 3) break;
+            sz -= 0.5;
+        }
+        return { lines, fontSize: sz };
+    };
+
+    // Measure text height precisely
+    const measureText = (text, fontSize, maxWidth) => {
+        doc.setFontSize(fontSize);
+        const lines = doc.splitTextToSize(text, maxWidth);
+        return lines.length * (fontSize * 0.4);
+    };
     
-    const cp = (n=25) => { if(y+n>265){newPage(); return true;} return false; };
+    // Dynamic page break checking with actual content height
+    const cp = (contentHeight) => { 
+        if (y + contentHeight > 265) {
+            newPage(); 
+            return true;
+        } 
+        return false; 
+    };
 
     const newPage = () => {
         doc.addPage(); pageNum++;
         fill(C.bg); doc.rect(0,0,pw,ph,'F');
-        // Top accent
         fill(C.amber); doc.rect(0,0,pw,1.5,'F');
         y = 20;
     };
 
-    // Material Card with subtle shadow and border
-    const card = (x,yc,w,h,opts={}) => {
+    // Dynamic card with measured content height
+    const dynamicCard = (x, yPos, w, content, opts = {}) => {
+        // First pass: measure all content to get exact height
+        let totalContentHeight = 0;
+        let measuredContent = [];
+
+        content.forEach(item => {
+            let itemHeight = 0;
+            if (item.type === 'title') {
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
+                measuredContent.push({...item, fitted, height: itemHeight});
+            } else if (item.type === 'text') {
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
+                measuredContent.push({...item, fitted, height: itemHeight});
+            } else if (item.type === 'bullet') {
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 30, item.fontSize || 8, 6);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 1;
+                measuredContent.push({...item, fitted, height: itemHeight});
+            } else if (item.type === 'metric') {
+                itemHeight = (item.fontSize || 16) * 0.4 + 8;
+                measuredContent.push({...item, height: itemHeight});
+            } else if (item.type === 'space') {
+                itemHeight = item.height;
+                measuredContent.push({...item, height: itemHeight});
+            } else if (item.type === 'chart') {
+                itemHeight = item.height || 30;
+                measuredContent.push({...item, height: itemHeight});
+            }
+            totalContentHeight += itemHeight;
+        });
+
+        const cardHeight = totalContentHeight + 16; // 8px top + 8px bottom padding
+
+        // Check page break with actual calculated height
+        if (yPos + cardHeight > 265) {
+            newPage();
+            yPos = y;
+        }
+
+        // Draw card background
         const r = opts.radius || 2;
-        // Shadow (simulated with offset rect)
-        fill(C.shadow); doc.roundedRect(x+0.5,yc+0.5,w,h,r,r,'F');
-        // Border
+        fill(C.shadow); doc.roundedRect(x+0.5, yPos+0.5, w, cardHeight, r, r, 'F');
         stroke(C.border); doc.setLineWidth(0.2);
-        // Card BG
-        fill(C.card); doc.roundedRect(x,yc,w,h,r,r,'FD');
-        // Optional accent sidebar
-        if(opts.accent) { fill(opts.accent); doc.roundedRect(x,yc,3,h,r,0,'F'); doc.rect(x+1.5,yc,1.5,h,'F'); }
+        fill(C.card); doc.roundedRect(x, yPos, w, cardHeight, r, r, 'FD');
+        if(opts.accent) { 
+            fill(opts.accent); 
+            doc.roundedRect(x, yPos, 3, cardHeight, r, 0, 'F'); 
+            doc.rect(x+1.5, yPos, 1.5, cardHeight, 'F'); 
+        }
+
+        // Render content with measured positions
+        let currentY = yPos + 8;
+        measuredContent.forEach(item => {
+            if (item.type === 'title') {
+                txt(item.text, item.fitted.fontSize, item.style || 'bold', item.color || C.text);
+                if (item.align === 'center') {
+                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                } else {
+                    item.fitted.lines.forEach(line => {
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
+                        currentY += item.fitted.fontSize * 0.4;
+                    });
+                    currentY -= item.fitted.fontSize * 0.4;
+                }
+            } else if (item.type === 'text') {
+                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
+                if (item.align === 'center') {
+                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                } else {
+                    item.fitted.lines.forEach(line => {
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
+                        currentY += item.fitted.fontSize * 0.4;
+                    });
+                    currentY -= item.fitted.fontSize * 0.4;
+                }
+            } else if (item.type === 'bullet') {
+                fill(item.bulletColor || C.blue);
+                doc.circle(x + 12, currentY + 2, 1, 'F');
+                txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
+                item.fitted.lines.forEach(line => {
+                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.3);
+                    currentY += item.fitted.fontSize * 0.4;
+                });
+                currentY -= item.fitted.fontSize * 0.4;
+            } else if (item.type === 'metric') {
+                txt(item.text, item.fontSize || 16, item.style || 'bold', item.color || C.text);
+                if (item.align === 'center') {
+                    doc.text(item.text, x + w/2, currentY + (item.fontSize || 16) * 0.3, {align: 'center'});
+                } else {
+                    doc.text(item.text, x + 10, currentY + (item.fontSize || 16) * 0.3);
+                }
+            } else if (item.type === 'chart') {
+                // Render circles for visual elements
+                if (item.circleData) {
+                    item.circleData.forEach(circle => {
+                        fill(circle.color);
+                        doc.circle(x + circle.x, currentY + circle.y, circle.radius, 'F');
+                        if (circle.text) {
+                            txt(circle.text, circle.fontSize || 12, circle.style || 'bold', circle.textColor || C.white);
+                            doc.text(circle.text, x + circle.x, currentY + circle.y + 2, {align: 'center'});
+                        }
+                    });
+                }
+                if (item.barData) {
+                    item.barData.forEach(bar => {
+                        fill(bar.color);
+                        doc.roundedRect(x + bar.x, currentY + bar.y, bar.width, bar.height, 1, 1, 'F');
+                    });
+                }
+            }
+            currentY += item.height;
+        });
+
+        return cardHeight;
     };
 
-    // Section header
-    const secTitle = (title,yy,color=C.amber) => {
-        txt(title,12,'bold',C.text); doc.text(title,m,yy+7);
-        fill(color); doc.rect(m,yy+10,25,1.5,'F');
-        return yy+18;
+    // Section header with dynamic height
+    const secTitle = (title, yy, color = C.amber) => {
+        const titleHeight = measureText(title, 12, cw - 30) + 18;
+        cp(titleHeight);
+        
+        txt(title, 12, 'bold', C.text); 
+        doc.text(title, m, yy + 7);
+        fill(color); 
+        doc.rect(m, yy + 10, 25, 1.5, 'F');
+        return yy + titleHeight;
     };
 
     const totalHrs = d.breakdown.reduce((s,t) => s+t.hours,0);
@@ -462,7 +608,7 @@ function generatePDF(email) {
     // =============================
     fill(C.bg); doc.rect(0,0,pw,ph,'F');
 
-    // Hero Section
+    // Hero Section - Fixed layout for cover
     fill(C.card); stroke(C.border); doc.roundedRect(0,-10,pw,72,0,0,'FD');
     fill(C.amber); doc.circle(pw/2,16,7,'F');
     txt('A',11,'bold',C.white); doc.text('A',pw/2,19,{align:'center'});
@@ -470,14 +616,13 @@ function generatePDF(email) {
     txt('CEO TIME AUDIT',20,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,36,{align:'center'});
     txt('Your Personalized Time Recovery Analysis',10,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,46,{align:'center'});
 
-    // Info Pill
     fill(C.bg); doc.roundedRect(pw/2-50,54,100,8,4,4,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
     doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,59.5,{align:'center'});
 
     y = 80;
 
-    // Key metrics row
+    // Key metrics row - Dynamic
     const metricW = (cw-10)/3;
     const mets = [
         { val: d.automatableHrs.toFixed(1)+'h', label:'RECOVERABLE', sub:'per week', color:C.red },
@@ -486,58 +631,53 @@ function generatePDF(email) {
     ];
     mets.forEach((mt,i) => {
         const x = m + i*(metricW+5);
-        card(x,y,metricW,32,{accent:mt.color});
-        txt(mt.val,18,'bold',mt.color); doc.text(mt.val,x+metricW/2,y+13,{align:'center'});
-        txt(mt.label,8,'bold',C.text); doc.text(mt.label,x+metricW/2,y+22,{align:'center'});
-        txt(mt.sub,7,'normal',C.textLight); doc.text(mt.sub,x+metricW/2,y+28,{align:'center'});
+        const metricContent = [
+            { type: 'metric', text: mt.val, fontSize: 18, style: 'bold', color: mt.color, align: 'center' },
+            { type: 'text', text: mt.label, fontSize: 8, style: 'bold', color: C.text, align: 'center' },
+            { type: 'text', text: mt.sub, fontSize: 7, color: C.textLight, align: 'center' },
+            { type: 'space', height: 8 }
+        ];
+        dynamicCard(x, y, metricW, metricContent, {accent:mt.color});
     });
-    y += 38;
+    y += measureText('Test', 18, metricW) + 32;
 
-    // Summary Card
-    card(m,y,cw,36);
-    txt('EXECUTIVE SUMMARY',9,'bold',C.amber); doc.text('EXECUTIVE SUMMARY',m+10,y+10);
-    
-    const sumLines = [
-        'You reported ' + totalHrs + ' hours/week across ' + d.breakdown.filter(function(t){return t.hours>0;}).length + ' task categories.',
-        d.automatableHrs.toFixed(1) + ' hours (' + Math.round(d.automatableHrs/totalHrs*100) + '%) can be automated or delegated.',
-        'Current state: only ' + strategicPct + '% of your time is spent on high-leverage strategic work.'
+    // Summary Card - Dynamic
+    const summaryContent = [
+        { type: 'title', text: 'EXECUTIVE SUMMARY', fontSize: 9, style: 'bold', color: C.amber },
+        { type: 'space', height: 4 },
+        { type: 'text', text: `You reported ${totalHrs} hours/week across ${d.breakdown.filter(t=>t.hours>0).length} task categories. The typical distribution owner works 50+ hours per week, with only 30% going to planning and strategy (Prosperity for America, 2025). Your audit tells us exactly where your time leaks are.`, fontSize: 9.5, maxWidth: cw-20 },
+        { type: 'space', height: 3 },
+        { type: 'text', text: `${d.automatableHrs.toFixed(1)} hours per week (${Math.round(d.automatableHrs/totalHrs*100)}%) can be automated or delegated. That is ${d.yearlyHrs.toLocaleString()} hours per year, or ${d.yearlyDays} full work days you are currently spending on tasks that do not require your expertise.`, fontSize: 9.5, maxWidth: cw-20 },
+        { type: 'space', height: 3 },
+        { type: 'text', text: `Current state: only ${strategicPct}% of your time goes to high-leverage strategic work. Research shows CEOs who shift to 40-50% strategic time and delegate effectively generate 33% more revenue (Gallup). This report shows you exactly how to close that gap over the next 90 days.`, fontSize: 9.5, maxWidth: cw-20 },
+        { type: 'space', height: 8 }
     ];
-    let sY = y + 18;
-    sumLines.forEach(function(l) {
-        txt(l,10,'normal',C.text);
-        var wrapped = doc.splitTextToSize(l, cw - 20);
-        wrapped.forEach(function(line) { doc.text(line,m+10,sY); sY += 5.5; });
-    });
-    y = sY + 8;
+    const summaryHeight = dynamicCard(m, y, cw, summaryContent);
+    y += summaryHeight + 8;
 
-    // What's In This Report
-    card(m,y,cw,32);
-    txt("WHAT'S IN THIS REPORT",8,'bold',C.amber); doc.text("WHAT'S IN THIS REPORT",m+10,y+10);
-    const reportItems = [
-        ['Time Allocation Analysis','Where your hours go'],
-        ['Automation Playbook','Specific fixes for your top time drains'],
-        ['90-Day Roadmap','Week-by-week implementation plan'],
-        ['Next Steps','How to start reclaiming time immediately']
+    // What's In This Report - Dynamic
+    const reportContent = [
+        { type: 'title', text: "WHAT'S IN THIS REPORT", fontSize: 8, style: 'bold', color: C.amber },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: 'Time Allocation Analysis: Where your hours actually go vs. where they should go', fontSize: 8, bulletColor: C.blue },
+        { type: 'bullet', text: 'Industry Benchmarks: How your time allocation compares to top-performing distribution CEOs', fontSize: 8, bulletColor: C.blue },
+        { type: 'bullet', text: 'Automation Playbook: Specific, step-by-step fixes for your top time drains with expected savings', fontSize: 8, bulletColor: C.blue },
+        { type: 'bullet', text: '90-Day Time Recovery Roadmap: Phased implementation with deliverables, hour targets, and dollar values', fontSize: 8, bulletColor: C.blue },
+        { type: 'space', height: 8 }
     ];
-    let rY = y + 17;
-    reportItems.forEach(function(item) {
-        fill(C.blue); doc.circle(m+12,rY-1,1.2,'F');
-        txt(item[0],8,'bold',C.text); doc.text(item[0],m+16,rY);
-        var labelW = doc.getTextWidth(item[0]);
-        txt(' - '+item[1],8,'normal',C.textMid); doc.text(' - '+item[1],m+16+labelW,rY);
-        rY += 4.5;
-    });
-    y = rY + 4;
+    const reportHeight = dynamicCard(m, y, cw, reportContent);
+    y += reportHeight + 8;
 
-    // Dollar Impact callout
+    // Dollar Impact callout - Dynamic
     if(dollarImpact > 0) {
-        card(m,y,cw,22,{accent:C.red});
-        txt('DOLLAR IMPACT',8,'bold',C.red); doc.text('DOLLAR IMPACT',m+10,y+9);
-        var dollarLine = 'Your wasted time costs an estimated $' + dollarImpact.toLocaleString() + ' per year in CEO opportunity cost.';
-        txt(dollarLine,10,'bold',C.text);
-        var dollarWrapped = doc.splitTextToSize(dollarLine, cw - 20);
-        dollarWrapped.forEach(function(line) { doc.text(line, m+10, y+17); });
-        y += 28;
+        const dollarContent = [
+            { type: 'title', text: 'DOLLAR IMPACT', fontSize: 8, style: 'bold', color: C.red },
+            { type: 'space', height: 2 },
+            { type: 'text', text: `Your wasted time costs an estimated $${dollarImpact.toLocaleString()} per year in CEO opportunity cost.`, fontSize: 10, style: 'bold', maxWidth: cw-20 },
+            { type: 'space', height: 8 }
+        ];
+        const dollarHeight = dynamicCard(m, y, cw, dollarContent, {accent:C.red});
+        y += dollarHeight + 8;
     }
 
     // =============================
@@ -546,181 +686,292 @@ function generatePDF(email) {
     newPage();
     y = secTitle('TIME ALLOCATION ANALYSIS', y);
 
-    card(m,y,cw, sorted.length*14 + 15);
-    let bY = y + 12;
-    sorted.forEach(function(t) {
-        var typeCol = t.type==='strategic'?C.green:t.type==='delegatable'?C.amber:C.red;
-        fill(typeCol); doc.circle(m+8,bY+2,2,'F');
-        txt(t.name,9,'bold',C.text); doc.text(t.name,m+14,bY+4.5);
-        
-        var barX = m+70, barW = cw-90;
-        var curW = (t.hours/maxHrs)*barW;
-        var aftW = ((t.hours-t.saved)/maxHrs)*barW;
-        
-        fill(C.bg); doc.roundedRect(barX,bY,barW,5,1.5,1.5,'F');
-        fill(typeCol); doc.roundedRect(barX,bY,Math.max(aftW,1),5,1.5,1.5,'F');
-        
-        txt(t.hours+'h',7,'bold',C.textMid); doc.text(t.hours+'h',barX+curW+3,bY+4);
-        if(t.saved>0){
-            txt('-'+t.saved.toFixed(1),7,'bold',C.red); doc.text('-'+t.saved.toFixed(1),pw-m-5,bY+4,{align:'right'});
-        }
-        bY += 14;
-    });
-    y = bY + 15;
-
-    // Breakdown side-by-side
-    cp(60);
-    const hw = (cw-6)/2;
-    // Left: Category
-    card(m,y,hw,50);
-    txt('TIME BY CATEGORY',8,'bold',C.textMid); doc.text('TIME BY CATEGORY',m+10,y+12);
-    const cats = [
-        { label:'Strategic', color:C.green, hrs: d.breakdown.filter(function(t){return t.type==='strategic';}).reduce(function(s,t){return s+t.hours;},0) },
-        { label:'Delegatable', color:C.amber, hrs: d.breakdown.filter(function(t){return t.type==='delegatable';}).reduce(function(s,t){return s+t.hours;},0) },
-        { label:'Automatable', color:C.red, hrs: d.breakdown.filter(function(t){return t.type==='automatable';}).reduce(function(s,t){return s+t.hours;},0) }
+    // Task breakdown chart - Dynamic
+    const taskContent = [
+        { type: 'space', height: 4 }
     ];
-    let cY = y+22;
-    cats.forEach(function(c) {
-        if(c.hrs<=0) return;
-        var p = Math.round(c.hrs/totalHrs*100);
-        fill(c.color); doc.circle(m+12,cY,2,'F');
-        txt(c.label+': '+c.hrs+'h ('+p+'%)',9,'normal',C.text); doc.text(c.label+': '+c.hrs+'h ('+p+'%)',m+18,cY+2.5);
-        cY += 9;
+    
+    sorted.forEach((t) => {
+        const typeCol = t.type==='strategic'?C.green:t.type==='delegatable'?C.amber:C.red;
+        taskContent.push({
+            type: 'bullet',
+            text: `${t.name}: ${t.hours}h${t.saved>0 ? ` (-${t.saved.toFixed(1)})` : ''}`,
+            fontSize: 9,
+            bulletColor: typeCol,
+            style: 'bold'
+        });
     });
-
-    // Right: Impact
-    card(m+hw+6,y,hw,50);
-    txt('WEEKLY IMPACT',8,'bold',C.textMid); doc.text('WEEKLY IMPACT',m+hw+16,y+12);
-    fill(C.red); doc.circle(m+hw+hw/2+3, y+32, 12, 'F');
-    txt(totalHrs.toString(),14,'bold',C.white); doc.text(totalHrs.toString(),m+hw+hw/2+3,y+36,{align:'center'});
-    txt('NOW',7,'bold',C.red); doc.text('NOW',m+hw+hw/2+3,y+48,{align:'center'});
+    taskContent.push({ type: 'space', height: 8 });
     
-    txt('>',14,'bold',C.textLight); doc.text('>',m+hw+6,y+36);
+    const taskHeight = dynamicCard(m, y, cw, taskContent);
+    y += taskHeight + 8;
 
-    fill(C.green); doc.circle(m+hw+hw-15, y+32, 12, 'F');
-    txt(afterTotal.toFixed(0),14,'bold',C.white); doc.text(afterTotal.toFixed(0),m+hw+hw-15,y+36,{align:'center'});
-    txt('GOAL',7,'bold',C.green); doc.text('GOAL',m+hw+hw-15,y+48,{align:'center'});
+    // Breakdown side-by-side - Dynamic
+    const hw = (cw-6)/2;
     
-    y += 70;
+    const categoriesContent = [
+        { type: 'title', text: 'TIME BY CATEGORY', fontSize: 8, style: 'bold', color: C.textMid },
+        { type: 'space', height: 6 }
+    ];
+    
+    const cats = [
+        { label:'Strategic', color:C.green, hrs: d.breakdown.filter(t=>t.type==='strategic').reduce((s,t)=>s+t.hours,0) },
+        { label:'Delegatable', color:C.amber, hrs: d.breakdown.filter(t=>t.type==='delegatable').reduce((s,t)=>s+t.hours,0) },
+        { label:'Automatable', color:C.red, hrs: d.breakdown.filter(t=>t.type==='automatable').reduce((s,t)=>s+t.hours,0) }
+    ];
+    
+    cats.forEach(c => {
+        if(c.hrs > 0) {
+            const p = Math.round(c.hrs/totalHrs*100);
+            categoriesContent.push({
+                type: 'bullet',
+                text: `${c.label}: ${c.hrs}h (${p}%)`,
+                fontSize: 9,
+                bulletColor: c.color
+            });
+        }
+    });
+    categoriesContent.push({ type: 'space', height: 8 });
+
+    const impactContent = [
+        { type: 'title', text: 'WEEKLY IMPACT', fontSize: 8, style: 'bold', color: C.textMid },
+        { type: 'space', height: 6 },
+        { type: 'chart', height: 30, 
+            circleData: [
+                { x: hw/2-20, y: 15, radius: 12, color: C.red, text: totalHrs.toString(), fontSize: 14, textColor: C.white },
+                { x: hw/2+20, y: 15, radius: 12, color: C.green, text: afterTotal.toFixed(0), fontSize: 14, textColor: C.white }
+            ]
+        },
+        { type: 'text', text: 'NOW                            GOAL', fontSize: 7, style: 'bold', color: C.textMid, align: 'center' },
+        { type: 'space', height: 8 }
+    ];
+
+    const categoriesHeight = dynamicCard(m, y, hw, categoriesContent);
+    const impactHeight = dynamicCard(m+hw+6, y, hw, impactContent);
+    y += Math.max(categoriesHeight, impactHeight) + 8;
 
     // =============================
-    // PAGE 3: PLAYBOOK
+    // PAGE 3: INDUSTRY BENCHMARKS
+    // =============================
+    newPage();
+    y = secTitle('HOW YOU COMPARE: INDUSTRY BENCHMARKS', y);
+
+    const benchmarks = [
+        { stat: '70%', desc: 'of a typical business owner\'s workweek is spent on operational duties, leaving only 30% for planning and strategy.', source: 'Prosperity for America, 2025' },
+        { stat: '33%', desc: 'more revenue is generated by CEOs who excel at delegation compared to those who try to do everything themselves.', source: 'Gallup' },
+        { stat: '23 min', desc: 'is the refocus cost after every interruption. Workers are interrupted every 3 minutes on average, creating a cycle of fragmented attention that destroys deep work.', source: 'University of California, Irvine' },
+        { stat: '11%', desc: 'of meetings are considered productive. The other 89% cost US businesses $37 billion per year in wasted salary costs.', source: 'Atlassian' },
+        { stat: '28%', desc: 'of the average workweek is consumed by email alone, roughly 11 hours. For distribution owners fielding pricing, order, and vendor emails, the number is often higher.', source: 'McKinsey' },
+        { stat: '75-100', desc: 'basis points of EBIT improvement is achievable for wholesale distributors through AI and process automation, according to Deloitte analysis.', source: 'Deloitte, 2024' }
+    ];
+
+    benchmarks.forEach((b, idx) => {
+        const isYours = (idx === 0 && strategicPct < 35) || (idx === 3 && d.breakdown.some(t => t.id === 'meetings' && t.hours > 5));
+        const benchContent = [
+            { type: 'metric', text: b.stat, fontSize: 16, style: 'bold', color: C.amber, align: 'center' },
+            { type: 'text', text: b.desc, fontSize: 8.5, color: C.text, maxWidth: cw - 30 },
+            { type: 'text', text: 'Source: ' + b.source, fontSize: 7, style: 'italic', color: C.textLight, maxWidth: cw - 30 },
+            { type: 'space', height: 6 }
+        ];
+        if (isYours) {
+            benchContent.splice(1, 0, { type: 'text', text: '^ Your audit suggests you are in this category.', fontSize: 7, style: 'bold', color: C.red });
+        }
+        const bh = dynamicCard(m, y, cw, benchContent, { accent: C.amber });
+        y += bh + 5;
+    });
+
+    // Your position summary
+    const posContent = [
+        { type: 'title', text: 'YOUR POSITION', fontSize: 9, style: 'bold', color: C.blue },
+        { type: 'space', height: 4 },
+        { type: 'bullet', text: `You spend ${strategicPct}% of your time on strategic work. Top-performing CEOs spend 40-50%. Gap: ${Math.max(0, 40 - strategicPct)} percentage points.`, fontSize: 8.5, bulletColor: strategicPct >= 35 ? C.green : C.red },
+        { type: 'bullet', text: `You work ${totalHrs} hours per week. 63% of business owners work 50+ hours. The goal is not fewer hours; it is better hours.`, fontSize: 8.5, bulletColor: totalHrs > 50 ? C.red : C.green },
+        { type: 'bullet', text: `${Math.round(d.automatableHrs/totalHrs*100)}% of your week is automatable or delegatable. Industry average is 40-60%. Every percentage point you recover compounds over 52 weeks.`, fontSize: 8.5, bulletColor: C.amber },
+        { type: 'space', height: 8 }
+    ];
+    const posH = dynamicCard(m, y, cw, posContent, { accent: C.blue });
+    y += posH + 8;
+
+    // =============================
+    // PAGE 4: PLAYBOOK
     // =============================
     newPage();
     y = secTitle('AUTOMATION PLAYBOOK', y);
 
     const guides = {
-        'Pricing & Quotes': { solution:'Rule-based pricing engine', impact:'78% of competitive quotes go to the fastest responder.', steps:['Export last 90 days of quotes to CSV. Tag Standard vs Custom to find the 80% that can be automated.','Build a pricing matrix by tier and category. Lock margin floors so reps stop guessing.','Set up automated approval workflows: standard quotes auto-send, custom routes to you.','Measure quote response time weekly. Target under 1 hour for standard quotes.'] },
-        'Order Issues': { solution:'Order validation and self-service', impact:'Manual entry of 60 orders/day burns 5+ hours. Errors cost 10x the entry time.', steps:['Pull your top 10 order error types from the last quarter. Find the pattern.','Build validation rules: SKU check, credit limit, address verify. Catch errors before they ship.','Launch a customer self-service portal for order tracking. Cut "where is my order?" calls by 60%.','Automate order confirmations and shipping notifications. Zero manual follow-up.'] },
-        'Inventory/Purchasing': { solution:'Demand forecasting and auto-reorder', impact:'Poor forecasting is the #1 operational challenge for distributors.', steps:['Run ABC analysis on all SKUs. Focus A-items first for maximum cash flow impact.','Set automated reorder points based on 2+ years of sales history with seasonal adjustments.','Liquidate dead stock: anything with zero movement in 12 months gets a clearance plan.','Implement cycle counting to replace annual physical inventory. Less disruption, better accuracy.'] },
-        'Reports & Data': { solution:'Automated dashboards replacing manual reports', impact:'Eliminates copy-paste from ERP to Excel entirely.', steps:['List every recurring report you produce. If it involves copy-paste from ERP to Excel, that is automatable.','Build a single executive dashboard with your top 5 KPIs. Auto-refresh daily.','Schedule automated email delivery of reports. No one should be "pulling" data manually.','Kill any report no one has acted on in 30 days. Less noise, better signal.'] },
-        'Admin & Paperwork': { solution:'Digital approval workflows', impact:'Sales reps spend more time on admin than selling. Fix the workflow, not the people.', steps:['Map all approval chains end to end. Any approval under $500 should auto-approve with notification.','Implement e-signatures for all contracts and POs. No more printing, signing, scanning.','Set tiered authority levels: branch managers handle routine, you handle exceptions only.','Automate AP/AR flows. Invoice matching and payment reminders should never be manual.'] },
-        'Putting Out Fires': { solution:'Early warning system with playbooks', impact:'Most fires are patterns, not surprises. Find the pattern, fix the system.', steps:['Log every fire for 5 business days. Categorize each one. Pattern = system fix. One-off = playbook.','Write a one-page response playbook for your top 3 recurring fire types.','Set up proactive alerts: inventory thresholds, late shipments, credit holds. Catch it before it burns.','Empower team leads to resolve without escalating. Define what needs you vs what does not.'] },
-        'Email & Comms': { solution:'Batch processing and canned responses', impact:'Every inbox check costs 23 minutes of refocus time (UC Irvine research).', steps:['Implement batch processing: check email 3x daily at set times. Morning, midday, end of day.','Create canned responses for your top 10 recurring questions. One click, not 10 minutes.','Route system notifications to a separate folder. Review once daily, not in real-time.','Delegate routine replies to your assistant or ops manager. You handle strategy-level only.'] },
-        'Internal Meetings': { solution:'Async-first with dashboards replacing status updates', impact:'Any meeting that is just a status update can become a dashboard.', steps:['Audit all recurring meetings. Cancel any where the outcome is just "awareness."','Replace status update meetings with a shared dashboard everyone checks on their own time.','Enforce 25-minute defaults. Require an agenda 24 hours prior or the meeting is canceled.','Record key decisions in a shared doc. No meeting should end without written next steps and owners.'] }
+        'Pricing & Quotes': { solution:'Rule-based pricing engine with rep-facing cheat sheets', impact:'78% of competitive quotes go to the fastest responder. The average distributor loses 3-5 deals per week to slower quote turnaround (Distribution Strategy Group, 2024). Quote automation cuts response time from hours to minutes.', steps:['Export last 90 days of quotes to CSV. Tag each as Standard (repeat customer, catalog SKU, normal volume) or Custom. You will likely find 70-80% are Standard and fully automatable.','Pull your top 50 SKUs by volume. Set floor prices at cost + 18%. Create a one-page "pricing cheat sheet" with tiers: 1-10 units, 11-50, 51+. Give this to every rep. They stop calling you for pricing on 80% of orders.','Build automated approval workflows: Standard quotes auto-generate and send. Custom quotes route to you only if the deal exceeds $10K or margin drops below 15%. This saves 4-5 hours per week for most owners.','Track quote response time weekly. Your target: under 30 minutes for Standard, under 4 hours for Custom. Post the numbers where your team can see them. What gets measured gets managed.'] },
+        'Order Issues': { solution:'Order validation rules and customer self-service portal', impact:'SMBs spend 23% of their workdays on manual data entry (Prosperity for America, 2025). Each order error costs roughly 10x the original entry time to fix when you factor in calls, credits, reshipping, and customer frustration.', steps:['Pull your top 10 order error types from the last quarter. Common ones: wrong SKU, wrong ship-to, duplicate order, credit hold. Rank them by frequency. The top 3 types likely account for 70% of all errors.','Build validation rules at the point of entry: SKU verification against active catalog, credit limit check before processing, address validation against shipping database. Each rule you add eliminates an entire category of errors permanently.','Launch a customer self-service portal for order tracking and proof of delivery. "Where is my order?" calls typically consume 3-6 hours per week for distribution owners. A portal with real-time tracking cuts these calls by 60-80%.','Automate order confirmations and shipping notifications via email and text. Zero manual follow-up. Customers get updates at order received, shipped, and delivered. This alone eliminates 15-20 inbound calls per day for a mid-size distributor.'] },
+        'Inventory/Purchasing': { solution:'Demand forecasting with automated reorder points', impact:'Poor forecasting is the top operational challenge for distributors (McKinsey, 2023). Carrying excess inventory ties up 20-30% more working capital than necessary, while stockouts cost distributors an estimated 4% of annual revenue in lost sales.', steps:['Run ABC analysis on all SKUs. A-items (top 20% by revenue) get weekly review and tight reorder points. B-items get biweekly review. C-items get monthly review with higher safety stock. This alone reduces stockouts on critical items by 35-50%.','Set automated reorder points based on 2+ years of sales velocity, adjusted for seasonality. Formula: (Average Daily Sales x Lead Time) + Safety Stock. Automate the PO generation so it triggers without you reviewing every purchase.','Identify dead stock: pull every SKU with zero movement in the last 12 months. Create a 90-day clearance plan: Week 1-4 at 20% off, Week 5-8 at 40% off, Week 9-12 donate or scrap. Free up warehouse space and cash.','Replace annual physical inventory with cycle counting. Count 5-10% of SKUs daily on a rotating basis. By month 3, you have covered every item and your accuracy stays above 98% year-round. No more weekend shutdowns for full counts.'] },
+        'Reports & Data': { solution:'Automated dashboards that replace manual reporting entirely', impact:'The typical employee spends 51% of each workday on tasks with little to no value, and manual reporting is one of the biggest culprits (Prosperity for America, 2025). Employees save 5-10 hours weekly when reporting is automated (CRM.org, 2024).', steps:['List every recurring report you or your team produce. If it involves opening your ERP, exporting to Excel, reformatting, and emailing, that report is automatable. Most distribution owners find 6-10 reports that fit this description.','Build a single executive dashboard with your top 5 KPIs: revenue vs. target, gross margin by category, fill rate, AR aging, and inventory turns. Set it to auto-refresh daily. Check it once each morning for 5 minutes instead of spending 2 hours compiling data.','Schedule automated email delivery of every recurring report. Sales gets their pipeline report Monday morning. Ops gets the fulfillment scorecard Tuesday. Finance gets AR aging Wednesday. Nobody "pulls" data manually.','Kill any report nobody has acted on in 30 days. Ask the recipients: "If this report stopped arriving, would you notice within a week?" If the answer is no, stop producing it. Less noise means better signal on the reports that actually matter.'] },
+        'Admin & Paperwork': { solution:'Digital approval workflows with tiered authority levels', impact:'Businesses spend up to 16 days per year searching for paper documents (Prosperity for America, 2025). Every manual approval you touch costs your company $50-150 in CEO time for a task that often takes someone else 5 minutes.', steps:['Map every approval chain end to end. Count how many approvals you personally touch per week. Any approval under $500 should auto-approve with a notification copy to you. You review the log once daily instead of approving each one live. This alone saves 3-5 hours per week for most distribution owners.','Implement e-signatures for all contracts, POs, and vendor agreements. No more printing, wet-signing, scanning, and emailing. A $20/month e-signature tool saves 30-60 minutes per day and eliminates the "waiting for signature" bottleneck.','Set tiered authority levels: warehouse leads approve receiving discrepancies under $200, branch managers handle customer credits under $1,000, you handle only strategic decisions and exceptions above those thresholds. Document these levels in a one-page authority matrix.','Automate AP/AR workflows. Invoice matching (PO to receipt to invoice) should be automatic. Payment reminders should send at 30, 45, and 60 days without human involvement. Collections escalation to you only at 90+ days or above $5,000.'] },
+        'Putting Out Fires': { solution:'Early warning systems with written response playbooks', impact:'CEOs spend 36% of their time in reactive mode, handling issues as they unfold (Forbes/Fast Company, 2024). Most "fires" are actually recurring patterns disguised as emergencies. Fix the pattern, and the fires stop.', steps:['Log every fire for 5 business days. Use a simple spreadsheet: date, description, root cause, time spent, who escalated it. After 5 days, categorize them. You will find 3-4 patterns that account for 70-80% of all escalations.','Write a one-page response playbook for your top 3 recurring fire types. Example: "Customer threatens to leave over a late shipment: 1) Apologize sincerely. 2) Offer expedited reshipping at our cost if order is over $500. 3) Issue a 5% credit on the next order. 4) Escalate to owner only if customer revenue exceeds $50K/year."','Set up proactive alerts that catch problems before they escalate: inventory below safety stock, shipments not scanned by 2 PM, credit holds on orders from your top 50 accounts. Each alert you build eliminates a future fire.','Empower team leads to resolve without escalating. Post the playbooks visibly. When someone escalates something covered by a playbook, redirect them to the playbook instead of solving it yourself. This is how you train the behavior.'] },
+        'Email & Comms': { solution:'Batch processing, canned responses, and inbox delegation', impact:'Workers are interrupted every 3 minutes and 5 seconds on average, and each interruption costs 23 minutes and 15 seconds of refocus time (UC Irvine). The average professional spends 28% of their workweek on email alone, roughly 11 hours (McKinsey). For a distribution owner, that is 11 hours not spent on growth.', steps:['Implement batch processing: check email 3 times daily at fixed times (8 AM, 12 PM, 4 PM). Close your email client between those windows. This single change recovers 1-2 hours per day by eliminating constant context switching. The 23-minute refocus cost per interruption means every email check during deep work costs you nearly half an hour.','Create canned responses for your top 10 recurring questions. Common ones: pricing requests, lead time inquiries, return policy, credit application status, delivery ETA. One click instead of 10 minutes of typing. Save them as templates in your email client.','Route all system notifications (ERP alerts, shipping confirmations, vendor updates) to a separate folder. Review it once daily at 4 PM. These notifications feel urgent but almost never are. Separating them reduces your primary inbox volume by 30-50%.','Delegate routine email replies to your ops manager or assistant. Create a shared inbox or forwarding rule for: order status questions, simple pricing inquiries, vendor scheduling, and routine customer requests. You handle only emails from your top 20 accounts, strategic partnerships, and financial matters.'] },
+        'Internal Meetings': { solution:'Async-first communication with dashboards replacing status updates', impact:'Only 11% of meetings are considered productive (Atlassian). Professionals waste 31 hours per month in unproductive meetings (TeamStage, 2024). Unnecessary meetings cost US businesses $37 billion per year in salary costs alone. Every meeting you eliminate gives your entire team their time back, not just you.', steps:['Audit every recurring meeting on your calendar. For each one, ask: "What decision does this meeting produce?" If the answer is "awareness" or "status update," cancel it immediately. Replace it with a shared dashboard or a 3-bullet async update in Slack or email. Most distribution owners find they can cut 40-60% of recurring meetings this way.','Replace all status update meetings with a shared dashboard. Sales pipeline, order fulfillment, AR aging, inventory levels: these are numbers on a screen, not topics for a room. Post the dashboard link where everyone can access it. Update it automatically from your systems.','Enforce 25-minute meeting defaults (not 30 or 60). Require a written agenda sent 24 hours before the meeting. If no agenda arrives, the meeting is automatically canceled. This rule alone kills 30% of unnecessary meetings because people realize they do not actually need one.','Every meeting must end with written next steps, owners, and deadlines posted in a shared document within 10 minutes of the meeting ending. If a meeting does not produce clear action items, it should not have been a meeting. Review your meeting output monthly and cut any recurring meeting that consistently produces no actions.'] },
+        'Customer Calls/Meetings': { solution:'Tiered customer service model with strategic account focus', impact:'Not all customer time is equal. Distribution owners often spend the same amount of time on a $5,000/year account as a $500,000/year account. A tiered model ensures your time goes to the relationships that drive 80% of revenue.', steps:['Rank your customers by annual revenue. Your top 20% likely generate 80% of your revenue. These are your "A" accounts and the only ones that warrant your personal time. B and C accounts get your sales team or customer service.','Block 2 hours every Tuesday and Thursday morning for proactive outreach to A accounts. Not problem-solving; strategic conversations about their growth plans, upcoming projects, and how you can expand the relationship. CEOs who focus on strategic customer work generate 33% more revenue (Gallup).','Create a customer escalation matrix: customer service handles routine inquiries, sales managers handle B-account issues, you handle only A-account escalations and new strategic opportunities above $25K. Post this matrix where your team can see it.','Track your customer-facing hours weekly. Target: 60% strategic (growth conversations, relationship building) and 40% reactive (problem-solving). If the ratio flips, your systems need work, not your schedule.'] },
+        'People Management': { solution:'Structured management cadence with written SOPs', impact:'The average SMB owner spends 8-12 hours per week on people management tasks that could be systematized. Clear SOPs and a predictable management rhythm reduce ad-hoc interruptions by 40-60%.', steps:['Implement a weekly management cadence: 15-minute daily standup (what are you working on, what is blocked), 30-minute weekly 1:1 with each direct report, monthly performance review. This structure replaces the constant "got a minute?" interruptions throughout the day.','For every task you repeat more than 3 times, write a 3-bullet SOP: 1) What to do, 2) How to do it, 3) What "done" looks like. Store SOPs in a shared folder. When someone asks you how to do something, point them to the SOP instead of explaining it again.','Define decision rights clearly. Create a one-page document: "Decisions you make without asking me" (hiring temps, scheduling, routine returns), "Decisions you make and inform me" (credits under $1K, vendor substitutions), "Decisions we make together" (new hires, pricing changes, large capital purchases).','Track your interruptions for one week. Every time someone comes to you with a question, note it. At the end of the week, turn the top 5 questions into SOPs or decision-rights updates. Within 60 days, your interruptions will drop by half.'] }
     };
 
-    sorted.filter(function(t){return t.saved>=0.5;}).slice(0,5).forEach(function(t,idx) {
-        var g = guides[t.name] || { solution:'Process automation', impact:'Efficiency gain', steps:['Audit current process end to end.','Document the SOP with clear ownership.','Apply targeted automation tools.','Measure results weekly for 30 days.'] };
-        cp(85);
-        var stepLines = [];
-        g.steps.forEach(function(s) {
-            var wrapped = doc.splitTextToSize(s, cw - 26);
-            wrapped.forEach(function(line) { stepLines.push(line); });
-        });
-        var cardH = 42 + stepLines.length * 6;
-        card(m,y,cw,cardH,{accent:C.blue});
-        txt((idx+1)+'. '+t.name.toUpperCase(),10,'bold',C.blue); doc.text((idx+1)+'. '+t.name.toUpperCase(),m+10,y+12);
-        txt('Recovery Potential: '+t.saved.toFixed(1)+'h/week',8,'bold',C.textMid); doc.text('Recovery Potential: '+t.saved.toFixed(1)+'h/week',pw-m-10,y+12,{align:'right'});
+    sorted.filter(t=>t.saved>=0.5).slice(0,5).forEach((t,idx) => {
+        const g = guides[t.name] || { solution:'Process automation', impact:'Efficiency gain', steps:['Audit current process end to end.','Document the SOP with clear ownership.','Apply targeted automation tools.','Measure results weekly for 30 days.'] };
         
-        txt('SOLUTION:',8,'bold',C.text); doc.text('SOLUTION:',m+10,y+24);
-        txt(g.solution,9,'normal',C.text); doc.text(g.solution,m+32,y+24);
-        
-        txt('IMPACT:',8,'bold',C.text); doc.text('IMPACT:',m+10,y+31);
-        var impactWrapped = doc.splitTextToSize(g.impact, cw - 42);
-        var impY = y+31;
-        impactWrapped.forEach(function(line) { txt(line,9,'normal',C.textMid); doc.text(line,m+32,impY); impY += 5; });
+        const playbookContent = [
+            { type: 'title', text: `${idx+1}. ${t.name.toUpperCase()}`, fontSize: 10, style: 'bold', color: C.blue },
+            { type: 'text', text: `Recovery Potential: ${t.saved.toFixed(1)}h/week`, fontSize: 8, style: 'bold', color: C.textMid },
+            { type: 'space', height: 4 },
+            { type: 'text', text: `SOLUTION: ${g.solution}`, fontSize: 8, style: 'bold' },
+            { type: 'text', text: `IMPACT: ${g.impact}`, fontSize: 8, color: C.textMid, maxWidth: cw-20 },
+            { type: 'space', height: 4 }
+        ];
 
-        var stepY = impY + 7;
-        var bulletIdx = 0;
-        g.steps.forEach(function(s) {
-            var wrapped = doc.splitTextToSize(s, cw - 26);
-            wrapped.forEach(function(line, li) {
-                if(li === 0) { fill(C.blue); doc.circle(m+12,stepY-1,1,'F'); }
-                txt(line,8.5,'normal',C.text); doc.text(line,m+16,stepY+1);
-                stepY += 6;
+        g.steps.slice(0,4).forEach(step => {
+            playbookContent.push({
+                type: 'bullet',
+                text: step,
+                fontSize: 8.5,
+                bulletColor: C.blue,
+                maxWidth: cw-30
             });
         });
-        y += cardH + 8;
+        playbookContent.push({ type: 'space', height: 8 });
+
+        const playbookHeight = dynamicCard(m, y, cw, playbookContent, {accent:C.blue});
+        y += playbookHeight + 8;
     });
 
     // =============================
-    // PAGE 4: ROADMAP + CTA
+    // PAGE 5+: ROADMAP + CTA
     // =============================
     newPage();
-    y = secTitle('90-DAY IMPLEMENTATION ROADMAP', y);
+    y = secTitle('90-DAY TIME RECOVERY ROADMAP', y);
     
     const phases = [
-        { t:'DAYS 1-14: QUICK WINS', c:C.green, items:['Implement batch email: 3x daily at set times. No more reactive inbox checking.','Delegate all approvals under $500 with automated notification to you.','Create canned responses for your top 10 recurring email questions.'] },
-        { t:'DAYS 15-30: FOUNDATIONS', c:C.amber, items:['Build the automation system for your #1 time drain from the playbook above.','Draft a "who to ask" escalation guide so the team stops defaulting to you.','Set up a single KPI dashboard replacing your top 3 manual reports.'] },
-        { t:'DAYS 31-60: AUTOMATION', c:C.blue, items:['Deploy self-service order tracking to cut "where is my order?" calls by 60%.','Configure automated reorder points for your top 50 A-items.','Set up proactive alerts for inventory, credit holds, and late shipments.'] },
-        { t:'DAYS 61-90: OPTIMIZATION', c:C.purple, items:['Review all time KPIs. Compare your week now vs your audit baseline.','Reallocate recovered hours to strategic growth: customers, markets, partnerships.','Schedule your next audit in 90 days to measure sustained improvement.'] }
+        { t:'DAYS 1-14: TRACK AND ELIMINATE', c:C.green, items:[
+            'Week 1 Daily Practice: Before every task, ask yourself "Am I the only person who can do this?" If the answer is no, write a 3-bullet SOP (What to do, How to do it, What done looks like) and hand it off. Target: 2 handoffs per week.',
+            'Implement batch email processing immediately: check email at 8 AM, 12 PM, and 4 PM only. Close your inbox between those windows. This recovers 1-2 hours per day by eliminating the 23-minute refocus cost per interruption (UC Irvine).',
+            'Create canned responses for your top 10 recurring email questions. Common ones for distributors: pricing requests, lead time inquiries, return policy, credit app status. One click replaces 10 minutes of typing.',
+            'Delegate all approvals under $500 with automated notification to you. Review the approval log once daily instead of approving each one live. Expected time savings: 3-5 hours per week.',
+            'Deliverable: Written list of every task you touched this week that someone else could have done. Target: recover 5-8 hours per week by Day 14. At $150/hour CEO rate, that is $750-$1,200 per week back in your pocket.'
+        ]},
+        { t:'DAYS 15-30: SYSTEMATIZE', c:C.amber, items:[
+            'Build the automation system for your #1 time drain from the playbook above. If it is pricing, create your rep-facing cheat sheet and approval workflow. If it is order issues, implement validation rules. Start with the single biggest drain.',
+            'Draft a one-page "Who Handles What" escalation guide. Three columns: Issue Type, First Responder, Escalation Trigger. Post it where your team can see it. The goal: your team stops defaulting to you for every decision.',
+            'Set up a single executive dashboard replacing your top 3 manual reports. Revenue vs. target, margin by category, and AR aging should auto-refresh daily. Check it once each morning for 5 minutes.',
+            'Cancel 40-60% of recurring meetings. Replace status updates with shared dashboards. Enforce 25-minute defaults with mandatory agendas 24 hours in advance. No agenda = canceled meeting.',
+            'Common Roadblock: Week 3 is when most owners take tasks back. Your team will make mistakes. That is the cost of training. If you take the task back, you have paid the training cost without getting the benefit. Resist the urge. Correct and coach instead.',
+            'Deliverable: Escalation guide posted, dashboard live, top time drain automation running. Target: recover 8-12 hours per week by Day 30. That is 2 extra family dinners per week, or 4 gym sessions you have been skipping.'
+        ]},
+        { t:'DAYS 31-60: AUTOMATE AND DELEGATE', c:C.blue, items:[
+            'Deploy customer self-service for order tracking and proof of delivery. Cut "where is my order?" calls by 60-80%. For most distributors, this eliminates 3-6 hours of phone time per week.',
+            'Configure automated reorder points for your top 50 A-items using the formula: (Avg Daily Sales x Lead Time) + Safety Stock. Automate PO generation so purchasing happens without your review.',
+            'Set up proactive alert systems: inventory below safety stock, shipments not scanned by 2 PM, credit holds on top-50 accounts. Each alert you build prevents a future fire from reaching your desk.',
+            'Write response playbooks for your top 3 recurring fire types. Train your team to follow the playbook before escalating. Redirect any escalation covered by a playbook back to the playbook.',
+            'Implement tiered customer service: you handle only A-account relationships and opportunities above $25K. Sales managers handle B-accounts. Customer service handles C-accounts and routine inquiries.',
+            'Deliverable: Self-service portal live, reorder automation running, fire playbooks posted. Target: recover 12-18 hours per week by Day 60. At $150/hour, that is $93,600-$140,400 per year in recovered CEO capacity. Enough time for a real vacation without your phone buzzing.'
+        ]},
+        { t:'DAYS 61-90: OPTIMIZE AND GROW', c:C.purple, items:[
+            'Re-run your CEO Time Audit. Compare your week now versus your Day 1 baseline. Measure the actual hours recovered and calculate the dollar value. Share the results with your team; they made this happen.',
+            'Reallocate recovered hours deliberately. Block 2 hours every Tuesday and Thursday morning for strategic customer outreach to your top 20 accounts. CEOs who focus on strategic work generate 33% more revenue (Gallup). This is where recovered time pays compound returns.',
+            'Automate your remaining manual reports. Target: zero recurring reports that require copy-paste from ERP to Excel. Everything auto-generates and auto-delivers on schedule.',
+            'Review your decision-rights document. Update it based on 60 days of real-world experience. Add new items your team has proven they can handle. Remove any that caused problems.',
+            'Schedule your next audit for Day 180. Continuous improvement is not a project; it is a practice. The owners who sustain results audit quarterly and adjust.',
+            'Deliverable: Full before/after comparison, strategic time blocks on calendar, all reports automated. Target: 15-22 hours per week recovered permanently. That is the equivalent of 2-3 extra work days per week focused on growth, or 3 extra evenings per week with your family. Your choice.'
+        ]}
     ];
 
-    phases.forEach(function(p,pi) {
-        cp(45);
-        fill(p.c); doc.roundedRect(m,y,cw,10,2,2,'F');
-        txt(p.t,9,'bold',C.white); doc.text(p.t,m+cw/2,y+7,{align:'center'});
-        y += 15;
-        p.items.forEach(function(it) {
-            var wrapped = doc.splitTextToSize(it, cw - 15);
-            wrapped.forEach(function(line, li) {
-                if(li === 0) { fill(p.c); doc.circle(m+5,y+2,1,'F'); }
-                txt(line,9,'normal',C.text); doc.text(line,m+10,y+4);
-                y += 7;
+    phases.forEach((p) => {
+        const phaseContent = [
+            { type: 'title', text: p.t, fontSize: 9, style: 'bold', color: C.white, align: 'center' },
+            { type: 'space', height: 6 }
+        ];
+        
+        p.items.forEach(item => {
+            phaseContent.push({
+                type: 'bullet',
+                text: item,
+                fontSize: 9,
+                bulletColor: p.c,
+                maxWidth: cw-30
             });
         });
-        y += 5;
+        phaseContent.push({ type: 'space', height: 8 });
+
+        // Header bar
+        fill(p.c); doc.roundedRect(m, y, cw, 10, 2, 2, 'F');
+        txt(p.t, 9, 'bold', C.white); doc.text(p.t, m+cw/2, y+7, {align:'center'});
+        y += 15;
+
+        // Phase content
+        const phaseHeight = dynamicCard(m, y, cw, phaseContent.slice(1)); // Skip title since it's in the header
+        y += phaseHeight + 8;
     });
 
-    // NOT AN ERP PITCH disclaimer
-    cp(35);
-    card(m,y,cw,28,{accent:C.green});
-    txt('THIS IS NOT AN ERP PITCH',9,'bold',C.green); doc.text('THIS IS NOT AN ERP PITCH',m+10,y+10);
-    var disclaimerText = 'We build lightweight automation ON TOP of your existing systems. No rip-and-replace. No 14-month projects. Your ERP stays. We just make it work harder for you.';
-    txt(disclaimerText,8.5,'normal',C.text);
-    var disclaimerWrapped = doc.splitTextToSize(disclaimerText, cw - 20);
-    var dY = y + 17;
-    disclaimerWrapped.forEach(function(line) { doc.text(line, m+10, dY); dY += 5; });
-    y = dY + 6;
+    // Disclaimer - Dynamic
+    const disclaimerContent = [
+        { type: 'title', text: 'THIS IS NOT AN ERP REPLACEMENT', fontSize: 9, style: 'bold', color: C.green },
+        { type: 'space', height: 4 },
+        { type: 'text', text: 'We build lightweight automation layers on top of your existing systems. Your ERP, your warehouse software, your accounting tools: they all stay. No rip-and-replace. No 14-month implementation projects. No six-figure consulting fees. We connect what you already have, fill the gaps with targeted automation, and give you your time back in weeks, not years.', fontSize: 8.5, maxWidth: cw-20 },
+        { type: 'space', height: 8 }
+    ];
+    const disclaimerHeight = dynamicCard(m, y, cw, disclaimerContent, {accent:C.green});
+    y += disclaimerHeight + 8;
 
-    // CTA
-    y += 10;
-    cp(60);
-    stroke(C.amber); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,55,3,3,'FD');
-    
-    txt("LET'S RECLAIM YOUR TIME",14,'bold',C.text); doc.text("LET'S RECLAIM YOUR TIME",pw/2,y+15,{align:'center'});
-
-    var ctaLine1 = 'You are losing ' + d.automatableHrs.toFixed(0) + ' hours every single week.';
-    txt(ctaLine1,9,'normal',C.textMid); doc.text(ctaLine1,pw/2,y+24,{align:'center'});
+    // CTA - Dynamic
+    const ctaContent = [
+        { type: 'title', text: "LET'S RECLAIM YOUR TIME", fontSize: 14, style: 'bold', color: C.text, align: 'center' },
+        { type: 'space', height: 4 },
+        { type: 'text', text: `You are losing ${d.automatableHrs.toFixed(0)} hours every single week to tasks that do not need you.`, fontSize: 9, color: C.textMid, align: 'center' }
+    ];
 
     if(dollarImpact > 0) {
-        var ctaDollar = "That is $" + dollarImpact.toLocaleString() + " per year in CEO time alone.";
-        txt(ctaDollar,10,'bold',C.red); doc.text(ctaDollar,pw/2,y+32,{align:'center'});
+        ctaContent.push({
+            type: 'text',
+            text: `That is $${dollarImpact.toLocaleString()} per year in CEO opportunity cost.`,
+            fontSize: 10,
+            style: 'bold',
+            color: C.red,
+            align: 'center'
+        });
     }
 
-    txt('mo@deeplineop.ai',12,'bold',C.amber); doc.text('mo@deeplineop.ai',pw/2,y+44,{align:'center'});
+    ctaContent.push({ type: 'space', height: 4 });
+    ctaContent.push({
+        type: 'text',
+        text: 'Most distribution owners recover 10-15 hours in the first 30 days.',
+        fontSize: 9,
+        color: C.textMid,
+        align: 'center'
+    });
+    ctaContent.push({
+        type: 'text',
+        text: 'Let us show you exactly how. Free 30-minute strategy call.',
+        fontSize: 9,
+        color: C.textMid,
+        align: 'center'
+    });
+    ctaContent.push({ type: 'space', height: 6 });
+    ctaContent.push({
+        type: 'text',
+        text: 'mo@deeplineop.ai',
+        fontSize: 12,
+        style: 'bold',
+        color: C.amber,
+        align: 'center'
+    });
+    ctaContent.push({ type: 'space', height: 8 });
 
-    // Footer
+    stroke(C.amber); doc.setLineWidth(1);
+    fill(C.card);
+    const ctaHeight = dynamicCard(m, y, cw, ctaContent);
+
+    // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
-    for(var i=1;i<=pc;i++){
+    for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
+        fill(C.card); stroke(C.border); doc.rect(0,ph-12,pw,12,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',7,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-5);
-        txt('Page '+i+' of '+pc,7,'normal',C.textMid);
-        doc.text('Page '+i+' of '+pc,pw-m,ph-5,{align:'right'});
+        txt(`Page ${i} of ${pc}`,7,'normal',C.textMid);
+        doc.text(`Page ${i} of ${pc}`,pw-m,ph-5,{align:'right'});
     }
 
     doc.save('CEO-Time-Audit-Report.pdf');
