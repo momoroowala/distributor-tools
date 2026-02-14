@@ -868,28 +868,25 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p) => {
-        // Ensure header + at least first bullet fit together
-        doc.setFontSize(9);
-        const firstBulletLines = doc.splitTextToSize(p.items[0], cw-30);
-        const firstBulletH = firstBulletLines.length * (9 * 0.55) + 12; // bullet + card padding
-        const headerH = 13;
-        if (y + headerH + firstBulletH > 265) { newPage(); }
-
-        // Header bar
-        fill(p.c); doc.roundedRect(m, y, cw, 10, 2, 2, 'F');
-        txt(p.t, 9, 'bold', C.white); doc.text(p.t, m+cw/2, y+7, {align:'center'});
-        y += headerH;
-
-        // Render each bullet as its own card so page breaks work naturally
+        // Build card content with title inside the card (same pattern as business dependency)
+        const phaseContent = [
+            { type: 'title', text: p.t, fontSize: 10, style: 'bold', color: p.c },
+            { type: 'space', height: 4 }
+        ];
+        
         p.items.forEach(item => {
-            const bulletContent = [
-                { type: 'bullet', text: item, fontSize: 9, bulletColor: p.c, maxWidth: cw-30 },
-                { type: 'space', height: 2 }
-            ];
-            const bh = dynamicCard(m, y, cw, bulletContent);
-            y += bh + 3;
+            phaseContent.push({
+                type: 'bullet',
+                text: item,
+                fontSize: 9,
+                bulletColor: p.c,
+                maxWidth: cw-30
+            });
         });
-        y += 5;
+        phaseContent.push({ type: 'space', height: 6 });
+
+        const phaseHeight = dynamicCard(m, y, cw, phaseContent, {accent: p.c});
+        y += phaseHeight + 8;
     });
 
     // Disclaimer - Dynamic
