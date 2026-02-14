@@ -474,9 +474,9 @@ function generatePDF(email) {
         return doc.splitTextToSize(text, maxWidth);
     };
 
-    // Line heights
-    const lh = (fontSize) => fontSize * 0.5;
-    const lhBody = (fontSize) => fontSize * 0.45;
+    // Line heights (in mm; jsPDF fontSize is in pt, ~0.35mm per pt)
+    const lh = (fontSize) => fontSize * 0.65;
+    const lhBody = (fontSize) => fontSize * 0.6;
 
     // Check page break - only if content actually won't fit
     const ensureFit = (neededHeight) => {
@@ -491,14 +491,14 @@ function generatePDF(email) {
             const fs = item.fontSize || 8;
             const mw = item.maxWidth || w - 20;
             if (item.type === 'metric') {
-                h += fs * 0.5 + 2;
+                h += fs * 0.65 + 4;
             } else if (item.type === 'bullet') {
                 const lines = wrap(item.text, fs, mw);
-                h += lines.length * lhBody(fs) + 2;
+                h += lines.length * lhBody(fs) + 3;
             } else {
                 const lines = wrap(item.text, fs, mw);
                 const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
-                h += lines.length * lineH + 2;
+                h += lines.length * lineH + 3;
             }
         });
         return h;
@@ -521,21 +521,21 @@ function generatePDF(email) {
             if (item.type === 'metric') {
                 txt(fs, item.style || 'bold', col);
                 if (item.align === 'center') {
-                    doc.text(item.text, x + w/2, cy + fs * 0.35, {align:'center'});
+                    doc.text(item.text, x + w/2, cy + fs * 0.4, {align:'center'});
                 } else {
-                    doc.text(item.text, x + 10, cy + fs * 0.35);
+                    doc.text(item.text, x + 10, cy + fs * 0.4);
                 }
-                cy += fs * 0.5 + 2;
+                cy += fs * 0.65 + 4;
             } else if (item.type === 'bullet') {
                 fill(item.bulletColor || C.blue);
-                doc.circle(x + 12, cy + 1.5, 1, 'F');
+                doc.circle(x + 12, cy + 2.5, 1, 'F');
                 txt(fs, style, col);
                 const lines = wrap(item.text, fs, mw);
                 lines.forEach(line => {
-                    doc.text(line, x + 16, cy + fs * 0.35);
+                    doc.text(line, x + 16, cy + fs * 0.4);
                     cy += lhBody(fs);
                 });
-                cy += 2;
+                cy += 3;
             } else {
                 // title or text
                 txt(fs, style, col);
@@ -543,16 +543,16 @@ function generatePDF(email) {
                 const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
                 if (item.align === 'center') {
                     lines.forEach(line => {
-                        doc.text(line, x + w/2, cy + fs * 0.35, {align:'center'});
+                        doc.text(line, x + w/2, cy + fs * 0.4, {align:'center'});
                         cy += lineH;
                     });
                 } else {
                     lines.forEach(line => {
-                        doc.text(line, x + 10, cy + fs * 0.35);
+                        doc.text(line, x + 10, cy + fs * 0.4);
                         cy += lineH;
                     });
                 }
-                cy += 2;
+                cy += 3;
             }
         });
 
@@ -575,28 +575,28 @@ function generatePDF(email) {
 
             if (item.type === 'metric') {
                 txt(fs, item.style || 'bold', col);
-                if (item.align === 'center') doc.text(item.text, x + w/2, cy + fs * 0.35, {align:'center'});
-                else doc.text(item.text, x + 10, cy + fs * 0.35);
-                cy += fs * 0.5 + 2;
+                if (item.align === 'center') doc.text(item.text, x + w/2, cy + fs * 0.4, {align:'center'});
+                else doc.text(item.text, x + 10, cy + fs * 0.4);
+                cy += fs * 0.65 + 4;
             } else if (item.type === 'bullet') {
                 fill(item.bulletColor || C.blue);
-                doc.circle(x + 12, cy + 1.5, 1, 'F');
+                doc.circle(x + 12, cy + 2.5, 1, 'F');
                 txt(fs, style, col);
                 wrap(item.text, fs, mw).forEach(line => {
-                    doc.text(line, x + 16, cy + fs * 0.35);
+                    doc.text(line, x + 16, cy + fs * 0.4);
                     cy += lhBody(fs);
                 });
-                cy += 2;
+                cy += 3;
             } else {
                 txt(fs, style, col);
                 const lines = wrap(item.text, fs, mw);
                 const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
                 if (item.align === 'center') {
-                    lines.forEach(line => { doc.text(line, x + w/2, cy + fs * 0.35, {align:'center'}); cy += lineH; });
+                    lines.forEach(line => { doc.text(line, x + w/2, cy + fs * 0.4, {align:'center'}); cy += lineH; });
                 } else {
-                    lines.forEach(line => { doc.text(line, x + 10, cy + fs * 0.35); cy += lineH; });
+                    lines.forEach(line => { doc.text(line, x + 10, cy + fs * 0.4); cy += lineH; });
                 }
-                cy += 2;
+                cy += 3;
             }
         });
         return cardH;
