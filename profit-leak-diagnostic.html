@@ -575,7 +575,7 @@ function generatePDF(email) {
     let metricCardHeight = 10; // base height
     const metricFits = mets.map(mt => {
         const valFit = fitText(doc, mt.val, metW-10, 16, 12);
-        const labelFit = fitText(doc, mt.label, metW-10, 7, 6);
+        const labelFit = fitText(doc, mt.label, metW-10, 7, 7);
         const thisHeight = 10 + valFit.lines.length * 8 + labelFit.lines.length * 4 + 8;
         metricCardHeight = Math.max(metricCardHeight, thisHeight);
         return { valFit, labelFit };
@@ -601,7 +601,7 @@ function generatePDF(email) {
     if (leakVsMargin) {
         const warnTitleFit = fitText(doc, 'WARNING: LEAKAGE EXCEEDS PROFIT', cw-20, 10, 8);
         const warnMsg = `Your estimated leakage ($${runningLeak.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you are keeping.`;
-        const warnMsgFit = fitText(doc, warnMsg, cw-30, 8, 6);
+        const warnMsgFit = fitText(doc, warnMsg, cw-30, 8, 7.5);
         const warnCardHeight = 11 + warnTitleFit.lines.length * 5 + 8 + warnMsgFit.lines.length * 5 + 8;
         
         cp(warnCardHeight);
@@ -624,7 +624,7 @@ function generatePDF(email) {
     const outlineHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT", cw-20, 10, 8);
     let outlineContentHeight = 12 + outlineHeaderFit.lines.length * 5 + 8;
     const outlineItemFits = outlineItems.map((item, i) => {
-        const itemFit = fitText(doc, item, cw-40, 8, 6);
+        const itemFit = fitText(doc, item, cw-40, 8, 7.5);
         outlineContentHeight += itemFit.lines.length * 5 + 2;
         return itemFit;
     });
@@ -657,7 +657,7 @@ function generatePDF(email) {
     
     validLeaks.forEach((l,li) => {
         const leakLabelFit = fitText(doc, l.label, cw-100, 10, 8);
-        const leakDescFit = fitText(doc, l.desc, cw-100, 8, 6);
+        const leakDescFit = fitText(doc, l.desc, cw-100, 8, 7.5);
         const amountText = '$'+l.leak.toLocaleString();
         const leakItemHeight = Math.max(22, 12 + leakLabelFit.lines.length * 5 + leakDescFit.lines.length * 4 + 8);
         
@@ -769,9 +769,9 @@ function generatePDF(email) {
         
         // Measure all text content for dynamic height
         const headerFit = fitText(doc, `${idx+1}. ${leak.label.toUpperCase()}`, cw-30, 10, 8);
-        const impactFit = fitText(doc, `Impact: ${fix.impact}`, cw/3, 8, 6);
-        const priorityLabelFit = fitText(doc, 'PRIORITY:', 40, 8, 6);
-        const priorityValueFit = fitText(doc, fix.priority, 60, 9, 7);
+        const impactFit = fitText(doc, `Impact: ${fix.impact}`, cw/3, 8, 7.5);
+        const priorityLabelFit = fitText(doc, 'PRIORITY:', 40, 8, 7.5);
+        const priorityValueFit = fitText(doc, fix.priority, 60, 9, 7.5);
         
         // Calculate total height needed
         let totalHeight = 12; // top padding
@@ -779,7 +779,7 @@ function generatePDF(email) {
         totalHeight += Math.max(impactFit.lines.length * 4, 10) + 4; // impact line + gap
         totalHeight += Math.max(priorityLabelFit.lines.length * 4 + priorityValueFit.lines.length * 5, 10) + 6; // priority line + gap
         
-        const stepFits = fix.steps.map(s => fitText(doc, s, cw-35, 8, 6));
+        const stepFits = fix.steps.map(s => fitText(doc, s, cw-35, 8, 7.5));
         stepFits.forEach(sf => {
             totalHeight += sf.lines.length * 5 + 3; // step text + gap
         });
@@ -896,8 +896,8 @@ function generatePDF(email) {
 
     benchmarks.forEach((bm) => {
         const statFit = fitText(doc, bm.stat, 35, 16, 10);
-        const descFit = fitText(doc, bm.desc, cw - 55, 8, 6);
-        const srcFit = fitText(doc, 'Source: ' + bm.src, cw - 55, 6, 5);
+        const descFit = fitText(doc, bm.desc, cw - 55, 8, 7.5);
+        const srcFit = fitText(doc, 'Source: ' + bm.src, cw - 55, 7, 7);
         const bmHeight = Math.max(
             statFit.lines.length * 8 + 10,
             12 + descFit.lines.length * 4.5 + srcFit.lines.length * 3.5 + 8

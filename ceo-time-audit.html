@@ -474,16 +474,16 @@ function generatePDF(email) {
         content.forEach(item => {
             let itemHeight = 0;
             if (item.type === 'title') {
-                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
-                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 7);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.55) + 3;
                 measuredContent.push({...item, fitted, height: itemHeight});
             } else if (item.type === 'text') {
-                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 6);
-                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 2;
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 20, item.fontSize || 9, 7);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.55) + 3;
                 measuredContent.push({...item, fitted, height: itemHeight});
             } else if (item.type === 'bullet') {
-                const fitted = fitText(doc, item.text, item.maxWidth || w - 30, item.fontSize || 8, 6);
-                itemHeight = fitted.lines.length * (fitted.fontSize * 0.4) + 1;
+                const fitted = fitText(doc, item.text, item.maxWidth || w - 30, item.fontSize || 8, 7);
+                itemHeight = fitted.lines.length * (fitted.fontSize * 0.55) + 2;
                 measuredContent.push({...item, fitted, height: itemHeight});
             } else if (item.type === 'metric') {
                 itemHeight = (item.fontSize || 16) * 0.4 + 8;
@@ -523,34 +523,34 @@ function generatePDF(email) {
             if (item.type === 'title') {
                 txt(item.text, item.fitted.fontSize, item.style || 'bold', item.color || C.text);
                 if (item.align === 'center') {
-                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.35, {align: 'center'});
                 } else {
                     item.fitted.lines.forEach(line => {
-                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
-                        currentY += item.fitted.fontSize * 0.4;
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.35);
+                        currentY += item.fitted.fontSize * 0.55;
                     });
-                    currentY -= item.fitted.fontSize * 0.4;
+                    currentY -= item.fitted.fontSize * 0.55;
                 }
             } else if (item.type === 'text') {
                 txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
                 if (item.align === 'center') {
-                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.3, {align: 'center'});
+                    doc.text(item.fitted.lines.join(' '), x + w/2, currentY + item.fitted.fontSize * 0.35, {align: 'center'});
                 } else {
                     item.fitted.lines.forEach(line => {
-                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.3);
-                        currentY += item.fitted.fontSize * 0.4;
+                        doc.text(line, x + 10, currentY + item.fitted.fontSize * 0.35);
+                        currentY += item.fitted.fontSize * 0.55;
                     });
-                    currentY -= item.fitted.fontSize * 0.4;
+                    currentY -= item.fitted.fontSize * 0.55;
                 }
             } else if (item.type === 'bullet') {
                 fill(item.bulletColor || C.blue);
                 doc.circle(x + 12, currentY + 2, 1, 'F');
                 txt(item.text, item.fitted.fontSize, item.style || 'normal', item.color || C.text);
                 item.fitted.lines.forEach(line => {
-                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.3);
-                    currentY += item.fitted.fontSize * 0.4;
+                    doc.text(line, x + 16, currentY + item.fitted.fontSize * 0.35);
+                    currentY += item.fitted.fontSize * 0.55;
                 });
-                currentY -= item.fitted.fontSize * 0.4;
+                currentY -= item.fitted.fontSize * 0.55;
             } else if (item.type === 'metric') {
                 txt(item.text, item.fontSize || 16, item.style || 'bold', item.color || C.text);
                 if (item.align === 'center') {

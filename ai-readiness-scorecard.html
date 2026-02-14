@@ -1503,7 +1503,7 @@
     cp(ctaHeight);
     
     stroke(C.purple); doc.setLineWidth(1);
-    fill(C.white); doc.roundedRect(m,y,cw,ctaHeight,3,3,'FD');
+    fill(C.card); doc.roundedRect(m,y,cw,ctaHeight,3,3,'FD');
     
     let ctaY = y + 12;
     txt('',ctaTitleFit.fontSize,'bold',C.text);
@@ -1521,7 +1521,7 @@
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
         doc.setPage(i);
-        fill(C.white); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD');
+        fill(C.card); stroke(C.border); doc.rect(0,ph-10,pw,10,'FD');
         txt('Deep Line Operations | AI Automation for Distributors',6,'normal',C.textMid);
         doc.text('Deep Line Operations | AI Automation for Distributors',m,ph-4);
         txt(`Page ${i} of ${pc}`,6,'normal',C.textMid);
