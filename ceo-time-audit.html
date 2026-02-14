@@ -866,10 +866,7 @@ function generatePDF(email) {
     ];
 
     phases.forEach((p) => {
-        const phaseContent = [
-            { type: 'title', text: p.t, fontSize: 9, style: 'bold', color: C.white, align: 'center' },
-            { type: 'space', height: 6 }
-        ];
+        const phaseContent = [];
         
         p.items.forEach(item => {
             phaseContent.push({
@@ -882,13 +879,28 @@ function generatePDF(email) {
         });
         phaseContent.push({ type: 'space', height: 8 });
 
+        // Pre-measure card content to check if header+card fit together
+        let estHeight = 20; // 10 header bar + 10 padding
+        phaseContent.forEach(item => {
+            if (item.type === 'bullet') {
+                doc.setFontSize(item.fontSize || 9);
+                const lines = doc.splitTextToSize(item.text, item.maxWidth || cw-30);
+                estHeight += lines.length * (item.fontSize * 0.55) + 2;
+            } else if (item.type === 'space') {
+                estHeight += item.height;
+            }
+        });
+
+        // If header + at least some content won't fit, page break first
+        if (y + 50 > 265) { newPage(); }
+
         // Header bar
         fill(p.c); doc.roundedRect(m, y, cw, 10, 2, 2, 'F');
         txt(p.t, 9, 'bold', C.white); doc.text(p.t, m+cw/2, y+7, {align:'center'});
-        y += 15;
+        y += 13;
 
         // Phase content
-        const phaseHeight = dynamicCard(m, y, cw, phaseContent.slice(1)); // Skip title since it's in the header
+        const phaseHeight = dynamicCard(m, y, cw, phaseContent);
         y += phaseHeight + 8;
     });
 
