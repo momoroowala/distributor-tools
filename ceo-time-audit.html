@@ -965,11 +965,12 @@ function generatePDF(email) {
 
     stroke(C.amber); doc.setLineWidth(1);
     fill(C.card);
-    const ctaCardY = y;
     const ctaHeight = dynamicCard(m, y, cw, ctaContent);
+    // y was synced to card top by dynamicCard (handles page breaks)
+    const ctaCardTop = y;
 
     // Measure content heights to find exact Y positions of links inside card
-    let linkMeasureY = ctaCardY + 10; // 10px top padding
+    let linkMeasureY = ctaCardTop + 10; // 10px top padding
     ctaContent.forEach(item => {
         if (item.type === 'space') { linkMeasureY += item.height; return; }
         const fs = item.fontSize || 9;
@@ -978,11 +979,11 @@ function generatePDF(email) {
         if (item.text === 'calendly.com/mo-deeplineop/30min') {
             doc.setFontSize(fs); doc.setFont('helvetica','bold');
             const tw = doc.getTextWidth(item.text);
-            doc.link(pw/2 - tw/2, linkMeasureY - 1, tw, 7, {url: 'https://calendly.com/mo-deeplineop/30min'});
+            doc.link(pw/2 - tw/2, linkMeasureY, tw, fs * 0.55 + 2, {url: 'https://calendly.com/mo-deeplineop/30min'});
         } else if (item.text === 'mo@deeplineop.ai') {
             doc.setFontSize(fs); doc.setFont('helvetica','normal');
             const tw = doc.getTextWidth(item.text);
-            doc.link(pw/2 - tw/2, linkMeasureY - 1, tw, 6, {url: 'mailto:mo@deeplineop.ai'});
+            doc.link(pw/2 - tw/2, linkMeasureY, tw, fs * 0.55 + 2, {url: 'mailto:mo@deeplineop.ai'});
         }
         linkMeasureY += ih;
     });
