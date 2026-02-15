@@ -973,6 +973,12 @@ function generatePDF(email) {
     const calW = doc.getTextWidth(calText);
     // Position over the calendly text line inside the card
     doc.link(pw/2 - calW/2, y + ctaHeight - 22, calW, 6, {url: 'https://calendly.com/mo-deeplineop/30min'});
+    
+    // Make email clickable too
+    const emailText = 'mo@deeplineop.ai';
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...C.textMid);
+    const emailW = doc.getTextWidth(emailText);
+    doc.link(pw/2 - emailW/2, y + ctaHeight - 14, emailW, 5, {url: 'mailto:mo@deeplineop.ai'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();

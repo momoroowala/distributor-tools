@@ -1542,8 +1542,9 @@
     doc.textWithLink(calTxt, pw/2 - calTxtW/2, ctaY, {url: 'https://calendly.com/mo-deeplineop/30min'});
     ctaY += 12;
     
-    txt('mo@deeplineop.ai',8,'normal',C.textMid);
-    doc.text('mo@deeplineop.ai',pw/2,ctaY,{align:'center'});
+    const emailTxt = 'mo@deeplineop.ai';
+    txt(emailTxt,8,'normal',C.textMid);
+    doc.textWithLink(emailTxt,pw/2 - doc.getTextWidth(emailTxt)/2,ctaY,{url:'mailto:mo@deeplineop.ai'});
 
     // Footer
     const pc = doc.internal.getNumberOfPages();

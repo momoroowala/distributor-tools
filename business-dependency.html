@@ -950,6 +950,18 @@ function generatePDF(email) {
         { type: 'space', h: 6 }
     ]);
 
+    // Overlay clickable links on CTA card
+    // Calendly link
+    const calText = 'calendly.com/mo-deeplineop/30min';
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    const calW = doc.getTextWidth(calText);
+    doc.link(pw/2 - calW/2, y - 24, calW, 6, {url: 'https://calendly.com/mo-deeplineop/30min'});
+    // Email link
+    const emailText = 'mo@deeplineop.ai';
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    const emailW = doc.getTextWidth(emailText);
+    doc.link(pw/2 - emailW/2, y - 16, emailW, 5, {url: 'mailto:mo@deeplineop.ai'});
+
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
     for(let i=1;i<=pc;i++){
