@@ -1536,8 +1536,10 @@
     doc.text(ctaTextFit.lines,pw/2,ctaY,{align:'center'});
     ctaY += ctaTextFit.lines.length * 5 + 6;
     
-    txt('calendly.com/mo-deeplineop/30min',10,'bold',C.blue);
-    doc.textWithLink('calendly.com/mo-deeplineop/30min', pw/2 - 50, ctaY, {url: 'https://calendly.com/mo-deeplineop/30min', align: 'center'});
+    const calTxt = 'calendly.com/mo-deeplineop/30min';
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
+    const calTxtW = doc.getTextWidth(calTxt);
+    doc.textWithLink(calTxt, pw/2 - calTxtW/2, ctaY, {url: 'https://calendly.com/mo-deeplineop/30min'});
     ctaY += 8;
     
     txt('mo@deeplineop.ai',8,'normal',C.textMid);

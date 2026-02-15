@@ -944,12 +944,19 @@ function generatePDF(email) {
         { type: 'space', h: 6 }
     ]);
 
-    // Add booking link with textWithLink
+    // Add booking CTA
+    const bookText = 'Book a free 15-minute Ops Walkthrough';
+    const bookText2 = 'and we will show you exactly where to start.';
     txt(10, 'bold', C.blue);
-    doc.textWithLink('Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.', m + cw/2 - 100, y - 15, {url: 'https://calendly.com/mo-deeplineop/30min', align: 'center'});
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    let bw = doc.getTextWidth(bookText);
+    doc.textWithLink(bookText, pw/2 - bw/2, y - 15, {url: 'https://calendly.com/mo-deeplineop/30min'});
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...C.blue);
+    let bw2 = doc.getTextWidth(bookText2);
+    doc.textWithLink(bookText2, pw/2 - bw2/2, y - 9, {url: 'https://calendly.com/mo-deeplineop/30min'});
     
     txt(8, 'normal', C.textMid);
-    doc.text('mo@deeplineop.ai', m + cw/2, y - 5, {align: 'center'});
+    doc.text('mo@deeplineop.ai', pw/2, y - 2, {align: 'center'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();

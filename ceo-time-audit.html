@@ -959,9 +959,11 @@ function generatePDF(email) {
     fill(C.card);
     const ctaHeight = dynamicCard(m, y, cw, ctaContent);
     
-    // Add clickable booking link after the card
-    txt('calendly.com/mo-deeplineop/30min', 12, 'bold', C.blue);
-    doc.textWithLink('calendly.com/mo-deeplineop/30min', m + cw/2 - 60, y + ctaHeight - 25, {url: 'https://calendly.com/mo-deeplineop/30min', align: 'center'});
+    // Add clickable booking link after the card (centered)
+    const calText = 'calendly.com/mo-deeplineop/30min';
+    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
+    const calW = doc.getTextWidth(calText);
+    doc.textWithLink(calText, pw/2 - calW/2, y + ctaHeight - 25, {url: 'https://calendly.com/mo-deeplineop/30min'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
