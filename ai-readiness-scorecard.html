@@ -628,6 +628,14 @@
                 <div class="download-complete" id="downloadComplete">
                     ✓ Report downloaded! Check your downloads folder.
                 </div>
+                
+                <div style="margin-top:2rem;padding:1.5rem;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:1rem;text-align:center;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);font-weight:600;margin-bottom:0.5rem;">Or skip straight to the expert</div>
+                    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-primary);">Get a Free Ops Walkthrough</h3>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;">Before any automation can work, your processes need to be right. Bad data in, bad results out. Talk to an automation expert this week and find out what's worth automating and what needs better data quality first.</p>
+                    <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.5rem;background:var(--accent);color:#0a0a0f;font-weight:700;font-size:0.95rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Book 15 Min With an Automations Expert →</a>
+                    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Free. No pitch. Just a look at your operations.</p>
+                </div>
             </div>
 
             <!-- Quick Preview -->
@@ -1097,6 +1105,10 @@
         }
 
         function generatePDF(email) {
+    const firstName = document.getElementById('userFirst').value.trim();
+    const lastName = document.getElementById('userLast').value.trim();
+    const userName = firstName + ' ' + lastName;
+    
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
     const ph = doc.internal.pageSize.getHeight();
@@ -1187,6 +1199,11 @@
     const subtitleFit = fitText(doc, 'Personalized Assessment for Your Distribution Business', cw, 10, 9);
     txt('',subtitleFit.fontSize,'normal',C.textMid);
     doc.text(subtitleFit.lines,pw/2,46,{align:'center'});
+
+    if (userName) {
+        txt('Prepared for: ' + userName, 9, 'bold', C.amber);
+        doc.text('Prepared for: ' + userName, pw/2, 52, {align:'center'});
+    }
 
     fill(C.bg); doc.roundedRect(pw/2-40,54,80,8,4,4,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),7,'bold',C.textMid);
@@ -1500,11 +1517,11 @@
 
     // CTA - Dynamic
     const ctaTitle = "READY TO TAKE THE NEXT STEP?";
-    const ctaText = "Let's discuss how to implement these AI foundations in your business.";
+    const ctaText = "Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.";
     const ctaTitleFit = fitText(doc, ctaTitle, cw-20, 12, 10);
-    const ctaTextFit = fitText(doc, ctaText, cw-20, 9, 9);
+    const ctaTextFit = fitText(doc, ctaText, cw-20, 10, 9);
     
-    const ctaHeight = 12 + ctaTitleFit.lines.length * 6 + ctaTextFit.lines.length * 5 + 12 + 8; // title + text + email + padding
+    const ctaHeight = 12 + ctaTitleFit.lines.length * 6 + ctaTextFit.lines.length * 5 + 12 + 6 + 8; // title + text + link + email + padding
     cp(ctaHeight);
     
     stroke(C.purple); doc.setLineWidth(1);
@@ -1515,11 +1532,15 @@
     doc.text(ctaTitleFit.lines,pw/2,ctaY,{align:'center'});
     ctaY += ctaTitleFit.lines.length * 6;
     
-    txt('',ctaTextFit.fontSize,'normal',C.textMid);
+    txt('',ctaTextFit.fontSize,'bold',C.textMid);
     doc.text(ctaTextFit.lines,pw/2,ctaY,{align:'center'});
     ctaY += ctaTextFit.lines.length * 5 + 6;
     
-    txt('mo@deeplineop.ai',11,'bold',C.purple);
+    txt('calendly.com/mo-deeplineop/30min',10,'bold',C.blue);
+    doc.textWithLink('calendly.com/mo-deeplineop/30min', pw/2 - 50, ctaY, {url: 'https://calendly.com/mo-deeplineop/30min', align: 'center'});
+    ctaY += 8;
+    
+    txt('mo@deeplineop.ai',8,'normal',C.textMid);
     doc.text('mo@deeplineop.ai',pw/2,ctaY,{align:'center'});
 
     // Footer

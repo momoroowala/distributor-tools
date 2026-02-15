@@ -151,6 +151,14 @@
                 <button type="submit" class="btn btn-primary">Download PDF Report</button>
             </form>
             <div class="download-complete" id="downloadComplete">✓ Report downloaded! Check your downloads folder.</div>
+            
+            <div style="margin-top:2rem;padding:1.5rem;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:1rem;text-align:center;">
+                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);font-weight:600;margin-bottom:0.5rem;">Or skip straight to the expert</div>
+                <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-primary);">Get a Free Ops Walkthrough</h3>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;">Before any automation can work, your processes need to be right. Bad data in, bad results out. Talk to an automation expert this week and find out what's worth automating and what needs better data quality first.</p>
+                <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.5rem;background:var(--accent);color:#0a0a0f;font-weight:700;font-size:0.95rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Book 15 Min With an Automations Expert →</a>
+                <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Free. No pitch. Just a look at your operations.</p>
+            </div>
         </div>
     </div>
     <footer><p>Built by <a href="#">Mo Roowala</a> | AI Automation for Distributors</p></footer>
@@ -419,6 +427,10 @@ function handleDownload(e) {
 }
 
 function generatePDF(email) {
+    const firstName = document.getElementById('userFirst').value.trim();
+    const lastName = document.getElementById('userLast').value.trim();
+    const userName = firstName + ' ' + lastName;
+    
     const d = window.depData;
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
@@ -623,6 +635,11 @@ function generatePDF(email) {
     txt(17,'bold',C.text); doc.text('BUSINESS DEPENDENCY REPORT',pw/2,38,{align:'center'});
     txt(9,'normal',C.textMid);
     doc.text('What If You Left Tomorrow?',pw/2,46,{align:'center'});
+
+    if (userName) {
+        txt(9, 'bold', C.amber);
+        doc.text('Prepared for: ' + userName, pw/2, 52, {align:'center'});
+    }
 
     fill(C.cell); doc.roundedRect(pw/2-40,54,80,8,4,4,'F');
     txt(7,'bold',C.textMid);
@@ -924,9 +941,15 @@ function generatePDF(email) {
         { type: 'text', text: "You have seen the data: owner-dependent businesses sell for 2-3x earnings. Systematized distributors sell for 6.4x-13x EBITDA (First Page Sage, Q1 2025). The difference is not luck or industry; it is documentation, delegation, and systems.", fontSize: 8, color: C.textMid, align: 'center' },
         { type: 'space', h: 4 },
         { type: 'text', text: "We help distributors build the systems and automation that create real independence, whether you want to sell in 2 years or just take a vacation without your phone buzzing every 10 minutes.", fontSize: 8, color: C.textMid, align: 'center' },
-        { type: 'space', h: 6 },
-        { type: 'text', text: 'mo@deeplineop.ai', fontSize: 11, style: 'bold', color: C.blue, align: 'center' }
+        { type: 'space', h: 6 }
     ]);
+
+    // Add booking link with textWithLink
+    txt(10, 'bold', C.blue);
+    doc.textWithLink('Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.', m + cw/2 - 100, y - 15, {url: 'https://calendly.com/mo-deeplineop/30min', align: 'center'});
+    
+    txt(8, 'normal', C.textMid);
+    doc.text('mo@deeplineop.ai', m + cw/2, y - 5, {align: 'center'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();

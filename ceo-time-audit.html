@@ -153,6 +153,14 @@
                 <button type="submit" class="btn btn-primary">Download PDF Report</button>
             </form>
             <div class="download-complete" id="downloadComplete">✓ Report downloaded!</div>
+            
+            <div style="margin-top:2rem;padding:1.5rem;background:var(--cell);border:1px solid var(--border);border-radius:1rem;text-align:center;">
+                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:#f59e0b;font-weight:600;margin-bottom:0.5rem;">Or skip straight to the expert</div>
+                <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text);">Get a Free Ops Walkthrough</h3>
+                <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.5;">Before any automation can work, your processes need to be right. Bad data in, bad results out. Talk to an automation expert this week and find out what's worth automating and what needs better data quality first.</p>
+                <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.5rem;background:#f59e0b;color:#0a0a0f;font-weight:700;font-size:0.95rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Book 15 Min With an Automations Expert →</a>
+                <p style="font-size:0.75rem;color:var(--dim);margin-top:0.5rem;">Free. No pitch. Just a look at your operations.</p>
+            </div>
         </div>
     </div>
     <footer><p>Built by <a href="#">Mo Roowala</a> | AI Automation for Distributors</p></footer>
@@ -398,6 +406,10 @@ function handleDownload(e) {
 }
 
 function generatePDF(email) {
+    const firstName = document.getElementById('userFirst').value.trim();
+    const lastName = document.getElementById('userLast').value.trim();
+    const userName = firstName + ' ' + lastName;
+    
     const d = window._data;
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
@@ -586,7 +598,8 @@ function generatePDF(email) {
 
     const totalHrs = d.breakdown.reduce((s,t) => s+t.hours,0);
     const strategicHrs = d.breakdown.filter(t=>t.type==='strategic').reduce((s,t)=>s+t.hours,0);
-    const strategicPct = totalHrs > 0 ? Math.round((strategicHrs/totalHrs)*100) : 0;
+    const automatablePct = totalHrs > 0 ? Math.round((d.automatableHrs/totalHrs)*100) : 0;
+    const strategicPct = Math.max(0, 100 - automatablePct);
     const afterTotal = totalHrs - d.automatableHrs;
     const sorted = [...d.breakdown].filter(t=>t.hours>0).sort((a,b)=>b.saved-a.saved);
     const maxHrs = Math.max(...sorted.map(t=>t.hours));
@@ -604,6 +617,11 @@ function generatePDF(email) {
 
     txt('CEO TIME AUDIT',20,'bold',C.text); doc.text('CEO TIME AUDIT',pw/2,36,{align:'center'});
     txt('Your Personalized Time Recovery Analysis',10,'normal',C.textMid); doc.text('Your Personalized Time Recovery Analysis',pw/2,46,{align:'center'});
+
+    if (userName) {
+        txt('Prepared for: ' + userName,9,'bold',C.amber);
+        doc.text('Prepared for: ' + userName, pw/2, 52, {align:'center'});
+    }
 
     fill(C.bg); doc.roundedRect(pw/2-50,54,100,8,4,4,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
@@ -920,25 +938,19 @@ function generatePDF(email) {
     ctaContent.push({ type: 'space', height: 4 });
     ctaContent.push({
         type: 'text',
-        text: 'Most distribution owners recover 10-15 hours in the first 30 days.',
-        fontSize: 9,
-        color: C.textMid,
+        text: 'Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.',
+        fontSize: 10,
+        style: 'bold',
+        color: C.amber,
         align: 'center'
     });
-    ctaContent.push({
-        type: 'text',
-        text: 'Let us show you exactly how. Free 30-minute strategy call.',
-        fontSize: 9,
-        color: C.textMid,
-        align: 'center'
-    });
+    ctaContent.push({ type: 'space', height: 2 });
     ctaContent.push({ type: 'space', height: 6 });
     ctaContent.push({
         type: 'text',
         text: 'mo@deeplineop.ai',
-        fontSize: 12,
-        style: 'bold',
-        color: C.amber,
+        fontSize: 9,
+        color: C.textMid,
         align: 'center'
     });
     ctaContent.push({ type: 'space', height: 8 });
@@ -946,6 +958,10 @@ function generatePDF(email) {
     stroke(C.amber); doc.setLineWidth(1);
     fill(C.card);
     const ctaHeight = dynamicCard(m, y, cw, ctaContent);
+    
+    // Add clickable booking link after the card
+    txt('calendly.com/mo-deeplineop/30min', 12, 'bold', C.blue);
+    doc.textWithLink('calendly.com/mo-deeplineop/30min', m + cw/2 - 60, y + ctaHeight - 25, {url: 'https://calendly.com/mo-deeplineop/30min', align: 'center'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
