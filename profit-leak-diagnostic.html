@@ -266,7 +266,7 @@ const steps = [
             const count = parseFloat(vals.employeeCount) || 0;
             const salary = parseFloat(vals.avgSalary) || 0;
             const manual = (parseFloat(vals.manualTimePct) || 0) / 100;
-            const automatable = 0.4;
+            const automatable = 0.6;
             const leak = Math.round(count * salary * manual * automatable);
             return { leak, label: "Wasted Labor Hours", desc: `${count} employees x ${(manual*100).toFixed(0)}% manual time x 60% automatable` };
         }
@@ -392,20 +392,28 @@ function showResults() {
     document.getElementById('runningTotal').style.display = 'none';
     document.getElementById('resultsPage').classList.add('active');
 
-    const total = runningLeak;
+    const rawTotal = runningLeak;
+    const rev = parseFloat(allValues.revenue) || 1;
+    const maxCredible = rev * 0.04;
+    const totalCapped = rawTotal > maxCredible;
+    const total = totalCapped ? Math.round(maxCredible) : rawTotal;
     document.getElementById('finalTotal').textContent = '$' + total.toLocaleString();
 
-    const rev = parseFloat(allValues.revenue) || 1;
     const pctOfRev = ((total / rev) * 100).toFixed(1);
     const perMonth = Math.round(total / 12).toLocaleString();
     const perDay = Math.round(total / 365).toLocaleString();
 
-    const margin = rev * 0.05; // assume 5% net margin for distributors
+    const margin = rev * 0.05;
     const leakVsMargin = total > margin;
 
-    document.getElementById('totalContext').innerHTML =
-        `That's <strong>${pctOfRev}% of your revenue</strong>. $${perMonth} per month. $${perDay} every single day. Most of it is recoverable.`
-        + (leakVsMargin ? `<div style="margin-top:1rem;padding:1rem;background:rgba(239,68,68,0.15);border:2px solid var(--accent);border-radius:0.75rem;font-weight:700;color:var(--accent);">Your estimated leakage ($${total.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you're keeping.</div>` : '');
+    let contextHtml = `That's <strong>${pctOfRev}% of your revenue</strong>. $${perMonth} per month. $${perDay} every single day. Most of it is recoverable.`;
+    if (totalCapped) {
+        contextHtml += `<div style="margin-top:1rem;padding:1rem;background:rgba(251,191,36,0.15);border:2px solid var(--accent2);border-radius:0.75rem;font-weight:600;color:var(--accent2);">Note: Your raw inputs suggest up to $${rawTotal.toLocaleString()} in leakage. We conservatively capped this at $${total.toLocaleString()} (4% of revenue) to keep the estimate realistic. Even at this conservative number, the recovery opportunity is significant.</div>`;
+    }
+    if (leakVsMargin) {
+        contextHtml += `<div style="margin-top:1rem;padding:1rem;background:rgba(239,68,68,0.15);border:2px solid var(--accent);border-radius:0.75rem;font-weight:700;color:var(--accent);">Your estimated leakage ($${total.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you're keeping.</div>`;
+    }
+    document.getElementById('totalContext').innerHTML = contextHtml;
 
     // Breakdown
     const validLeaks = leaks.filter(l => l && l.leak > 0).sort((a, b) => b.leak - a.leak);
@@ -443,7 +451,16 @@ function generatePDF(email) {
 
     const rev = parseFloat(allValues.revenue) || 1;
     const margin = rev * 0.05;
-    const leakVsMargin = runningLeak > margin;
+    const firstName = document.getElementById('userFirst').value.trim();
+    const lastName = document.getElementById('userLast').value.trim();
+    const userName = firstName + ' ' + lastName;
+
+    // Sanity cap: if leakage exceeds 4% of revenue, cap it and flag
+    const rawLeak = runningLeak;
+    const maxCredibleLeak = rev * 0.04;
+    const isCapped = rawLeak > maxCredibleLeak;
+    const displayLeak = isCapped ? maxCredibleLeak : rawLeak;
+    const leakVsMargin = displayLeak > margin;
 
     // Design system
     const C = {
@@ -534,16 +551,22 @@ function generatePDF(email) {
     txt('',subtitleFit.fontSize,'normal',C.textMid);
     doc.text(subtitleFit.lines,pw/2,46,{align:'center'});
 
-    fill(C.bg); doc.roundedRect(pw/2-50,50,100,10,5,5,'F');
+    // Personalization line
+    const preparedText = 'Prepared for: ' + userName;
+    const preparedFit = fitText(doc, preparedText, cw, 10, 8);
+    txt('',preparedFit.fontSize,'bold',C.amber);
+    doc.text(preparedFit.lines,pw/2,52,{align:'center'});
+
+    fill(C.bg); doc.roundedRect(pw/2-50,55,100,10,5,5,'F');
     txt(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),8,'bold',C.textMid);
-    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,56.5,{align:'center'});
+    doc.text(new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),pw/2,61.5,{align:'center'});
 
     y = headerHeight + 8;
 
     // Estimated leakage card - dynamic height
     const leakageTitleFit = fitText(doc, 'TOTAL ESTIMATED ANNUAL PROFIT LEAKAGE', cw-20, 9, 7);
-    const amountText = '$' + runningLeak.toLocaleString();
-    const leakagePctText = `${((runningLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`;
+    const amountText = '$' + Math.round(displayLeak).toLocaleString();
+    const leakagePctText = `${((displayLeak/rev)*100).toFixed(1)}% of your annual revenue is leaking`;
     const leakagePctFit = fitText(doc, leakagePctText, cw-20, 10, 8);
     const leakageCardHeight = 15 + leakageTitleFit.lines.length * 5 + 20 + leakagePctFit.lines.length * 5 + 8;
     
@@ -567,9 +590,9 @@ function generatePDF(email) {
     // Breakdown metrics - dynamic sizing
     const metW = (cw-10)/3;
     const mets = [
-        { val:'$'+Math.round(runningLeak/12).toLocaleString(), label:'PER MONTH', color:C.red },
-        { val:'$'+Math.round(runningLeak/365).toLocaleString(), label:'PER DAY', color:C.amber },
-        { val:((runningLeak/rev)*100).toFixed(1)+'%', label:'OF REVENUE', color:C.purple }
+        { val:'$'+Math.round(displayLeak/12).toLocaleString(), label:'PER MONTH', color:C.red },
+        { val:'$'+Math.round(displayLeak/365).toLocaleString(), label:'PER DAY', color:C.amber },
+        { val:((displayLeak/rev)*100).toFixed(1)+'%', label:'OF REVENUE', color:C.purple }
     ];
     
     let metricCardHeight = 10; // base height
@@ -600,7 +623,9 @@ function generatePDF(email) {
     // Nuclear insight card - dynamic
     if (leakVsMargin) {
         const warnTitleFit = fitText(doc, 'WARNING: LEAKAGE EXCEEDS PROFIT', cw-20, 10, 8);
-        const warnMsg = `Your estimated leakage ($${runningLeak.toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you are keeping.`;
+        const warnMsg = isCapped
+            ? `Based on your inputs, raw leakage estimates reached $${rawLeak.toLocaleString()}. We capped this at a conservative $${Math.round(displayLeak).toLocaleString()} (4% of revenue) to stay realistic. Even at this conservative estimate, you are leaking more than you are keeping ($${Math.round(margin).toLocaleString()} at 5% margin).`
+            : `Your estimated leakage ($${Math.round(displayLeak).toLocaleString()}) EXCEEDS your estimated profit ($${Math.round(margin).toLocaleString()} at 5% margin). You may be leaking more than you are keeping.`;
         const warnMsgFit = fitText(doc, warnMsg, cw-30, 8, 7.5);
         const warnCardHeight = 11 + warnTitleFit.lines.length * 5 + 8 + warnMsgFit.lines.length * 5 + 8;
         
@@ -945,9 +970,12 @@ function generatePDF(email) {
 
     // CTA - dynamic
     const ctaTitleFit = fitText(doc, "LET'S RECOVER YOUR PROFIT", cw-20, 14, 11);
-    const ctaMsg = 'You have identified $' + runningLeak.toLocaleString() + ' in annual profit leakage. Let us get it back.';
+    const ctaMsg = 'You have identified $' + Math.round(displayLeak).toLocaleString() + ' in annual profit leakage. Let us get it back.';
+    const ctaMsg2 = 'Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.';
     const ctaMsgFit = fitText(doc, ctaMsg, cw-30, 9, 7);
-    const ctaHeight = 15 + ctaTitleFit.lines.length * 6 + ctaMsgFit.lines.length * 5 + 8 + 12 + 8;
+    const ctaMsg2Fit = fitText(doc, ctaMsg2, cw-30, 9, 7);
+    const ctaLinkText = 'calendly.com/mo-deeplineop/30min';
+    const ctaHeight = 15 + ctaTitleFit.lines.length * 6 + ctaMsgFit.lines.length * 5 + 6 + ctaMsg2Fit.lines.length * 5 + 8 + 12 + 6 + 10 + 8;
     
     cp(ctaHeight);
     stroke(C.red); doc.setLineWidth(1);
@@ -960,9 +988,17 @@ function generatePDF(email) {
     
     txt('',ctaMsgFit.fontSize,'normal',C.textMid);
     doc.text(ctaMsgFit.lines,pw/2,ctaY,{align:'center'});
-    ctaY += ctaMsgFit.lines.length * 5 + 8;
+    ctaY += ctaMsgFit.lines.length * 5 + 6;
+
+    txt('',ctaMsg2Fit.fontSize,'normal',C.text);
+    doc.text(ctaMsg2Fit.lines,pw/2,ctaY,{align:'center'});
+    ctaY += ctaMsg2Fit.lines.length * 5 + 8;
     
-    txt('mo@deeplineop.ai',12,'bold',C.red);
+    txt(ctaLinkText,12,'bold',C.red);
+    doc.textWithLink(ctaLinkText,pw/2 - doc.getTextWidth(ctaLinkText)/2,ctaY,{url:'https://calendly.com/mo-deeplineop/30min'});
+    ctaY += 10;
+    
+    txt('mo@deeplineop.ai',9,'normal',C.textMid);
     doc.text('mo@deeplineop.ai',pw/2,ctaY,{align:'center'});
 
     // Footer
