@@ -944,12 +944,20 @@ function generatePDF(email) {
         color: C.amber,
         align: 'center'
     });
-    ctaContent.push({ type: 'space', height: 2 });
-    ctaContent.push({ type: 'space', height: 6 });
+    ctaContent.push({ type: 'space', height: 4 });
+    ctaContent.push({
+        type: 'text',
+        text: 'calendly.com/mo-deeplineop/30min',
+        fontSize: 10,
+        style: 'bold',
+        color: C.blue,
+        align: 'center'
+    });
+    ctaContent.push({ type: 'space', height: 4 });
     ctaContent.push({
         type: 'text',
         text: 'mo@deeplineop.ai',
-        fontSize: 9,
+        fontSize: 8,
         color: C.textMid,
         align: 'center'
     });
@@ -959,11 +967,12 @@ function generatePDF(email) {
     fill(C.card);
     const ctaHeight = dynamicCard(m, y, cw, ctaContent);
     
-    // Add clickable booking link after the card (centered)
+    // Overlay clickable link on the calendly text (centered)
     const calText = 'calendly.com/mo-deeplineop/30min';
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
+    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
     const calW = doc.getTextWidth(calText);
-    doc.textWithLink(calText, pw/2 - calW/2, y + ctaHeight - 25, {url: 'https://calendly.com/mo-deeplineop/30min'});
+    // Position over the calendly text line inside the card
+    doc.link(pw/2 - calW/2, y + ctaHeight - 22, calW, 6, {url: 'https://calendly.com/mo-deeplineop/30min'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();

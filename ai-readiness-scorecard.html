@@ -1521,7 +1521,7 @@
     const ctaTitleFit = fitText(doc, ctaTitle, cw-20, 12, 10);
     const ctaTextFit = fitText(doc, ctaText, cw-20, 10, 9);
     
-    const ctaHeight = 12 + ctaTitleFit.lines.length * 6 + ctaTextFit.lines.length * 5 + 12 + 6 + 8; // title + text + link + email + padding
+    const ctaHeight = 12 + ctaTitleFit.lines.length * 6 + ctaTextFit.lines.length * 5 + 12 + 10 + 10 + 8; // title + text + link + email + padding
     cp(ctaHeight);
     
     stroke(C.purple); doc.setLineWidth(1);
@@ -1540,7 +1540,7 @@
     doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
     const calTxtW = doc.getTextWidth(calTxt);
     doc.textWithLink(calTxt, pw/2 - calTxtW/2, ctaY, {url: 'https://calendly.com/mo-deeplineop/30min'});
-    ctaY += 8;
+    ctaY += 12;
     
     txt('mo@deeplineop.ai',8,'normal',C.textMid);
     doc.text('mo@deeplineop.ai',pw/2,ctaY,{align:'center'});
