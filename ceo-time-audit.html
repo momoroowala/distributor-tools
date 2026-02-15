@@ -944,25 +944,48 @@ function generatePDF(email) {
         color: C.amber,
         align: 'center'
     });
+    ctaContent.push({ type: 'space', height: 4 });
+    ctaContent.push({
+        type: 'text',
+        text: 'calendly.com/mo-deeplineop/30min',
+        fontSize: 10,
+        style: 'bold',
+        color: C.blue,
+        align: 'center'
+    });
+    ctaContent.push({ type: 'space', height: 4 });
+    ctaContent.push({
+        type: 'text',
+        text: 'mo@deeplineop.ai',
+        fontSize: 8,
+        color: C.textMid,
+        align: 'center'
+    });
     ctaContent.push({ type: 'space', height: 8 });
 
     stroke(C.amber); doc.setLineWidth(1);
     fill(C.card);
+    const ctaCardY = y;
     const ctaHeight = dynamicCard(m, y, cw, ctaContent);
-    y += ctaHeight + 6;
 
-    // Calendly link (clickable)
-    const calText = 'calendly.com/mo-deeplineop/30min';
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
-    const calW = doc.getTextWidth(calText);
-    doc.textWithLink(calText, pw/2 - calW/2, y, {url: 'https://calendly.com/mo-deeplineop/30min'});
-    y += 8;
-
-    // Email link (clickable)
-    const emailText = 'mo@deeplineop.ai';
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...C.textMid);
-    const emailW = doc.getTextWidth(emailText);
-    doc.textWithLink(emailText, pw/2 - emailW/2, y, {url: 'mailto:mo@deeplineop.ai'});
+    // Measure content heights to find exact Y positions of links inside card
+    let linkMeasureY = ctaCardY + 10; // 10px top padding
+    ctaContent.forEach(item => {
+        if (item.type === 'space') { linkMeasureY += item.height; return; }
+        const fs = item.fontSize || 9;
+        const fitted = fitText(doc, item.text, item.maxWidth || cw - 20, fs, 7);
+        const ih = fitted.lines.length * (fs * 0.55) + 3;
+        if (item.text === 'calendly.com/mo-deeplineop/30min') {
+            doc.setFontSize(fs); doc.setFont('helvetica','bold');
+            const tw = doc.getTextWidth(item.text);
+            doc.link(pw/2 - tw/2, linkMeasureY - 1, tw, 7, {url: 'https://calendly.com/mo-deeplineop/30min'});
+        } else if (item.text === 'mo@deeplineop.ai') {
+            doc.setFontSize(fs); doc.setFont('helvetica','normal');
+            const tw = doc.getTextWidth(item.text);
+            doc.link(pw/2 - tw/2, linkMeasureY - 1, tw, 6, {url: 'mailto:mo@deeplineop.ai'});
+        }
+        linkMeasureY += ih;
+    });
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
