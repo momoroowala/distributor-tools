@@ -950,17 +950,40 @@ function generatePDF(email) {
         { type: 'space', h: 6 }
     ]);
 
-    // Overlay clickable links on CTA card
-    // Calendly link
-    const calText = 'calendly.com/mo-deeplineop/30min';
-    doc.setFontSize(10); doc.setFont('helvetica','bold');
-    const calW = doc.getTextWidth(calText);
-    doc.link(pw/2 - calW/2, y - 24, calW, 6, {url: 'https://calendly.com/mo-deeplineop/30min'});
-    // Email link
-    const emailText = 'mo@deeplineop.ai';
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    const emailW = doc.getTextWidth(emailText);
-    doc.link(pw/2 - emailW/2, y - 16, emailW, 5, {url: 'mailto:mo@deeplineop.ai'});
+    // Measure content to find exact Y of link items inside card
+    const ctaItems = [
+        { type: 'title', text: "BUILD A BUSINESS THAT RUNS WITHOUT YOU", fontSize: 11 },
+        { type: 'space', h: 4 },
+        { type: 'text', text: "You have seen the data: owner-dependent businesses sell for 2-3x earnings. Systematized distributors sell for 6.4x-13x EBITDA (First Page Sage, Q1 2025). The difference is not luck or industry; it is documentation, delegation, and systems.", fontSize: 8 },
+        { type: 'space', h: 4 },
+        { type: 'text', text: "We help distributors build the systems and automation that create real independence, whether you want to sell in 2 years or just take a vacation without your phone buzzing every 10 minutes.", fontSize: 8 },
+        { type: 'space', h: 6 },
+        { type: 'text', text: "Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.", fontSize: 10 },
+        { type: 'space', h: 4 },
+        { type: 'text', text: "calendly.com/mo-deeplineop/30min", fontSize: 10 },
+        { type: 'space', h: 4 },
+        { type: 'text', text: "mo@deeplineop.ai", fontSize: 8 },
+    ];
+    // y was advanced by renderCard already (y += cardH + 8), so card top was at y - cardH - 8
+    const ctaCardTop = y - measureBlock(ctaItems.concat([{type:'space',h:6}]), cw) - 8;
+    let cy2 = ctaCardTop + 10;
+    ctaItems.forEach(item => {
+        if (item.type === 'space') { cy2 += item.h; return; }
+        const fs = item.fontSize || 8;
+        const mw = cw - 20;
+        const lines = wrap(item.text, fs, mw);
+        const lineH = item.type === 'title' ? lh(fs) : lhBody(fs);
+        if (item.text === 'calendly.com/mo-deeplineop/30min') {
+            doc.setFontSize(fs); doc.setFont('helvetica','bold');
+            const tw = doc.getTextWidth(item.text);
+            doc.link(pw/2 - tw/2, cy2 - 1, tw, 7, {url: 'https://calendly.com/mo-deeplineop/30min'});
+        } else if (item.text === 'mo@deeplineop.ai') {
+            doc.setFontSize(fs); doc.setFont('helvetica','normal');
+            const tw = doc.getTextWidth(item.text);
+            doc.link(pw/2 - tw/2, cy2 - 1, tw, 6, {url: 'mailto:mo@deeplineop.ai'});
+        }
+        cy2 += lines.length * lineH + 3;
+    });
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
