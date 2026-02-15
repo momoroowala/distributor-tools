@@ -944,41 +944,25 @@ function generatePDF(email) {
         color: C.amber,
         align: 'center'
     });
-    ctaContent.push({ type: 'space', height: 4 });
-    ctaContent.push({
-        type: 'text',
-        text: 'calendly.com/mo-deeplineop/30min',
-        fontSize: 10,
-        style: 'bold',
-        color: C.blue,
-        align: 'center'
-    });
-    ctaContent.push({ type: 'space', height: 4 });
-    ctaContent.push({
-        type: 'text',
-        text: 'mo@deeplineop.ai',
-        fontSize: 8,
-        color: C.textMid,
-        align: 'center'
-    });
     ctaContent.push({ type: 'space', height: 8 });
 
     stroke(C.amber); doc.setLineWidth(1);
     fill(C.card);
     const ctaHeight = dynamicCard(m, y, cw, ctaContent);
-    
-    // Overlay clickable link on the calendly text (centered)
+    y += ctaHeight + 6;
+
+    // Calendly link (clickable)
     const calText = 'calendly.com/mo-deeplineop/30min';
     doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(...C.blue);
     const calW = doc.getTextWidth(calText);
-    // Position over the calendly text line inside the card
-    doc.link(pw/2 - calW/2, y + ctaHeight - 22, calW, 6, {url: 'https://calendly.com/mo-deeplineop/30min'});
-    
-    // Make email clickable too
+    doc.textWithLink(calText, pw/2 - calW/2, y, {url: 'https://calendly.com/mo-deeplineop/30min'});
+    y += 8;
+
+    // Email link (clickable)
     const emailText = 'mo@deeplineop.ai';
     doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...C.textMid);
     const emailW = doc.getTextWidth(emailText);
-    doc.link(pw/2 - emailW/2, y + ctaHeight - 14, emailW, 5, {url: 'mailto:mo@deeplineop.ai'});
+    doc.textWithLink(emailText, pw/2 - emailW/2, y, {url: 'mailto:mo@deeplineop.ai'});
 
     // Footer on all pages
     const pc = doc.internal.getNumberOfPages();
