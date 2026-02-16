@@ -4,7 +4,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Readiness Scorecard | Free Assessment for Distributors</title>
+    <title>Process Quality Audit | Free Assessment for Distributors</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
@@ -559,7 +559,7 @@
         <header>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
             <span class="badge">Free Assessment</span>
-            <h1>AI Readiness Scorecard</h1>
+            <h1>Process Quality Audit</h1>
             <p class="subtitle">Discover how ready your distribution business is for AI automation. Takes 2 minutes.</p>
         </header>
 
@@ -586,7 +586,7 @@
                     <span class="score-number" id="totalScore">0</span>
                     <span class="score-label">out of 100</span>
                 </div>
-                <h2 class="score-title" id="scoreTitle">Your AI Readiness</h2>
+                <h2 class="score-title" id="scoreTitle">Your Process Quality Score</h2>
                 <p class="score-description" id="scoreDescription"></p>
             </div>
 
@@ -630,11 +630,11 @@
                 </div>
                 
                 <div style="margin-top:2rem;padding:1.5rem;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:1rem;text-align:center;max-width:420px;margin-left:auto;margin-right:auto;overflow:hidden;box-sizing:border-box;">
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);font-weight:600;margin-bottom:0.5rem;">Or skip straight to the expert</div>
-                    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-primary);">Get a Free Ops Walkthrough</h3>
-                    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;padding:0 0.5rem;">Before any automation can work, your processes need to be right. Bad data in, bad results out. Talk to an automation expert this week and find out what's worth automating first.</p>
-                    <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.25rem;background:var(--accent);color:#0a0a0f;font-weight:700;font-size:0.9rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;max-width:100%;box-sizing:border-box;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Book 15 Min With an Expert →</a>
-                    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Free. No pitch. Just a look at your operations.</p>
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);font-weight:600;margin-bottom:0.5rem;">Want to know what to fix first?</div>
+                    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-primary);">Get Your Process Fix List</h3>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;padding:0 0.5rem;">15 minutes. We walk through your scores, identify your highest-impact process fixes, and give you a prioritized action plan. Whether you work with us or not.</p>
+                    <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.25rem;background:var(--accent);color:#0a0a0f;font-weight:700;font-size:0.9rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;max-width:100%;box-sizing:border-box;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Get Your Free Process Fix List →</a>
+                    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Free. 15 min. Whether you work with us or not.</p>
                 </div>
             </div>
 
@@ -886,7 +886,7 @@
                     quickWin: "Connect your ERP to your shipping system (ShipStation, ShipEngine, or carrier-direct) so tracking numbers flow back automatically. This eliminates the most common customer service call ('Where is my order?') and saves 5-10 minutes per shipment in manual lookup and data entry."
                 },
                 high: {
-                    title: "Enable AI Readiness",
+                    title: "Enable Process Automation",
                     actions: [
                         "Week 1-2: Audit your API access and data availability. For each system, answer: Can I pull data programmatically via REST API? Is the API documented? What rate limits exist? Can I push data back in? Most modern ERPs (NetSuite SuiteTalk/REST, SAP B1 Service Layer, Epicor REST API) support full CRUD operations. If your ERP does not have API access, that is your single biggest blocker for AI readiness. Prioritize enabling it.",
                         "Week 3-4: Identify your top 3 AI use cases ranked by business impact. For distributors, the highest-ROI AI applications are: (1) Demand forecasting, which reduces stockouts by 15% and excess inventory by 20% (McKinsey, 2025), (2) Document parsing for orders/invoices/RFQs, which cuts processing time by 60-80%, and (3) Customer churn prediction, which protects revenue by flagging at-risk accounts 60-90 days early. Pick one to pilot.",
@@ -1084,7 +1084,7 @@
     const lastName = document.getElementById('userLast').value.trim();
     const email = document.getElementById('userEmail').value.trim();
     if(!firstName||!lastName||!email) return;
-    fetch('https://script.google.com/macros/s/AKfycbxH-0F_yuJve8Bvzf1WWqYc5Z0ptXRRktVCmLEEa-7Dbs3ear7cNESr6-Bmm8mQIJaZ/exec',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name:firstName+' '+lastName,email:email,tool:'AI Readiness Scorecard',_subject:'New Lead: '+firstName+' '+lastName+' - AI Readiness Scorecard',message:firstName+' '+lastName+' ('+email+') completed the AI Readiness Scorecard and downloaded their PDF report.'})}).catch(function(){});
+    fetch('https://script.google.com/macros/s/AKfycbxH-0F_yuJve8Bvzf1WWqYc5Z0ptXRRktVCmLEEa-7Dbs3ear7cNESr6-Bmm8mQIJaZ/exec',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name:firstName+' '+lastName,email:email,tool:'Process Quality Audit',_subject:'New Lead: '+firstName+' '+lastName+' - Process Quality Audit',message:firstName+' '+lastName+' ('+email+') completed the Process Quality Audit and downloaded their PDF report.'})}).catch(function(){});
             
             // Store lead
             const leads = JSON.parse(localStorage.getItem('scorecard_leads') || '[]');
@@ -1192,7 +1192,7 @@
     fill(C.purple); doc.circle(pw/2,18,6,'F');
     txt('A',10,'bold',C.white); doc.text('A',pw/2,21,{align:'center'});
 
-    const titleFit = fitText(doc, 'AI READINESS REPORT', cw, 18, 14);
+    const titleFit = fitText(doc, 'PROCESS QUALITY AUDIT', cw, 18, 14);
     txt('',titleFit.fontSize,'bold',C.text);
     doc.text(titleFit.lines,pw/2,38,{align:'center'});
     
@@ -1213,7 +1213,7 @@
 
     // Overall Score Card - Calculate dynamic height
     const scoreColor = totalScore >= 75 ? C.green : totalScore >= 50 ? C.amber : C.red;
-    const scoreTextFit = fitText(doc, 'YOUR AI READINESS SCORE', cw-20, 10, 9);
+    const scoreTextFit = fitText(doc, 'YOUR PROCESS QUALITY SCORE', cw-20, 10, 9);
     const title = totalScore >= 75 ? 'AI Ready!' : totalScore >= 50 ? 'Getting There' : 'Foundation Building Needed';
     const titleFit2 = fitText(doc, title, cw-20, 10, 9);
     const scoreCardHeight = 15 + scoreTextFit.lines.length * 5 + 12 + titleFit2.lines.length * 5 + 8;
@@ -1232,11 +1232,11 @@
 
     // Table of Contents - Dynamic height
     const toc = [
-        'Your AI Readiness Score and Category Breakdown',
+        'Your Process Quality Score and Category Breakdown',
         'Detailed Recommendations with Distributor-Specific Action Plans', 
         'Industry Benchmarks: Where Distributors Stand in 2025',
         'ROI Projections with Real Dollar Amounts',
-        'Your 90-Day AI Readiness Roadmap (4 Phases, Weekly Actions)'
+        'Your 90-Day Process Improvement Roadmap (4 Phases, Weekly Actions)'
     ];
     const tocHeaderFit = fitText(doc, "WHAT'S IN THIS REPORT:", cw-20, 9, 9);
     let tocContentHeight = tocHeaderFit.lines.length * 5 + 6;
@@ -1415,7 +1415,7 @@
 
     // 90-DAY ROADMAP Section - Dynamic
     cp(15);
-    y = secTitle('YOUR 90-DAY AI READINESS ROADMAP', y, C.purple);
+    y = secTitle('YOUR 90-DAY PROCESS IMPROVEMENT ROADMAP', y, C.purple);
 
     const roadmapPhases = [
         {
@@ -1517,7 +1517,7 @@
 
     // CTA - Dynamic
     const ctaTitle = "READY TO TAKE THE NEXT STEP?";
-    const ctaText = "Book a free 15-minute Ops Walkthrough and we will show you exactly where to start.";
+    const ctaText = "Get your process fix list in 15 minutes. Whether you work with us or not.";
     const ctaTitleFit = fitText(doc, ctaTitle, cw-20, 12, 10);
     const ctaTextFit = fitText(doc, ctaText, cw-20, 10, 9);
     
@@ -1588,7 +1588,7 @@
         </a>
         <a href="ai-readiness-scorecard.html" class="nav-link" data-color="#a855f7" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="#a855f7" stroke-width="1.5"/><path d="M5 12V8M9 12V5M13 12V9" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/></svg>
-            AI Readiness Scorecard
+            Process Quality Audit
         </a>
         <a href="reorder-calculator.html" class="nav-link" data-color="#22c55e" style="display:flex;align-items:center;gap:10px;padding:9px 12px;color:#94a3b8;text-decoration:none;border-radius:6px;font-size:13px;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="6" width="14" height="10" rx="2" stroke="#22c55e" stroke-width="1.5"/><path d="M6 6V4a3 3 0 016 0v2" stroke="#22c55e" stroke-width="1.5"/><circle cx="9" cy="11" r="1.5" fill="#22c55e"/></svg>
