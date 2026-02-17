@@ -134,8 +134,55 @@
         </a>
     </div>
 </div>
+<!-- Quiz Popup Overlay -->
+<div id="quiz-overlay" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s;display:none;">
+<div id="quiz-modal" style="background:#12121a;border:1px solid #2a2a3a;border-radius:1.25rem;width:95%;max-width:560px;max-height:90vh;overflow-y:auto;padding:2rem 2rem 1.5rem;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.7);transform:translateY(20px);transition:transform 0.3s;">
+  <button onclick="closeQuiz()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;" title="Skip quiz">&#x2715;</button>
+  
+  <!-- Progress bar -->
+  <div style="margin-bottom:1.5rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;font-weight:600;" id="quiz-step-label">Question 1 of 7</span>
+      <span style="font-size:0.7rem;color:#64748b;" id="quiz-pct">0%</span>
+    </div>
+    <div style="height:4px;background:#1e1e2e;border-radius:4px;overflow:hidden;">
+      <div id="quiz-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:4px;transition:width 0.4s;"></div>
+    </div>
+  </div>
+
+  <!-- Quiz content area -->
+  <div id="quiz-content"></div>
+
+  <!-- Navigation -->
+  <div id="quiz-nav" style="display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;">
+    <button id="quiz-back" onclick="quizBack()" style="background:none;border:1px solid #2a2a3a;color:#94a3b8;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.2s;">&#8592; Back</button>
+    <button id="quiz-next" onclick="quizNext()" disabled style="background:#1e1b3a;border:none;color:#64748b;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all 0.25s;">Next &#8594;</button>
+  </div>
+</div>
+</div>
+
+<style>
+  #quiz-overlay.active{display:flex!important;opacity:1!important;}
+  #quiz-overlay.active #quiz-modal{transform:translateY(0);}
+  .quiz-option{display:block;width:100%;text-align:left;background:#0a0a0f;border:1px solid #2a2a3a;color:#e2e8f0;padding:14px 16px;border-radius:10px;cursor:pointer;font-size:0.9rem;line-height:1.4;transition:all 0.15s;margin-bottom:8px;}
+  .quiz-option:hover{border-color:#4F46E5;background:#13131f;}
+  .quiz-option.selected{border-color:#6366f1;background:rgba(99,102,241,0.12);color:#fff;box-shadow:0 0 0 1px #6366f1;}
+  #quiz-next:not(:disabled){padding:12px 32px!important;background:#7c3aed!important;color:#fff!important;box-shadow:0 0 20px rgba(124,58,237,0.5),0 0 40px rgba(124,58,237,0.2)!important;transform:scale(1.06);transition:all 0.25s;}
+  #quiz-next:not(:disabled):hover{background:#8b5cf6!important;box-shadow:0 0 28px rgba(139,92,246,0.6),0 0 50px rgba(139,92,246,0.25)!important;}
+  #quiz-back:hover{border-color:#4F46E5;color:#e2e8f0;}
+  .quiz-result-card{background:#0a0a0f;border:2px solid #6366f1;border-radius:12px;padding:1.5rem;text-align:center;margin-bottom:1rem;}
+  .quiz-result-card h3{font-size:1.2rem;margin-bottom:0.4rem;}
+  .quiz-result-card p{color:#94a3b8;font-size:0.85rem;line-height:1.5;}
+  .quiz-result-btn{display:inline-block;background:#4F46E5;color:#fff;padding:12px 28px;border-radius:8px;font-size:0.95rem;font-weight:600;text-decoration:none;transition:all 0.2s;margin-top:0.75rem;}
+  .quiz-result-btn:hover{background:#4338CA;transform:translateY(-1px);}
+  .quiz-runner-up{background:#0a0a0f;border:1px solid #2a2a3a;border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;margin-top:0.75rem;}
+  .quiz-runner-up a{color:#818cf8;font-size:0.8rem;font-weight:600;text-decoration:none;}
+  .quiz-runner-up a:hover{color:#a5b4fc;}
+</style>
+
 <script>
 (function(){
+    // Nav menu
     var tgl=document.getElementById('nav-toggle'),cnt=document.getElementById('nav-content');
     if(!tgl||!cnt)return;
     tgl.onclick=function(e){e.stopPropagation();var v=cnt.style.display==='block';cnt.style.display=v?'none':'block';tgl.style.background=v?'#12121a':'#1a1a25';};
@@ -152,6 +199,235 @@
             a.classList.add('nav-active');a.style.background='rgba(255,255,255,0.1)';a.style.color='#fff';a.style.fontWeight='600';
         }
     });
+})();
+
+// Quiz data
+var quizQuestions = [
+  {
+    title: "What's your role?",
+    subtitle: "This helps us personalize your results.",
+    options: [
+      { text: "Owner / CEO / President", scores: [2,2,1,0] },
+      { text: "VP / Director of Operations", scores: [1,1,1,2] },
+      { text: "Warehouse / Logistics Manager", scores: [0,1,1,2] },
+      { text: "Sales / Account Manager", scores: [0,0,2,1] },
+      { text: "Other", scores: [0,1,1,1] }
+    ]
+  },
+  {
+    title: "How many employees at your company?",
+    subtitle: "Size changes which problems hit hardest.",
+    options: [
+      { text: "Under 20", scores: [2,1,1,0] },
+      { text: "20 to 50", scores: [2,2,1,1] },
+      { text: "50 to 150", scores: [1,1,2,2] },
+      { text: "150+", scores: [0,1,2,2] }
+    ]
+  },
+  {
+    title: "What keeps you up at night?",
+    subtitle: "Pick the one that hits closest to home.",
+    options: [
+      { text: "If I take a week off, things fall apart", scores: [3,0,0,0] },
+      { text: "I spend all day on stuff that shouldn't need me", scores: [0,3,0,0] },
+      { text: "I know we're losing money somewhere, just can't find it", scores: [0,0,3,0] },
+      { text: "Our processes are a mess and nothing talks to each other", scores: [0,0,0,3] }
+    ]
+  },
+  {
+    title: "How much of your day goes to repetitive tasks?",
+    subtitle: "Data entry, order follow-ups, emails, manual lookups.",
+    options: [
+      { text: "Less than 1 hour", scores: [0,0,1,1] },
+      { text: "1 to 3 hours", scores: [0,1,1,1] },
+      { text: "3 to 5 hours", scores: [1,2,0,1] },
+      { text: "More than 5 hours", scores: [1,3,0,1] }
+    ]
+  },
+  {
+    title: "If you disappeared for 2 weeks, how would the business do?",
+    subtitle: "Be honest.",
+    options: [
+      { text: "Fine, the team handles it", scores: [0,0,1,1] },
+      { text: "A few things would slip", scores: [1,1,0,0] },
+      { text: "Major problems within days", scores: [2,1,0,0] },
+      { text: "Honestly, it might not survive", scores: [3,1,0,0] }
+    ]
+  },
+  {
+    title: "Do you know your exact cost-per-order and where margin is lost?",
+    subtitle: "Think about pricing, returns, freight, labor waste.",
+    options: [
+      { text: "Yes, we track it closely", scores: [0,0,0,1] },
+      { text: "We have a rough idea", scores: [0,0,1,1] },
+      { text: "Not really", scores: [0,0,2,1] },
+      { text: "No clue", scores: [0,0,3,1] }
+    ]
+  },
+  {
+    title: "How would you describe your current systems?",
+    subtitle: "ERP, inventory management, order management, etc.",
+    options: [
+      { text: "Modern and mostly connected", scores: [0,1,0,0] },
+      { text: "We have systems but they don't talk to each other", scores: [0,1,1,2] },
+      { text: "Lots of spreadsheets and manual workarounds", scores: [1,1,1,3] },
+      { text: "What systems?", scores: [1,0,2,3] }
+    ]
+  }
+];
+
+// Tool definitions: [key, name, tagline, url, color, icon]
+var quizTools = [
+  ["bd", "Business Dependency Score", "Find out what breaks when you're not there", "business-dependency.html", "#3b82f6", "&#x26A0;&#xFE0F;"],
+  ["cta", "CEO Time Audit", "See exactly where your hours go and what to reclaim", "ceo-time-audit.html", "#f59e0b", "&#x23F0;"],
+  ["pl", "Profit Leak Diagnostic", "Calculate exactly how much profit is silently leaking", "profit-leak-diagnostic.html", "#ef4444", "&#x1F4B8;"],
+  ["pq", "Process Quality Audit", "Score your operations across data, people, process, and tech", "ai-readiness-scorecard.html", "#8b5cf6", "&#x1F4CA;"]
+];
+
+var quizStep = 0;
+var quizAnswers = new Array(quizQuestions.length).fill(-1);
+
+function renderQuiz() {
+  var q = quizQuestions[quizStep];
+  var html = '<h2 style="font-size:1.25rem;font-weight:700;margin-bottom:4px;">' + q.title + '</h2>';
+  html += '<p style="color:#64748b;font-size:0.8rem;margin-bottom:1.25rem;">' + q.subtitle + '</p>';
+  html += '<div>';
+  for (var i = 0; i < q.options.length; i++) {
+    var sel = quizAnswers[quizStep] === i ? ' selected' : '';
+    html += '<button class="quiz-option' + sel + '" onclick="selectOption(' + i + ')">' + q.options[i].text + '</button>';
+  }
+  html += '</div>';
+  document.getElementById('quiz-content').innerHTML = html;
+  
+  // Update progress
+  var pct = Math.round((quizStep / quizQuestions.length) * 100);
+  document.getElementById('quiz-progress').style.width = pct + '%';
+  document.getElementById('quiz-pct').textContent = pct + '%';
+  document.getElementById('quiz-step-label').textContent = 'Question ' + (quizStep + 1) + ' of ' + quizQuestions.length;
+  
+  // Update nav buttons
+  document.getElementById('quiz-back').style.visibility = quizStep === 0 ? 'hidden' : 'visible';
+  var nextBtn = document.getElementById('quiz-next');
+  nextBtn.disabled = quizAnswers[quizStep] === -1;
+  nextBtn.innerHTML = quizStep === quizQuestions.length - 1 ? 'See Results &#10140;' : 'Next &#8594;';
+}
+
+function selectOption(idx) {
+  quizAnswers[quizStep] = idx;
+  var opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(function(o, i) { 
+    o.classList.toggle('selected', i === idx); 
+  });
+  document.getElementById('quiz-next').disabled = false;
+}
+
+function quizNext() {
+  if (quizAnswers[quizStep] === -1) return;
+  if (quizStep < quizQuestions.length - 1) {
+    quizStep++;
+    renderQuiz();
+  } else {
+    showResults();
+  }
+}
+
+function quizBack() {
+  if (quizStep > 0) {
+    quizStep--;
+    renderQuiz();
+  }
+}
+
+function showResults() {
+  // Tally scores: [BD, CTA, PL, PQ]
+  var scores = [0, 0, 0, 0];
+  for (var i = 0; i < quizQuestions.length; i++) {
+    var ans = quizAnswers[i];
+    if (ans >= 0) {
+      var s = quizQuestions[i].options[ans].scores;
+      scores[0] += s[0];
+      scores[1] += s[1];
+      scores[2] += s[2];
+      scores[3] += s[3];
+    }
+  }
+  
+  // Find winner and runner-up
+  var ranked = scores.map(function(s, i) { return { score: s, idx: i }; });
+  ranked.sort(function(a, b) { return b.score - a.score; });
+  
+  // Tiebreaker: Q3 answer (index 2)
+  if (ranked[0].score === ranked[1].score) {
+    var q3ans = quizAnswers[2];
+    if (q3ans >= 0 && q3ans < 4) {
+      // Q3 maps directly: 0=BD, 1=CTA, 2=PL, 3=PQ
+      var tieWinner = q3ans;
+      if (ranked[0].idx !== tieWinner && ranked[1].idx === tieWinner) {
+        var tmp = ranked[0]; ranked[0] = ranked[1]; ranked[1] = tmp;
+      }
+    }
+  }
+  
+  var winner = quizTools[ranked[0].idx];
+  var runner = quizTools[ranked[1].idx];
+  
+  // Update progress to 100%
+  document.getElementById('quiz-progress').style.width = '100%';
+  document.getElementById('quiz-pct').textContent = '100%';
+  document.getElementById('quiz-step-label').textContent = 'Your Results';
+  
+  // Hide nav
+  document.getElementById('quiz-nav').style.display = 'none';
+  
+  var html = '<div style="text-align:center;margin-bottom:1.25rem;">';
+  html += '<div style="font-size:2.5rem;margin-bottom:0.5rem;">' + winner[5] + '</div>';
+  html += '<p style="color:#64748b;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:4px;">Your #1 Blind Spot</p>';
+  html += '</div>';
+  
+  html += '<div class="quiz-result-card" style="border-color:' + winner[4] + ';">';
+  html += '<h3>' + winner[1] + '</h3>';
+  html += '<p>' + winner[2] + '</p>';
+  html += '<a href="' + winner[3] + '" class="quiz-result-btn" style="background:' + winner[4] + ';" onclick="try{sessionStorage.setItem(\'toolshed_quiz_done\',\'1\')}catch(e){}">Start This Assessment &#8594;</a>';
+  html += '</div>';
+  
+  html += '<div class="quiz-runner-up">';
+  html += '<div><span style="color:#64748b;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Also worth checking</span><br><span style="color:#e2e8f0;font-size:0.9rem;">' + runner[1] + '</span></div>';
+  html += '<a href="' + runner[3] + '">Take it &#8594;</a>';
+  html += '</div>';
+  
+  html += '<button onclick="closeQuiz()" style="display:block;width:100%;margin-top:1.25rem;background:none;border:1px solid #2a2a3a;color:#64748b;padding:10px;border-radius:8px;cursor:pointer;font-size:0.8rem;transition:all 0.2s;">Skip, let me browse all tools</button>';
+  
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+function openQuiz() {
+  quizStep = 0;
+  quizAnswers = new Array(quizQuestions.length).fill(-1);
+  document.getElementById('quiz-nav').style.display = 'flex';
+  renderQuiz();
+  var ov = document.getElementById('quiz-overlay');
+  ov.style.display = 'flex';
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { ov.classList.add('active'); });
+  });
+}
+
+function closeQuiz() {
+  var ov = document.getElementById('quiz-overlay');
+  ov.classList.remove('active');
+  setTimeout(function() { ov.style.display = 'none'; }, 300);
+  try { sessionStorage.setItem('toolshed_quiz_done', '1'); } catch(e) {}
+}
+
+// Show quiz once per tab session
+// New tab / close+reopen = quiz shows. Navigate to tool and back = no quiz.
+(function() {
+  try {
+    if (sessionStorage.getItem('toolshed_quiz_done')) return;
+    setTimeout(openQuiz, 600);
+  } catch(e) {
+    setTimeout(openQuiz, 600);
+  }
 })();
 </script>
 </body>
