@@ -599,20 +599,20 @@
 
             <!-- Download Section -->
             <div class="download-section" id="downloadSection">
-                <h3>📄 Get Your Full Report</h3>
+                <h3>&#x1F4C4; Get Your Full Report</h3>
                 <p>Download a detailed PDF with specific action steps for each category, quick wins, and a 90-day roadmap.</p>
                 
                 <div class="download-features">
                     <div class="download-feature">
-                        <span class="icon">✓</span>
+                        <span class="icon">&#x2713;</span>
                         <span>Personalized action steps</span>
                     </div>
                     <div class="download-feature">
-                        <span class="icon">✓</span>
+                        <span class="icon">&#x2713;</span>
                         <span>90-day implementation roadmap</span>
                     </div>
                     <div class="download-feature">
-                        <span class="icon">✓</span>
+                        <span class="icon">&#x2713;</span>
                         <span>ROI projection</span>
                     </div>
                 </div>
@@ -626,14 +626,14 @@
                 <button type="submit" class="btn btn-primary">Download PDF Report</button>
             </form>
                 <div class="download-complete" id="downloadComplete">
-                    ✓ Report downloaded! Check your downloads folder.
+                    &#x2713; Report downloaded! Check your downloads folder.
                 </div>
                 
                 <div style="margin-top:2rem;padding:1.5rem;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:1rem;text-align:center;max-width:420px;margin-left:auto;margin-right:auto;overflow:hidden;box-sizing:border-box;">
                     <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);font-weight:600;margin-bottom:0.5rem;">Want to know what to fix first?</div>
                     <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-primary);">Get Your Process Fix List</h3>
                     <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;padding:0 0.5rem;">15 minutes. We walk through your scores, identify your highest-impact process fixes, and give you a prioritized action plan. Whether you work with us or not.</p>
-                    <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.25rem;background:var(--accent);color:#0a0a0f;font-weight:700;font-size:0.9rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;max-width:100%;box-sizing:border-box;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Get Your Free Process Fix List →</a>
+                    <a href="https://calendly.com/mo-deeplineop/30min" target="_blank" rel="noopener" style="display:inline-block;padding:0.75rem 1.25rem;background:var(--accent);color:#0a0a0f;font-weight:700;font-size:0.9rem;border-radius:0.5rem;text-decoration:none;transition:all 0.2s;max-width:100%;box-sizing:border-box;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Get Your Free Process Fix List &#x2192;</a>
                     <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Free. 15 min. Whether you work with us or not.</p>
                 </div>
             </div>
@@ -926,9 +926,9 @@
                         `).join('')}
                     </div>
                     <div class="nav-buttons">
-                        <button class="btn btn-secondary" onclick="prevQuestion()" ${index === 0 ? 'disabled' : ''}>← Back</button>
+                        <button class="btn btn-secondary" onclick="prevQuestion()" ${index === 0 ? 'disabled' : ''}>&#x2190; Back</button>
                         <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn" disabled>
-                            ${index === questions.length - 1 ? 'See Results' : 'Next →'}
+                            ${index === questions.length - 1 ? 'See Results' : 'Next &#x2192;'}
                         </button>
                     </div>
                 </div>
@@ -1065,7 +1065,7 @@
                 const catScore = data.total / (data.count * 3);
                 let level = catScore < 0.4 ? 'low' : catScore < 0.7 ? 'medium' : 'high';
                 const rec = detailedRecs[cat][level];
-                const icons = { Data: '📊', Processes: '⚙️', People: '👥', Technology: '💻' };
+                const icons = { Data: '&#x1F4CA;', Processes: '⚙&#xFE0F;', People: '&#x1F465;', Technology: '&#x1F4BB;' };
                 wins.push({
                     category: cat,
                     icon: icons[cat],
