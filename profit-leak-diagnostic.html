@@ -340,8 +340,8 @@ function renderStep(idx) {
 
     html += `<div class="leak-reveal" id="leakReveal"></div>
         <div class="nav-buttons">
-            <button class="btn btn-secondary" onclick="prevStep()" ${idx===0?'disabled':''}>? Back</button>
-            <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">${idx===steps.length-1?'See Full Results':'Next ?'}</button>
+            <button class="btn btn-secondary" onclick="prevStep()" ${idx===0?'disabled':''}>&#8592; Back</button>
+            <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">${idx===steps.length-1?'See Full Results':'Next &#8594;'}</button>
         </div></div>`;
 
     container.innerHTML = html;
