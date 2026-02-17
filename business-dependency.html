@@ -100,7 +100,7 @@
     </header>
 
     <div class="scenario-box">
-        <div class="icon">??</div>
+        <div class="icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M12 2L1 21h22L12 2z" stroke="#ef4444" stroke-width="2" fill="rgba(239,68,68,0.2)"/><path d="M12 9v4M12 17h.01" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg></div>
         <p>Imagine you had a medical emergency and <strong>couldn't work for 30 days</strong>. What would happen to your business? Let's find out.</p>
     </div>
 
@@ -135,12 +135,12 @@
         </div>
 
         <div class="download-section">
-            <h3>?? Get Your Independence Roadmap</h3>
+            <h3>&#x1F4C4; Get Your Independence Roadmap</h3>
             <p>Download a detailed PDF with specific steps to reduce your dependency score, build a business that runs without you, and create real freedom.</p>
             <div class="download-features">
-                <div class="download-feature"><span class="icon">?</span><span>Risk-by-risk action plan</span></div>
-                <div class="download-feature"><span class="icon">?</span><span>Succession readiness checklist</span></div>
-                <div class="download-feature"><span class="icon">?</span><span>90-day freedom roadmap</span></div>
+                <div class="download-feature"><span class="icon">&#x2713;</span><span>Risk-by-risk action plan</span></div>
+                <div class="download-feature"><span class="icon">&#x2713;</span><span>Succession readiness checklist</span></div>
+                <div class="download-feature"><span class="icon">&#x2713;</span><span>90-day freedom roadmap</span></div>
             </div>
             <form class="email-form" id="emailForm" onsubmit="handleDownload(event)" style="flex-direction:column;align-items:stretch;max-width:420px;margin:0 auto;gap:0.5rem;">
                 <div style="display:flex;gap:0.5rem;width:100%;">
@@ -150,7 +150,7 @@
                 <input type="email" id="userEmail" placeholder="Work email" required style="width:100%;padding:0.75rem;background:var(--bg);border:1px solid var(--border);border-radius:0.5rem;color:var(--text);font-size:0.95rem;">
                 <button type="submit" class="btn btn-primary">Download PDF Report</button>
             </form>
-            <div class="download-complete" id="downloadComplete">? Report downloaded! Check your downloads folder.</div>
+            <div class="download-complete" id="downloadComplete">&#x2713; Report downloaded! Check your downloads folder.</div>
             
             <div style="margin-top:2rem;padding:1.5rem;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:1rem;text-align:center;max-width:420px;margin-left:auto;margin-right:auto;overflow:hidden;box-sizing:border-box;">
                 <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--accent);font-weight:600;margin-bottom:0.5rem;">Ready to fix this?</div>
@@ -284,8 +284,8 @@ function renderQuestion(idx) {
                 `).join('')}
             </div>
             <div class="nav-buttons">
-                <button class="btn btn-secondary" onclick="prevQ()" ${idx===0?'disabled':''}>? Back</button>
-                <button class="btn btn-primary" onclick="nextQ()" id="nextBtn" disabled>${idx===questions.length-1?'See My Score':'Next ?'}</button>
+                <button class="btn btn-secondary" onclick="prevQ()" ${idx===0?'disabled':''}>\u2190 Back</button>
+                <button class="btn btn-primary" onclick="nextQ()" id="nextBtn" disabled>${idx===questions.length-1?'See My Score':'Next \u2192'}</button>
             </div>
         </div>`;
 
@@ -401,11 +401,11 @@ function showResults() {
 
     scenariosList.innerHTML = highRisks.map(a => {
         const s = scenarioTexts[a.category];
-        return s ? `<div class="scenario-item"><h4>?? ${s.title}</h4><p>${s.desc}</p></div>` : '';
+        return s ? `<div class="scenario-item"><h4>\u26A0\uFE0F ${s.title}</h4><p>${s.desc}</p></div>` : '';
     }).join('');
 
     if (highRisks.length === 0) {
-        scenariosList.innerHTML = '<div class="scenario-item"><h4>? Low Risk Profile</h4><p>Your business is well-positioned to operate independently. Focus on continuous improvement and succession planning.</p></div>';
+        scenariosList.innerHTML = '<div class="scenario-item"><h4>\u2705 Low Risk Profile</h4><p>Your business is well-positioned to operate independently. Focus on continuous improvement and succession planning.</p></div>';
     }
 
     window.depData = { totalScore, answers, cats, highRisks, verdict, scoreColor };
