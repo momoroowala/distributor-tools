@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <button class="btn btn-primary" onclick="analyze()">?? Analyze My Week</button>
+        <button class="btn btn-primary" onclick="analyze()">&#9889; Analyze My Week</button>
     </div>
 
     <div class="results-page" id="resultsPage">
@@ -136,13 +136,13 @@
         <div class="before-after">
             <h3>Your Week: Before vs After Automation</h3>
             <div class="ba-row">
-                <div class="ba-col before" id="beforeCol"><h4>?? Now</h4></div>
-                <div class="ba-col after" id="afterCol"><h4>?? After</h4></div>
+                <div class="ba-col before" id="beforeCol"><h4>&#128308; Now</h4></div>
+                <div class="ba-col after" id="afterCol"><h4>&#9989; After</h4></div>
             </div>
         </div>
 
         <div class="download-section">
-            <h3>?? Get Your Time Recovery Plan</h3>
+            <h3>&#128197; Get Your Time Recovery Plan</h3>
             <p>Detailed PDF with automation recommendations for each time-waster and your "life reclaimed" projection.</p>
             <form class="email-form" id="emailForm" onsubmit="handleDownload(event)" style="flex-direction:column;align-items:stretch;max-width:420px;margin:0 auto;gap:0.5rem;">
                 <div style="display:flex;gap:0.5rem;width:100%;">
@@ -377,8 +377,8 @@ function analyze() {
     // Before/After
     const bCol = document.getElementById('beforeCol');
     const aCol = document.getElementById('afterCol');
-    bCol.innerHTML = '<h4>?? Now</h4>';
-    aCol.innerHTML = '<h4>?? After</h4>';
+    bCol.innerHTML = '<h4>&#128308; Now</h4>';
+    aCol.innerHTML = '<h4>&#9989; After</h4>';
     breakdown.sort((a,b) => b.hours - a.hours).forEach(t => {
         bCol.innerHTML += `<div class="ba-stat"><span>${t.name}</span><span class="val">${t.hours}h</span></div>`;
         const after = (t.hours - t.saved).toFixed(1);
